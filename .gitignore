@@ -11,7 +11,9 @@ npm-debug.log*
 
 # Dependency directories
 node_modules
-jspm_packages/
+jspm_packages
+
+deno.lock
 
 # Optional npm cache directory
 .npm
