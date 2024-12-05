@@ -9,10 +9,11 @@ COPY . .
 
 
 
-
+# Regenerate the lockfile
+RUN deno cache --reload --import-map=import_map.json --allow-scripts .\main.ts
 # Expose the port that your Deno application will run on
 EXPOSE 8000
 
 # Run the Deno application
 
-CMD ["sh", "-c", "deno cache --reload --import-map=import_map.json --allow-scripts .\main.ts && deno run --import-map=import_map.json --allow-net --allow-env --allow-read main.ts"]
+CMD ["run","--import-map=import_map.json", "--allow-net","--allow-env", "--allow-read", "main.ts"]
