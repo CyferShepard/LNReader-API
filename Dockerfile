@@ -8,7 +8,7 @@ WORKDIR /app
 COPY . .
 
 # Regenerate the lockfile
-RUN deno cache --lock=deno.lock --lock-write main.ts
+RUN deno cache --import-map=import_map.json --lock=deno.lock --lock-write main.ts
 # Expose the port that your Deno application will run on
 EXPOSE 8000
 
