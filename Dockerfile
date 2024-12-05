@@ -6,6 +6,9 @@ WORKDIR /app
 
 # Copy the project files to the working directory
 COPY . .
+
+# Regenerate the lockfile
+RUN deno cache --lock=deno.lock --lock-write main.ts
 # Expose the port that your Deno application will run on
 EXPOSE 8000
 
