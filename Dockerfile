@@ -11,7 +11,7 @@ COPY . .
 
 # Regenerate the lockfile
 RUN rm -f deno.lock
-RUN deno cache --reload --import-map=import_map.json --allow-scripts .\main.ts
+RUN deno cache --reload --import-map=import_map.json .\main.ts
 # Expose the port that your Deno application will run on
 EXPOSE 8000
 
