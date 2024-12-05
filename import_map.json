@@ -1,0 +1,7 @@
+{
+  "imports": {
+    "@libs/": "./src/libs/",
+    "@plugins/": "./src/plugins/",
+    "@typings/": "./src/types/"
+  }
+}

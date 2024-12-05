@@ -1,0 +1,452 @@
+[
+  {
+    "source": "dilartube",
+    "language": "arabic",
+    "index": 0
+  },
+  {
+    "source": "rewayatclub",
+    "language": "arabic",
+    "index": 1
+  },
+  {
+    "source": "sunovels",
+    "language": "arabic",
+    "index": 2
+  },
+  {
+    "source": "69shu",
+    "language": "chinese",
+    "index": 3
+  },
+  {
+    "source": "69xinshu",
+    "language": "chinese",
+    "index": 4
+  },
+  {
+    "source": "linovelib",
+    "language": "chinese",
+    "index": 5
+  },
+  {
+    "source": "linovelib_tw",
+    "language": "chinese",
+    "index": 6
+  },
+  {
+    "source": "allnovelfull",
+    "language": "english",
+    "index": 7
+  },
+  {
+    "source": "ao3",
+    "language": "english",
+    "index": 8
+  },
+  {
+    "source": "bestlightnovel",
+    "language": "english",
+    "index": 9
+  },
+  {
+    "source": "divinedaolibrary",
+    "language": "english",
+    "index": 10
+  },
+  {
+    "source": "dreambigtl",
+    "language": "english",
+    "index": 11
+  },
+  {
+    "source": "earlynovel",
+    "language": "english",
+    "index": 12
+  },
+  {
+    "source": "faqwikius",
+    "language": "english",
+    "index": 13
+  },
+  {
+    "source": "foxteller",
+    "language": "english",
+    "index": 14
+  },
+  {
+    "source": "freewebnovel",
+    "language": "english",
+    "index": 15
+  },
+  {
+    "source": "genesis",
+    "language": "english",
+    "index": 16
+  },
+  {
+    "source": "LibRead",
+    "language": "english",
+    "index": 17
+  },
+  {
+    "source": "lightnovelpub",
+    "language": "english",
+    "index": 18
+  },
+  {
+    "source": "lnmtl",
+    "language": "english",
+    "index": 19
+  },
+  {
+    "source": "mtlreader",
+    "language": "english",
+    "index": 20
+  },
+  {
+    "source": "mvlempyr",
+    "language": "english",
+    "index": 21
+  },
+  {
+    "source": "novelbin",
+    "language": "english",
+    "index": 22
+  },
+  {
+    "source": "novelbuddy",
+    "language": "english",
+    "index": 23
+  },
+  {
+    "source": "novelfire",
+    "language": "english",
+    "index": 24
+  },
+  {
+    "source": "novelfull",
+    "language": "english",
+    "index": 25
+  },
+  {
+    "source": "novelhall",
+    "language": "english",
+    "index": 26
+  },
+  {
+    "source": "NovelOnline",
+    "language": "english",
+    "index": 27
+  },
+  {
+    "source": "novelupdates",
+    "language": "english",
+    "index": 28
+  },
+  {
+    "source": "pawread",
+    "language": "english",
+    "index": 29
+  },
+  {
+    "source": "rainofsnow",
+    "language": "english",
+    "index": 30
+  },
+  {
+    "source": "readlitenovel",
+    "language": "english",
+    "index": 31
+  },
+  {
+    "source": "relibrary",
+    "language": "english",
+    "index": 32
+  },
+  {
+    "source": "royalroad",
+    "language": "english",
+    "index": 33
+  },
+  {
+    "source": "scribblehub",
+    "language": "english",
+    "index": 34
+  },
+  {
+    "source": "StorySeedling",
+    "language": "english",
+    "index": 35
+  },
+  {
+    "source": "vynovel",
+    "language": "english",
+    "index": 36
+  },
+  {
+    "source": "webnovel",
+    "language": "english",
+    "index": 37
+  },
+  {
+    "source": "wtrlab",
+    "language": "english",
+    "index": 38
+  },
+  {
+    "source": "wuxiaworld",
+    "language": "english",
+    "index": 39
+  },
+  {
+    "source": "chireads",
+    "language": "french",
+    "index": 40
+  },
+  {
+    "source": "harkeneliwood",
+    "language": "french",
+    "index": 41
+  },
+  {
+    "source": "kisswood",
+    "language": "french",
+    "index": 42
+  },
+  {
+    "source": "noveldeglace",
+    "language": "french",
+    "index": 43
+  },
+  {
+    "source": "novhell",
+    "language": "french",
+    "index": 44
+  },
+  {
+    "source": "phenixscans",
+    "language": "french",
+    "index": 45
+  },
+  {
+    "source": "warriorlegendtrad",
+    "language": "french",
+    "index": 46
+  },
+  {
+    "source": "wuxialnscantrad",
+    "language": "french",
+    "index": 47
+  },
+  {
+    "source": "xiaowaz",
+    "language": "french",
+    "index": 48
+  },
+  {
+    "source": "indowebnovel",
+    "language": "indonesian",
+    "index": 49
+  },
+  {
+    "source": "novelringan",
+    "language": "indonesian",
+    "index": 50
+  },
+  {
+    "source": "sakuranovel",
+    "language": "indonesian",
+    "index": 51
+  },
+  {
+    "source": "kakuyomu",
+    "language": "japanese",
+    "index": 52
+  },
+  {
+    "source": "Syosetu",
+    "language": "japanese",
+    "index": 53
+  },
+  {
+    "source": "Agitoon",
+    "language": "korean",
+    "index": 54
+  },
+  {
+    "source": "komga",
+    "language": "multi",
+    "index": 55
+  },
+  {
+    "source": "novelki",
+    "language": "polish",
+    "index": 56
+  },
+  {
+    "source": "blogdoamonnovels",
+    "language": "portuguese",
+    "index": 57
+  },
+  {
+    "source": "novelmania",
+    "language": "portuguese",
+    "index": 58
+  },
+  {
+    "source": "tsundoku",
+    "language": "portuguese",
+    "index": 59
+  },
+  {
+    "source": "authortoday",
+    "language": "russian",
+    "index": 60
+  },
+  {
+    "source": "bookriver",
+    "language": "russian",
+    "index": 61
+  },
+  {
+    "source": "ficbook",
+    "language": "russian",
+    "index": 62
+  },
+  {
+    "source": "jaomix",
+    "language": "russian",
+    "index": 63
+  },
+  {
+    "source": "LitSpace",
+    "language": "russian",
+    "index": 64
+  },
+  {
+    "source": "neobook",
+    "language": "russian",
+    "index": 65
+  },
+  {
+    "source": "novelOvh",
+    "language": "russian",
+    "index": 66
+  },
+  {
+    "source": "novelTL",
+    "language": "russian",
+    "index": 67
+  },
+  {
+    "source": "ranobehub",
+    "language": "russian",
+    "index": 68
+  },
+  {
+    "source": "ranobelib",
+    "language": "russian",
+    "index": 69
+  },
+  {
+    "source": "ranoberf",
+    "language": "russian",
+    "index": 70
+  },
+  {
+    "source": "renovels",
+    "language": "russian",
+    "index": 71
+  },
+  {
+    "source": "ruvers",
+    "language": "russian",
+    "index": 72
+  },
+  {
+    "source": "topliba",
+    "language": "russian",
+    "index": 73
+  },
+  {
+    "source": "zelluloza",
+    "language": "russian",
+    "index": 74
+  },
+  {
+    "source": "hasutl",
+    "language": "spanish",
+    "index": 75
+  },
+  {
+    "source": "novelasligera",
+    "language": "spanish",
+    "index": 76
+  },
+  {
+    "source": "novelawuxia",
+    "language": "spanish",
+    "index": 77
+  },
+  {
+    "source": "oasistranslations",
+    "language": "spanish",
+    "index": 78
+  },
+  {
+    "source": "skynovels",
+    "language": "spanish",
+    "index": 79
+  },
+  {
+    "source": "tunovelaligera",
+    "language": "spanish",
+    "index": 80
+  },
+  {
+    "source": "yukitls",
+    "language": "spanish",
+    "index": 81
+  },
+  {
+    "source": "epiknovel",
+    "language": "turkish",
+    "index": 82
+  },
+  {
+    "source": "smakolykytl",
+    "language": "ukrainian",
+    "index": 83
+  },
+  {
+    "source": "lightnovelvn",
+    "language": "vietnamese",
+    "index": 84
+  },
+  {
+    "source": "LNHako",
+    "language": "vietnamese",
+    "index": 85
+  },
+  {
+    "source": "nettruyen",
+    "language": "vietnamese",
+    "index": 86
+  },
+  {
+    "source": "truyenchu",
+    "language": "vietnamese",
+    "index": 87
+  },
+  {
+    "source": "Truyenconect",
+    "language": "vietnamese",
+    "index": 88
+  },
+  {
+    "source": "truyenfull",
+    "language": "vietnamese",
+    "index": 89
+  }
+]
