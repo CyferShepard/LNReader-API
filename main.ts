@@ -6,12 +6,12 @@ const sourceMapFilePath = resolve(Deno.cwd(), "sourceMap.json");
 
 const app = new Application();
 const router = new Router();
-let sourceMap: { source: string; index: number }[] = [];
+let sourceMap: { source: string; language: string; index: number }[] = [];
 
 async function getSource(source: string) {
   if (sourceMap.length === 0) {
     const fileContent = await Deno.readTextFile(sourceMapFilePath);
-    sourceMap = JSON.parse(fileContent) as { source: string; index: number }[];
+    sourceMap = JSON.parse(fileContent) as { source: string; language: string; index: number }[];
   }
 
   return sourceMap.find((s) => s.source === source);
@@ -19,6 +19,19 @@ async function getSource(source: string) {
 
 router.get("/", (context) => {
   context.response.body = "Hello, world!";
+});
+
+router.get("/sources", async (context) => {
+  const language = context.request.url.searchParams.get("language");
+  if (sourceMap.length === 0) {
+    await getSource("");
+  }
+
+  context.response.body = sourceMap
+    .filter((s) => s.language == language || !language)
+    .map((s) => {
+      return { source: s.source, language: s.language };
+    });
 });
 
 router.post("/search", async (context) => {

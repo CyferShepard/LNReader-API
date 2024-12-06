@@ -16,4 +16,4 @@ EXPOSE 8000
 
 # Run the Deno application
 
-CMD ["run","--import-map=import_map.json", "--allow-net","--allow-env", "--allow-read", "main.ts"]
+CMD ["run","start"]
