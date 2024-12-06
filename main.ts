@@ -25,7 +25,15 @@ let sourceMap: { source: string; name: string; icon: string; site: string; langu
 async function getSource(source: string) {
   if (sourceMap.length === 0) {
     const fileContent = await Deno.readTextFile(sourceMapFilePath);
-    sourceMap = JSON.parse(fileContent) as { source: string; language: string; index: number }[];
+    sourceMap = JSON.parse(fileContent) as {
+      source: string;
+      name: string;
+      icon: string;
+      site: string;
+      language: string;
+      version: string;
+      index: number;
+    }[];
   }
 
   return sourceMap.find((s) => s.source === source);
