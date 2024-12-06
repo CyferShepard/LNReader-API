@@ -1,452 +1,811 @@
 [
   {
     "source": "dilartube",
+    "name": "dilar tube",
+    "icon": "src/ar/dilartube/icon.png",
+    "site": "https://golden.rest/",
     "language": "arabic",
+    "version": "1.0.1",
     "index": 0
   },
   {
     "source": "rewayatclub",
+    "name": "Rewayat Club",
+    "icon": "src/ar/rewayatclub/icon.png",
+    "site": "https://rewayat.club/",
     "language": "arabic",
+    "version": "1.0.1",
     "index": 1
   },
   {
     "source": "sunovels",
+    "name": "Sunovels",
+    "icon": "src/ar/sunovels/icon.png",
+    "site": "https://sunovels.com/",
     "language": "arabic",
+    "version": "1.0.0",
     "index": 2
   },
   {
     "source": "69shu",
+    "name": "69书吧",
+    "icon": "src/cn/69shu/icon.png",
+    "site": "https://www.69shu.xyz",
     "language": "chinese",
+    "version": "0.2.0",
     "index": 3
   },
   {
     "source": "69xinshu",
+    "name": "69书吧",
+    "icon": "src/cn/69xinshu/icon.png",
+    "site": "https://69shu.biz",
     "language": "chinese",
+    "version": "0.1.2",
     "index": 4
   },
   {
     "source": "linovelib",
+    "name": "Linovelib",
+    "icon": "src/cn/linovelib/icon.png",
+    "site": "https://www.bilinovel.com",
     "language": "chinese",
+    "version": "1.1.3",
     "index": 5
   },
   {
     "source": "linovelib_tw",
+    "name": "Linovelib(繁體)",
+    "icon": "src/cn/linovelib/icon.png",
+    "site": "https://tw.linovelib.com/",
     "language": "chinese",
+    "version": "1.0.0",
     "index": 6
   },
   {
     "source": "allnovelfull",
+    "name": "AllNovelFull",
+    "icon": "src/en/allnovelfull/icon.png",
+    "site": "https://allnovelfull.net",
     "language": "english",
+    "version": "1.0.0",
     "index": 7
   },
   {
     "source": "ao3",
+    "name": "Archive Of Our Own",
+    "icon": "src/en/ao3/icon.png",
+    "site": "https://archiveofourown.org/",
     "language": "english",
+    "version": "1.0.2",
     "index": 8
   },
   {
     "source": "bestlightnovel",
+    "name": "BestLightNovel",
+    "icon": "src/en/bestlightnovel/icon.png",
+    "site": "https://bestlightnovel.com/",
     "language": "english",
+    "version": "1.0.0",
     "index": 9
   },
   {
     "source": "divinedaolibrary",
+    "name": "Divine Dao Library",
+    "icon": "src/en/divinedaolibrary/icon.png",
+    "site": "https://www.divinedaolibrary.com/",
     "language": "english",
+    "version": "1.1.0",
     "index": 10
   },
   {
     "source": "dreambigtl",
+    "name": "Dream Big Translations",
+    "icon": "src/en/dreambigtl/icon.png",
+    "site": "https://www.dreambigtl.com/",
     "language": "english",
+    "version": "1.0.0",
     "index": 11
   },
   {
     "source": "earlynovel",
+    "name": "Early Novel",
+    "icon": "src/en/earlynovel/icon.png",
+    "site": "https://earlynovel.net/",
     "language": "english",
+    "version": "1.0.0",
     "index": 12
   },
   {
     "source": "faqwikius",
+    "name": "Faq Wiki",
+    "icon": "src/en/faqwikius/icon.png",
+    "site": "https://www.faqwiki.us/",
     "language": "english",
+    "version": "2.0.0",
     "index": 13
   },
   {
     "source": "foxteller",
+    "name": "Foxteller",
+    "icon": "src/en/foxteller/icon.png",
+    "site": "https://www.foxteller.com",
     "language": "english",
+    "version": "1.0.2",
     "index": 14
   },
   {
     "source": "freewebnovel",
+    "name": "Free Web Novel",
+    "icon": "src/en/freewebnovel/icon.png",
+    "site": "https://freewebnovel.com",
     "language": "english",
+    "version": "1.0.3",
     "index": 15
   },
   {
     "source": "genesis",
+    "name": "Genesis",
+    "icon": "src/en/genesis/icon.png",
+    "site": "https://genesistudio.com",
     "language": "english",
+    "version": "1.0.5",
     "index": 16
   },
   {
     "source": "LibRead",
+    "name": "Lib Read",
+    "icon": "src/en/libread/icon.png",
+    "site": "https://libread.org",
     "language": "english",
+    "version": "1.0.0",
     "index": 17
   },
   {
     "source": "lightnovelpub",
+    "name": "LightNovelPub",
+    "icon": "src/en/lightnovelpub/icon.png",
+    "site": "https://www.lightnovelpub.com/",
     "language": "english",
+    "version": "2.1.0",
     "index": 18
   },
   {
     "source": "lnmtl",
+    "name": "LnMTL",
+    "icon": "src/en/lnmtl/icon.png",
+    "site": "https://lnmtl.com/",
     "language": "english",
+    "version": "2.0.0",
     "index": 19
   },
   {
     "source": "mtlreader",
+    "name": "MTL Reader",
+    "icon": "src/en/mtlreader/icon.png",
+    "site": "https://mtlreader.com/",
     "language": "english",
+    "version": "1.0.0",
     "index": 20
   },
   {
     "source": "mvlempyr",
+    "name": "MVLEMPYR",
+    "icon": "src/en/mvlempyr/icon.png",
+    "site": "https://www.mvlempyr.com/",
     "language": "english",
+    "version": "1.0.3",
     "index": 21
   },
   {
     "source": "novelbin",
+    "name": "Novel Bin",
+    "icon": "src/en/novelbin/icon.png",
+    "site": "https://novelbin.com/",
     "language": "english",
+    "version": "1.1.0",
     "index": 22
   },
   {
     "source": "novelbuddy",
+    "name": "NovelBuddy.io",
+    "icon": "src/en/novelbuddy/icon.png",
+    "site": "https://novelbuddy.io/",
     "language": "english",
+    "version": "1.0.1",
     "index": 23
   },
   {
     "source": "novelfire",
+    "name": "Novel Fire",
+    "icon": "src/en/novelfire/icon.png",
+    "site": "https://novelfire.net/",
     "language": "english",
+    "version": "1.0.1",
     "index": 24
   },
   {
     "source": "novelfull",
+    "name": "NovelFull",
+    "icon": "src/en/novelfull/icon.png",
+    "site": "https://novelfull.com/",
     "language": "english",
+    "version": "1.0.0",
     "index": 25
   },
   {
     "source": "novelhall",
+    "name": "Novel Hall",
+    "icon": "src/en/novelhall/icon.png",
+    "site": "https://novelhall.com/",
     "language": "english",
+    "version": "1.0.1",
     "index": 26
   },
   {
     "source": "NovelOnline",
+    "name": "novelsOnline",
+    "icon": "src/en/novelsonline/icon.png",
+    "site": "https://novelsonline.net",
     "language": "english",
+    "version": "1.0.0",
     "index": 27
   },
   {
     "source": "novelupdates",
+    "name": "Novel Updates",
+    "icon": "src/en/novelupdates/icon.png",
+    "site": "https://www.novelupdates.com/",
     "language": "english",
+    "version": "0.7.11",
     "index": 28
   },
   {
     "source": "pawread",
+    "name": "PawRead",
+    "icon": "src/en/pawread/icon.png",
+    "site": "https://m.pawread.com/",
     "language": "english",
+    "version": "2.0.0",
     "index": 29
   },
   {
     "source": "rainofsnow",
+    "name": "Rainofsnow",
+    "icon": "src/en/rainofsnow/icon.png",
+    "site": "https://rainofsnow.com/",
     "language": "english",
+    "version": "1.1.1",
     "index": 30
   },
   {
     "source": "readlitenovel",
+    "name": "ReadLiteNovel",
+    "icon": "src/en/readlitenovel/icon.png",
+    "site": "https://rln.app",
     "language": "english",
+    "version": "1.0.0",
     "index": 31
   },
   {
     "source": "relibrary",
+    "name": "Re:Library",
+    "icon": "src/en/relibrary/icon.png",
+    "site": "https://re-library.com",
     "language": "english",
+    "version": "1.0.0",
     "index": 32
   },
   {
     "source": "royalroad",
+    "name": "Royal Road",
+    "icon": "src/en/royalroad/icon.png",
+    "site": "https://www.royalroad.com/",
     "language": "english",
+    "version": "2.1.2",
     "index": 33
   },
   {
     "source": "scribblehub",
+    "name": "Scribble Hub",
+    "icon": "src/en/scribblehub/icon.png",
+    "site": "https://www.scribblehub.com/",
     "language": "english",
+    "version": "1.0.1",
     "index": 34
   },
   {
     "source": "StorySeedling",
+    "name": "StorySeedling",
+    "icon": "src/en/storyseedling/icon.png",
+    "site": "https://storyseedling.com/",
     "language": "english",
+    "version": "1.0.2",
     "index": 35
   },
   {
     "source": "vynovel",
+    "name": "VyNovel",
+    "icon": "src/en/vynovel/icon.png",
+    "site": "https://vynovel.com",
     "language": "english",
+    "version": "1.0.0",
     "index": 36
   },
   {
     "source": "webnovel",
+    "name": "Webnovel",
+    "icon": "src/en/webnovel/icon.png",
+    "site": "https://www.webnovel.com",
     "language": "english",
+    "version": "1.0.0",
     "index": 37
   },
   {
     "source": "wtrlab",
+    "name": "WTR-LAB",
+    "icon": "src/en/wtrlab/icon.png",
+    "site": "https://wtr-lab.com/",
     "language": "english",
+    "version": "1.0.1",
     "index": 38
   },
   {
     "source": "wuxiaworld",
+    "name": "Wuxia World",
+    "icon": "src/en/wuxiaworld/icon.png",
+    "site": "https://www.wuxiaworld.com/",
     "language": "english",
+    "version": "0.5.0",
     "index": 39
   },
   {
     "source": "chireads",
+    "name": "Chireads",
+    "icon": "src/fr/chireads/icon.png",
+    "site": "https://chireads.com",
     "language": "french",
+    "version": "1.0.2",
     "index": 40
   },
   {
     "source": "harkeneliwood",
+    "name": "HarkenEliwood",
+    "icon": "src/fr/harkeneliwood/icon.png",
+    "site": "https://harkeneliwood.wordpress.com",
     "language": "french",
+    "version": "1.0.0",
     "index": 41
   },
   {
     "source": "kisswood",
+    "name": "KissWood",
+    "icon": "src/fr/kisswood/icon.png",
+    "site": "https://kisswood.eu",
     "language": "french",
+    "version": "1.0.0",
     "index": 42
   },
   {
     "source": "noveldeglace",
+    "name": "NovelDeGlace",
+    "icon": "src/fr/noveldeglace/icon.png",
+    "site": "https://noveldeglace.com/",
     "language": "french",
+    "version": "1.0.3",
     "index": 43
   },
   {
     "source": "novhell",
+    "name": "Novhell",
+    "icon": "src/fr/novhell/icon.png",
+    "site": "https://novhell.org",
     "language": "french",
+    "version": "1.0.1",
     "index": 44
   },
   {
     "source": "phenixscans",
+    "name": "PhenixScans",
+    "icon": "src/fr/phenixscans/icon.png",
+    "site": "https://phenixscans.fr",
     "language": "french",
+    "version": "1.0.1",
     "index": 45
   },
   {
     "source": "warriorlegendtrad",
+    "name": "Warrior Legend Trad",
+    "icon": "src/fr/warriorlegendtrad/icon.png",
+    "site": "https://warriorlegendtrad.fr",
     "language": "french",
+    "version": "1.0.0",
     "index": 46
   },
   {
     "source": "wuxialnscantrad",
+    "name": "WuxiaLnScantrad",
+    "icon": "src/fr/wuxialnscantrad/icon.png",
+    "site": "https://wuxialnscantrad.wordpress.com",
     "language": "french",
+    "version": "1.0.0",
     "index": 47
   },
   {
     "source": "xiaowaz",
+    "name": "Xiaowaz",
+    "icon": "src/fr/xiaowaz/icon.png",
+    "site": "https://xiaowaz.fr",
     "language": "french",
+    "version": "1.0.1",
     "index": 48
   },
   {
     "source": "indowebnovel",
+    "name": "IndoWebNovel",
+    "icon": "src/id/indowebnovel/icon.png",
+    "site": "https://indowebnovel.id/",
     "language": "indonesian",
+    "version": "1.2.3",
     "index": 49
   },
   {
     "source": "novelringan",
+    "name": "NovelRingan",
+    "icon": "src/id/novelringan/icon.png",
+    "site": "https://novelringan.com/",
     "language": "indonesian",
+    "version": "1.0.0",
     "index": 50
   },
   {
     "source": "sakuranovel",
+    "name": "SakuraNovel",
+    "icon": "src/id/sakuranovel/icon.png",
+    "site": "https://sakuranovel.id/",
     "language": "indonesian",
+    "version": "1.0.1",
     "index": 51
   },
   {
     "source": "kakuyomu",
+    "name": "kakuyomu",
+    "icon": "src/jp/kakuyomu/icon.png",
+    "site": "https://kakuyomu.jp",
     "language": "japanese",
+    "version": "1.0.0",
     "index": 52
   },
   {
     "source": "Syosetu",
+    "name": "Syosetu",
+    "icon": "src/jp/syosetu/icon.png",
+    "site": "https://yomou.syosetu.com/",
     "language": "japanese",
+    "version": "1.1.2",
     "index": 53
   },
   {
     "source": "Agitoon",
+    "name": "Agitoon",
+    "icon": "src/kr/agitoon/icon.png",
+    "site": "https://agit664.xyz",
     "language": "korean",
+    "version": "3.1.0",
     "index": 54
   },
   {
     "source": "komga",
+    "name": "Komga",
+    "icon": "src/multi/komga/icon.png",
     "language": "multi",
+    "version": "1.0.0",
     "index": 55
   },
   {
     "source": "novelki",
+    "name": "Novelki",
+    "icon": "src/pl/novelki/icon.png",
+    "site": "https://novelki.pl",
     "language": "polish",
+    "version": "1.0.3",
     "index": 56
   },
   {
     "source": "blogdoamonnovels",
+    "name": "Blog do Amon Novels",
+    "icon": "src/pt-br/blogdoamonnovels/icon.png",
+    "site": "https://www.blogdoamonnovels.com",
     "language": "portuguese",
+    "version": "1.0.0",
     "index": 57
   },
   {
     "source": "novelmania",
+    "name": "Novel Mania",
+    "icon": "src/pt-br/novelmania/icon.png",
+    "site": "https://novelmania.com.br",
     "language": "portuguese",
+    "version": "1.0.0",
     "index": 58
   },
   {
     "source": "tsundoku",
+    "name": "Tsundoku Traduções",
+    "icon": "src/pt-br/tsundoku/icon.png",
+    "site": "https://tsundoku.com.br",
     "language": "portuguese",
+    "version": "1.0.1",
     "index": 59
   },
   {
     "source": "authortoday",
+    "name": "Автор Тудей",
+    "icon": "src/ru/authortoday/icon.png",
+    "site": "https://author.today",
     "language": "russian",
+    "version": "1.1.1",
     "index": 60
   },
   {
     "source": "bookriver",
+    "name": "Bookriver",
+    "icon": "src/ru/bookriver/icon.png",
+    "site": "https://bookriver.ru",
     "language": "russian",
+    "version": "1.0.1",
     "index": 61
   },
   {
     "source": "ficbook",
+    "name": "ficbook",
+    "icon": "src/ru/ficbook/icon.png",
+    "site": "https://ficbook.net",
     "language": "russian",
+    "version": "1.0.1",
     "index": 62
   },
   {
     "source": "jaomix",
+    "name": "Jaomix",
+    "icon": "src/ru/jaomix/icon.png",
+    "site": "https://jaomix.ru",
     "language": "russian",
+    "version": "1.0.0",
     "index": 63
   },
   {
     "source": "LitSpace",
+    "name": "LitSpace",
+    "icon": "src/ru/freedlit/icon.png",
+    "site": "https://freedlit.space",
     "language": "russian",
+    "version": "1.0.0",
     "index": 64
   },
   {
     "source": "neobook",
+    "name": "Neobook",
+    "icon": "src/ru/neobook/icon.png",
+    "site": "https://neobook.org",
     "language": "russian",
+    "version": "1.0.1",
     "index": 65
   },
   {
     "source": "novelOvh",
+    "name": "НовелОВХ",
+    "icon": "src/ru/novelovh/icon.png",
+    "site": "https://novel.ovh",
     "language": "russian",
+    "version": "1.0.2",
     "index": 66
   },
   {
     "source": "novelTL",
+    "name": "NovelTL",
+    "icon": "src/ru/noveltl/icon.png",
+    "site": "https://novel.tl",
     "language": "russian",
+    "version": "1.0.1",
     "index": 67
   },
   {
     "source": "ranobehub",
+    "name": "RanobeHub",
+    "icon": "src/ru/ranobehub/icon.png",
+    "site": "https://ranobehub.org",
     "language": "russian",
+    "version": "1.0.2",
     "index": 68
   },
   {
     "source": "ranobelib",
+    "name": "RanobeLib",
+    "icon": "src/ru/ranobelib/icon.png",
+    "site": "https://ranobelib.me",
     "language": "russian",
+    "version": "2.1.2",
     "index": 69
   },
   {
     "source": "ranoberf",
+    "name": "РанобэРФ",
+    "icon": "src/ru/ranoberf/icon.png",
+    "site": "https://ранобэ.рф",
     "language": "russian",
+    "version": "1.0.1",
     "index": 70
   },
   {
     "source": "renovels",
+    "name": "Renovels",
+    "icon": "src/ru/renovels/icon.png",
+    "site": "https://renovels.org",
     "language": "russian",
+    "version": "1.0.1",
     "index": 71
   },
   {
     "source": "ruvers",
+    "name": "Ruvers",
+    "icon": "src/ru/ruvers/icon.png",
+    "site": "https://ruvers.ru/",
     "language": "russian",
+    "version": "1.0.0",
     "index": 72
   },
   {
     "source": "topliba",
+    "name": "ТопЛиба",
+    "icon": "src/ru/topliba/icon.png",
+    "site": "https://topliba.com",
     "language": "russian",
+    "version": "1.0.0",
     "index": 73
   },
   {
     "source": "zelluloza",
+    "name": "Целлюлоза",
+    "icon": "src/ru/zelluloza/icon.png",
+    "site": "https://zelluloza.ru",
     "language": "russian",
+    "version": "1.0.2",
     "index": 74
   },
   {
     "source": "hasutl",
+    "name": "Hasu Translations",
+    "icon": "src/es/hasutl/icon.jpg",
+    "site": "https://hasutl.wordpress.com/",
     "language": "spanish",
+    "version": "1.0.0",
     "index": 75
   },
   {
     "source": "novelasligera",
+    "name": "Novelas Ligera",
+    "icon": "src/es/novelasligera/icon.png",
+    "site": "https://novelasligera.com/",
     "language": "spanish",
+    "version": "1.0.0",
     "index": 76
   },
   {
     "source": "novelawuxia",
+    "name": "ReinoWuxia",
+    "icon": "src/es/reinowuxia/icon.png",
+    "site": "http://www.reinowuxia.com/",
     "language": "spanish",
+    "version": "1.0.0",
     "index": 77
   },
   {
     "source": "oasistranslations",
+    "name": "Oasis Translations",
+    "icon": "src/es/oasistranslations/icon.png",
+    "site": "https://oasistranslations.wordpress.com/",
     "language": "spanish",
+    "version": "1.0.0",
     "index": 78
   },
   {
     "source": "skynovels",
+    "name": "SkyNovels",
+    "icon": "src/es/skynovels/icon.png",
+    "site": "https://www.skynovels.net/",
     "language": "spanish",
+    "version": "1.0.0",
     "index": 79
   },
   {
     "source": "tunovelaligera",
+    "name": "TuNovelaLigera",
+    "icon": "src/es/tunovelaligera/icon.png",
+    "site": "https://tunovelaligera.com",
     "language": "spanish",
+    "version": "1.1.0",
     "index": 80
   },
   {
     "source": "yukitls",
+    "name": "Yuuki Tls",
+    "icon": "src/es/yuukitls/icon.png",
+    "site": "https://yuukitls.com/",
     "language": "spanish",
+    "version": "1.0.0",
     "index": 81
   },
   {
     "source": "epiknovel",
+    "name": "EpikNovel",
+    "icon": "src/tr/epiknovel/icon.png",
+    "site": "https://www.epiknovel.com/",
     "language": "turkish",
+    "version": "1.0.0",
     "index": 82
   },
   {
     "source": "smakolykytl",
+    "name": "Смаколики",
+    "icon": "src/uk/smakolykytl/icon.png",
+    "site": "https://smakolykytl.site/",
     "language": "ukrainian",
+    "version": "1.0.1",
     "index": 83
   },
   {
     "source": "lightnovelvn",
+    "name": "Light Novel VN",
+    "icon": "src/vi/lightnovelvn/icon.png",
+    "site": "https://lightnovel.vn",
     "language": "vietnamese",
+    "version": "1.0.0",
     "index": 84
   },
   {
     "source": "LNHako",
+    "name": "Hako",
+    "icon": "src/vi/hakolightnovel/icon.png",
+    "site": "https://ln.hako.vn",
     "language": "vietnamese",
+    "version": "1.1.0",
     "index": 85
   },
   {
     "source": "nettruyen",
+    "name": "Nettruyen",
+    "icon": "src/vi/nettruyen/icon.png",
+    "site": "https://nettruyen.com.vn",
     "language": "vietnamese",
+    "version": "1.0.0",
     "index": 86
   },
   {
     "source": "truyenchu",
+    "name": "Truyện Chữ",
+    "icon": "src/vi/truyenchu/icon.png",
+    "site": "https://truyenchu.vn",
     "language": "vietnamese",
+    "version": "1.0.0",
     "index": 87
   },
   {
     "source": "Truyenconect",
+    "name": "Truyen Conect",
+    "icon": "src/vi/truyenconect/icon.png",
+    "site": "https://truyenconect.com",
     "language": "vietnamese",
+    "version": "1.0.0",
     "index": 88
   },
   {
     "source": "truyenfull",
+    "name": "Truyện Full",
+    "icon": "src/vi/truyenfull/icon.png",
+    "site": "https://truyenfull.vn",
     "language": "vietnamese",
+    "version": "1.0.0",
     "index": 89
   }
 ]
