@@ -9,6 +9,8 @@ import { create, verify, getNumericDate } from "https://deno.land/x/djwt/mod.ts"
 import { User } from "./src/schemas/users.ts";
 import { History } from "./src/schemas/history.ts";
 import { Favourite } from "./src/schemas/favourites.ts";
+import { Novel } from "./src/schemas/novels.ts";
+import { Chapter } from "./src/schemas/chapters.ts";
 
 const sourceMapFilePath = resolve(Deno.cwd(), "sourceMap.json");
 const SECRET_KEY = await crypto.subtle.generateKey(
@@ -177,6 +179,11 @@ router.get("/getSources", authMiddleware, async (context) => {
 router.post("/searchNovel", authMiddleware, async (context) => {
   const { source, searchTerm, page = 1 } = await context.request.body.json();
 
+  if (!source || !searchTerm) {
+    context.response.body = { error: "Source and Search Term are required" };
+    return;
+  }
+
   const findSourceIndex = await getSource(source);
   if (!findSourceIndex) {
     context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.source) };
@@ -190,10 +197,18 @@ router.post("/searchNovel", authMiddleware, async (context) => {
 
 router.post("/getPopular", authMiddleware, async (context) => {
   const { source, page = 1, showLatestNovels = true } = await context.request.body.json();
+
+  if (!source) {
+    context.response.body = { error: "Source is required" };
+    context.response.status = 400;
+    return;
+  }
+
   const findSourceIndex = await getSource(source);
 
   if (!findSourceIndex) {
     context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.source) };
+    context.response.status = 400;
     return;
   }
 
@@ -206,6 +221,12 @@ router.post("/getPopular", authMiddleware, async (context) => {
 
 router.post("/novel", authMiddleware, async (context) => {
   const { source, path } = await context.request.body.json();
+
+  if (!source || !path) {
+    context.response.body = { error: "Source and Path are required" };
+    context.response.status = 400;
+    return;
+  }
 
   const findSourceIndex = await getSource(source);
 
@@ -222,6 +243,12 @@ router.post("/novel", authMiddleware, async (context) => {
   const sourcePlugin = PLUGINS[findSourceIndex.index];
 
   const response = await sourcePlugin.parseNovel(path);
+
+  if (response == null) {
+    context.response.body = { error: "Novel not found" };
+    context.response.status = 404;
+    return;
+  }
 
   context.response.body = response;
 });
@@ -288,19 +315,48 @@ router.post("/history", authMiddleware, async (context) => {
 //Favourites
 router.get("/favourites", authMiddleware, async (context) => {
   const path = context.request.url.searchParams.get("path");
-  const response = await dbSqLiteHandler.getFavourites(context.state.user.username, path);
+  if (path != null) {
+    const novel = await dbSqLiteHandler.getNovelByPath(path);
+    return (context.response.body = novel);
+  }
 
-  context.response.body = response;
-});
+  const response: Favourite[] | null = await dbSqLiteHandler.getFavourites(context.state.user.username);
 
-router.post("/favourites", authMiddleware, async (context) => {
-  const { path } = await context.request.body.json();
-
-  if (!path) {
-    context.response.body = { error: "All Fields are required" };
+  if (!response) {
+    context.response.body = [];
     return;
   }
 
+  const novels = await dbSqLiteHandler.getNovelsByPath(response.map((fav) => fav.path));
+
+  context.response.body = novels;
+});
+
+router.post("/favourites", authMiddleware, async (context) => {
+  const { source, path } = await context.request.body.json();
+
+  if (!path || !source) {
+    context.response.body = { error: "All Fields are required" };
+    context.response.status = 400;
+    return;
+  }
+
+  const findSourceIndex = await getSource(source);
+  if (findSourceIndex != null) {
+    const sourcePlugin = PLUGINS[findSourceIndex.index];
+
+    const response = await sourcePlugin.parseNovel(path);
+
+    const novelData = new Novel(
+      source,
+      response["name"],
+      path,
+      response["cover"],
+      response["summary"],
+      response["chapters"].map((c: any) => Chapter.fromResult(c))
+    );
+    await dbSqLiteHandler.insertNovel(novelData);
+  }
   const favourite: Favourite = new Favourite(path, "", new Date(), context.state.user.username);
 
   await dbSqLiteHandler.insertFavourite(favourite);

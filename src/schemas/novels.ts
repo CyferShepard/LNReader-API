@@ -1,12 +1,14 @@
+import { Chapter } from "./chapters.ts";
+
 export class Novel {
   source: string;
   name: string;
   path: string;
   cover: string;
   summary: string;
-  chapters: string[];
+  chapters: Chapter[];
 
-  constructor(source: string, name: string, path: string, cover: string, summary: string, chapters: string[]) {
+  constructor(source: string, name: string, path: string, cover: string, summary: string, chapters: Chapter[]) {
     this.source = source;
     this.name = name;
     this.path = path;
@@ -16,7 +18,14 @@ export class Novel {
   }
 
   static fromResult(data: any): Novel {
-    return new Novel(data.source, data.name, data.path, data.cover, data.summary, JSON.parse(data.chapters));
+    return new Novel(
+      data.source,
+      data.name,
+      data.path,
+      data.cover,
+      data.summary,
+      JSON.parse(data.chapters).map((chapter: any) => Chapter.fromResult(chapter))
+    );
   }
 
   toJSON(): object {
@@ -26,7 +35,7 @@ export class Novel {
       path: this.path,
       cover: this.cover,
       summary: this.summary,
-      chapters: this.chapters,
+      chapters: this.chapters.map((chapter: Chapter) => chapter.toJSON()),
     };
   }
 }

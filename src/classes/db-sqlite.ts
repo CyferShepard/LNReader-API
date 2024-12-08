@@ -1,4 +1,5 @@
 import { Chapter } from "../schemas/chapters.ts";
+import type { ChapterWithContent } from "../schemas/chaptersWithContent.ts";
 import { Favourite } from "../schemas/favourites.ts";
 import { History } from "../schemas/history.ts";
 import { Novel } from "../schemas/novels.ts";
@@ -28,19 +29,19 @@ class DBSqLiteHandler {
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS history (
-      user TEXT,
+      username TEXT,
       path TEXT,
       last_read TEXT,
       page INTEGER,
       position INTEGER,
-      PRIMARY KEY (user, path)
+      PRIMARY KEY (username, path)
       )
     `);
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS favourites (
         path TEXT  PRIMARY KEY,
-        user TEXT,
+        username TEXT,
         date_added TEXT,
         cover TEXT
       )
@@ -75,7 +76,7 @@ class DBSqLiteHandler {
 
   //insert
 
-  public async insertChapter(chapter: Chapter) {
+  public async insertChapter(chapter: ChapterWithContent) {
     if (!this.db) {
       await this.initialize();
     }
@@ -89,7 +90,7 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT INTO novels VALUES (:source,:name,:path,:cover,:summary,:chapters)");
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO novels VALUES (:source,:name,:path,:cover,:summary,:chapters)");
 
     stmt.run({
       source: novel.source,
@@ -115,7 +116,7 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT OR REPLACE INTO favourites VALUES (:username,:path. :cover,:date_added)");
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO favourites VALUES (:path,:username,:date_added, :cover)");
     stmt.run({ username: favourite.username, path: favourite.path, cover: favourite.cover, date_added: favourite.date_added });
   }
 
@@ -183,6 +184,32 @@ class DBSqLiteHandler {
     }
   }
 
+  public async getNovelByPath(path: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("SELECT * FROM novels WHERE path=:path");
+    const result: any = stmt.get({ path: path });
+
+    if (result) {
+      return Novel.fromResult(result);
+    }
+  }
+  public async getNovelsByPath(path: string[]) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const placeholders = path.map(() => "?").join(",");
+    const stmt = this.db!.prepare(`SELECT * FROM novels WHERE path in (${placeholders})`);
+    const result: any = stmt.all(...path);
+
+    if (result && result.length > 0) {
+      return result.map((r: any) => Novel.fromResult(r));
+    }
+  }
+
   public async getChaptersForNovel(path: string) {
     if (!this.db) {
       await this.initialize();
@@ -197,7 +224,7 @@ class DBSqLiteHandler {
       const placeholders = novelResult.chapters.map(() => "?").join(",");
 
       const stmt = this.db!.prepare(`SELECT * FROM chapters WHERE path in (${placeholders})`);
-      const results = stmt.all(...novelResult.chapters);
+      const results = stmt.all(...novelResult.chapters.map((chapter) => chapter.path));
 
       return results.map((result: any) => Chapter.fromResult(result));
     }
@@ -233,7 +260,7 @@ class DBSqLiteHandler {
     }
 
     if (path) {
-      const stmt = this.db!.prepare("SELECT * FROM history WHERE user=:username AND path=:path");
+      const stmt = this.db!.prepare("SELECT * FROM history WHERE username=:username AND path=:path");
       const result: any = stmt.get({ username: username, path: path });
 
       if (result) {
@@ -243,29 +270,18 @@ class DBSqLiteHandler {
       return null;
     }
 
-    const stmt = this.db!.prepare("SELECT * FROM history WHERE user=:username");
+    const stmt = this.db!.prepare("SELECT * FROM history WHERE username=:username");
     const results = stmt.all({ username: username });
 
     return results.map((result: any) => History.fromResult(result));
   }
 
-  public async getFavourites(username: string, path: string | null) {
+  public async getFavourites(username: string) {
     if (!this.db) {
       await this.initialize();
     }
 
-    if (path) {
-      const stmt = this.db!.prepare("SELECT * FROM favourites WHERE user=:username AND path=:path");
-      const result: any = stmt.get({ username: username, path: path });
-
-      if (result) {
-        return Favourite.fromResult(result);
-      }
-
-      return null;
-    }
-
-    const stmt = this.db!.prepare("SELECT * FROM favourites WHERE user=:username");
+    const stmt = this.db!.prepare("SELECT * FROM favourites WHERE username=:username");
     const results = stmt.all({ username: username });
 
     return results.map((result: any) => Favourite.fromResult(result));
