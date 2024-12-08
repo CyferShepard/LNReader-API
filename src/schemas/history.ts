@@ -13,18 +13,17 @@ export class History {
     this.username = username;
   }
 
-  static fromJSON(json: string): History {
-    const data = JSON.parse(json);
+  static fromResult(data: any): History {
     return new History(data.path, new Date(data.last_read), data.page, data.position, data.username);
   }
 
-  toJSON(): string {
-    return JSON.stringify({
+  toJSON(): object {
+    return {
       path: this.path,
       last_read: this.last_read.toISOString(),
       page: this.page,
       position: this.position,
       username: this.username,
-    });
+    };
   }
 }

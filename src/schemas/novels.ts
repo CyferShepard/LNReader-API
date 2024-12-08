@@ -15,19 +15,18 @@ export class Novel {
     this.chapters = chapters;
   }
 
-  static fromJSON(json: string): Novel {
-    const data = JSON.parse(json);
-    return new Novel(data.source, data.name, data.path, data.cover, data.summary, data.chapters);
+  static fromResult(data: any): Novel {
+    return new Novel(data.source, data.name, data.path, data.cover, data.summary, JSON.parse(data.chapters));
   }
 
-  toJSON(): string {
-    return JSON.stringify({
+  toJSON(): object {
+    return {
       source: this.source,
       name: this.name,
       path: this.path,
       cover: this.cover,
       summary: this.summary,
       chapters: this.chapters,
-    });
+    };
   }
 }

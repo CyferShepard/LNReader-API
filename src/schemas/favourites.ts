@@ -11,17 +11,16 @@ export class Favourite {
     this.username = username;
   }
 
-  static fromJSON(json: string): Favourite {
-    const data = JSON.parse(json);
+  static fromResult(data: any): Favourite {
     return new Favourite(data.path, data.cover, new Date(data.date_added), data.username);
   }
 
-  toJSON(): string {
-    return JSON.stringify({
+  toJSON(): object {
+    return {
       path: this.path,
       cover: this.cover,
       date_added: this.date_added.toISOString(),
       username: this.username,
-    });
+    };
   }
 }

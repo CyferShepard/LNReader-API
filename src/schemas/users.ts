@@ -9,16 +9,15 @@ export class User {
     this.userlevel = userlevel;
   }
 
-  static fromJSON(json: string): User {
-    const data = JSON.parse(json);
+  static fromResult(data: any): User {
     return new User(data.username, data.password, data.userlevel);
   }
 
-  toJSON(): string {
-    return JSON.stringify({
+  toJSON(): object {
+    return {
       username: this.username,
       password: this.password,
       userlevel: this.userlevel,
-    });
+    };
   }
 }

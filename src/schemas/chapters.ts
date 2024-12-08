@@ -9,16 +9,15 @@ export class Chapter {
     this.content = content;
   }
 
-  static fromJSON(json: string): Chapter {
-    const data = JSON.parse(json);
+  static fromResult(data: any): Chapter {
     return new Chapter(data.name, data.path, data.content);
   }
 
-  toJSON(): string {
-    return JSON.stringify({
+  toJSON(): object {
+    return {
       name: this.name,
       path: this.path,
       content: this.content,
-    });
+    };
   }
 }
