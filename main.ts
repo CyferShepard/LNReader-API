@@ -9,7 +9,7 @@ import { create, verify, getNumericDate } from "https://deno.land/x/djwt/mod.ts"
 import { User } from "./src/schemas/users.ts";
 import { History } from "./src/schemas/history.ts";
 import { Favourite } from "./src/schemas/favourites.ts";
-import { Novel } from "./src/schemas/novels.ts";
+import { NovelMeta } from "./src/schemas/novel_meta.ts";
 import { Chapter } from "./src/schemas/chapters.ts";
 
 const sourceMapFilePath = resolve(Deno.cwd(), "sourceMap.json");
@@ -298,14 +298,26 @@ router.get("/history", authMiddleware, async (context) => {
 });
 
 router.post("/history", authMiddleware, async (context) => {
-  const { path, page, position } = await context.request.body.json();
+  const { path, page, position, source, novelPath } = await context.request.body.json();
 
-  if (path == null || page == null || position == null) {
+  if (path == null || page == null || position == null || novelPath == null || source == null) {
     context.response.body = { error: "All Fields are required" };
     return;
   }
 
-  const history: History = new History(path, new Date(), page, position, context.state.user.username);
+  if ((await dbSqLiteHandler.getNovelByPath(novelPath)) == null) {
+    const findSourceIndex = await getSource(source);
+    if (findSourceIndex != null) {
+      const sourcePlugin = PLUGINS[findSourceIndex.index];
+
+      const response = await sourcePlugin.parseNovel(novelPath);
+
+      const novelData = new NovelMeta(source, response["name"], novelPath, response["cover"], response["summary"]);
+      await dbSqLiteHandler.insertNovelMeta(novelData);
+    }
+  }
+
+  const history: History = new History(context.state.user.username, source, path, new Date(), page, position);
 
   await dbSqLiteHandler.insertHistory(history);
 
@@ -347,19 +359,31 @@ router.post("/favourites", authMiddleware, async (context) => {
 
     const response = await sourcePlugin.parseNovel(path);
 
-    const novelData = new Novel(
-      source,
-      response["name"],
-      path,
-      response["cover"],
-      response["summary"],
-      response["chapters"].map((c: any) => Chapter.fromResult(c))
+    const novelData = new NovelMeta(source, response["name"], path, response["cover"], response["summary"]);
+    await dbSqLiteHandler.insertNovelMeta(novelData);
+
+    await dbSqLiteHandler.insertChapterMetaBulk(
+      response["chapters"].map((c: any) => new Chapter(c["name"], c["path"])),
+      novelData
     );
-    await dbSqLiteHandler.insertNovel(novelData);
   }
-  const favourite: Favourite = new Favourite(path, "", new Date(), context.state.user.username);
+  const favourite: Favourite = new Favourite(context.state.user.username, source, path, new Date());
 
   await dbSqLiteHandler.insertFavourite(favourite);
+
+  context.response.status = 200;
+});
+
+router.delete("/favourites", authMiddleware, async (context) => {
+  const { path } = await context.request.body.json();
+
+  if (!path) {
+    context.response.body = { error: "Path is required" };
+    context.response.status = 400;
+    return;
+  }
+
+  await dbSqLiteHandler.deleteFavourite(path, context.state.user.username);
 
   context.response.status = 200;
 });

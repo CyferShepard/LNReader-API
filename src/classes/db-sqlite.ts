@@ -2,7 +2,8 @@ import { Chapter } from "../schemas/chapters.ts";
 import type { ChapterWithContent } from "../schemas/chaptersWithContent.ts";
 import { Favourite } from "../schemas/favourites.ts";
 import { History } from "../schemas/history.ts";
-import { Novel } from "../schemas/novels.ts";
+import { NovelMeta } from "../schemas/novel_meta.ts";
+import { NovelMetaWithChapters } from "../schemas/novel_metaWithChapters.ts";
 import { User } from "../schemas/users.ts";
 import { Database } from "jsr:@db/sqlite@0.11";
 
@@ -30,40 +31,53 @@ class DBSqLiteHandler {
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS history (
       username TEXT,
+      source TEXT,
       path TEXT,
       last_read TEXT,
       page INTEGER,
       position INTEGER,
-      PRIMARY KEY (username, path)
+      PRIMARY KEY (username, source,  path)
       )
     `);
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS favourites (
-        path TEXT  PRIMARY KEY,
         username TEXT,
+        source TEXT,
+        path TEXT,
         date_added TEXT,
-        cover TEXT
+        PRIMARY KEY (username, source,  path)
       )
     `);
 
     await this.db.exec(`
-      CREATE TABLE IF NOT EXISTS novels (
+      CREATE TABLE IF NOT EXISTS novel_meta (
         source TEXT,
-        name TEXT,
         path TEXT ,
+        name TEXT,
         cover TEXT,
         summary TEXT,
-        chapters TEXT,
+        PRIMARY KEY (source, path)
+      )
+    `);
+
+    await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS chapter_meta (
+        source TEXT,
+        path TEXT ,
+        name TEXT,
+        novelPath TEXT,
         PRIMARY KEY (source, path)
       )
     `);
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS chapters (
-        path TEXT PRIMARY KEY,
         name TEXT,
-        content TEXT
+        path TEXT ,
+        source TEXT,
+        content TEXT,
+        PRIMARY KEY (source, path)
       )
     `);
 
@@ -76,31 +90,71 @@ class DBSqLiteHandler {
 
   //insert
 
-  public async insertChapter(chapter: ChapterWithContent) {
+  public async insertNovelMeta(novel: NovelMeta) {
     if (!this.db) {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT INTO chapters VALUES (:path,:name,:content)");
-    stmt.run({ path: chapter.path, name: chapter.name, content: chapter.content });
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO novel_meta VALUES (:source,:path,:name,:cover,:summary)");
+    stmt.run({ source: novel.source, path: novel.path, name: novel.name, cover: novel.cover, summary: novel.summary });
   }
 
-  public async insertNovel(novel: Novel) {
+  public async insertChapterMeta(chapter: Chapter, novel: NovelMeta) {
     if (!this.db) {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT OR REPLACE INTO novels VALUES (:source,:name,:path,:cover,:summary,:chapters)");
-
-    stmt.run({
-      source: novel.source,
-      name: novel.name,
-      path: novel.path,
-      cover: novel.cover,
-      summary: novel.summary,
-      chapters: JSON.stringify(novel.chapters),
-    });
+    const stmt = this.db!.prepare("INSERT INTO chapter_meta VALUES (:source,:path,:name,:novelPath)");
+    stmt.run({ source: novel.source, path: chapter.path, name: chapter.name, novelPath: novel.path });
   }
+
+  public async insertChapterMetaBulk(chapters: Chapter[], novel: NovelMeta) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const values = chapters.map(() => "(?, ?, ?, ?)").join(", ");
+    const stmt = this.db!.prepare(`INSERT INTO chapter_meta (source, path, name, novelPath) VALUES ${values}`);
+
+    const params = chapters.flatMap((chapter) => [novel.source, chapter.path, chapter.name, novel.path]);
+
+    try {
+      this.db!.exec("BEGIN TRANSACTION");
+      stmt.run(...params);
+      this.db!.exec("COMMIT");
+    } catch (error) {
+      this.db!.exec("ROLLBACK");
+      throw error;
+    } finally {
+      stmt.finalize();
+    }
+  }
+
+  public async insertChapter(chapter: ChapterWithContent, source: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("INSERT INTO chapters VALUES (:name,:path,:source,:content)");
+    stmt.run({ name: chapter.name, path: chapter.path, source: source, content: chapter.content });
+  }
+
+  // public async insertNovel(novel: Novel) {
+  //   if (!this.db) {
+  //     await this.initialize();
+  //   }
+
+  //   const stmt = this.db!.prepare("INSERT OR REPLACE INTO novels VALUES (:source,:name,:path,:cover,:summary,:chapters)");
+
+  //   stmt.run({
+  //     source: novel.source,
+  //     name: novel.name,
+  //     path: novel.path,
+  //     cover: novel.cover,
+  //     summary: novel.summary,
+  //     chapters: JSON.stringify(novel.chapters),
+  //   });
+  // }
 
   public async insertUser(user: User) {
     if (!this.db) {
@@ -116,8 +170,8 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT OR REPLACE INTO favourites VALUES (:path,:username,:date_added, :cover)");
-    stmt.run({ username: favourite.username, path: favourite.path, cover: favourite.cover, date_added: favourite.date_added });
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO favourites VALUES (:username, :source, :path,:date_added)");
+    stmt.run({ username: favourite.username, source: favourite.source, path: favourite.path, date_added: favourite.date_added });
   }
 
   public async insertHistory(history: History) {
@@ -125,9 +179,12 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT OR REPLACE INTO history VALUES (:username,:path,:last_read,:page,:position)");
+    const stmt = this.db!.prepare(
+      "INSERT OR REPLACE INTO history VALUES ( :username, :source, :path, :last_read, :page, :position)"
+    );
     stmt.run({
       username: history.username,
+      source: history.source,
       path: history.path,
       last_read: history.last_read,
       page: history.page,
@@ -189,11 +246,11 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("SELECT * FROM novels WHERE path=:path");
+    const stmt = this.db!.prepare("SELECT * FROM novel_meta WHERE path=:path");
     const result: any = stmt.get({ path: path });
 
     if (result) {
-      return Novel.fromResult(result);
+      return NovelMeta.fromResult(result);
     }
   }
   public async getNovelsByPath(path: string[]) {
@@ -202,11 +259,14 @@ class DBSqLiteHandler {
     }
 
     const placeholders = path.map(() => "?").join(",");
-    const stmt = this.db!.prepare(`SELECT * FROM novels WHERE path in (${placeholders})`);
+    const stmt = this.db!
+      .prepare(`SELECT n.* , (SELECT json_group_array(json_object('source', c.source, 'path', c.path, 'name', c.name, 'novelPath', c.novelPath))
+        FROM chapter_meta c 
+        WHERE c.novelPath = n.path) AS chapters FROM novel_meta n WHERE n.path in (${placeholders})`);
     const result: any = stmt.all(...path);
 
     if (result && result.length > 0) {
-      return result.map((r: any) => Novel.fromResult(r));
+      return result.map((r: any) => NovelMetaWithChapters.fromResult(r));
     }
   }
 
@@ -215,19 +275,19 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("SELECT * FROM novels WHERE path=:path");
+    const stmt = this.db!.prepare("SELECT * FROM chapters WHERE path=:path");
     const result = stmt.get({ path: path });
 
-    if (result) {
-      const novelResult: Novel = Novel.fromResult(result);
+    // if (result) {
+    //   const novelResult: NovelMeta = Novel.fromResult(result);
 
-      const placeholders = novelResult.chapters.map(() => "?").join(",");
+    //   const placeholders = novelResult.chapters.map(() => "?").join(",");
 
-      const stmt = this.db!.prepare(`SELECT * FROM chapters WHERE path in (${placeholders})`);
-      const results = stmt.all(...novelResult.chapters.map((chapter) => chapter.path));
+    //   const stmt = this.db!.prepare(`SELECT * FROM chapters WHERE path in (${placeholders})`);
+    //   const results = stmt.all(...novelResult.chapters.map((chapter) => chapter.path));
 
-      return results.map((result: any) => Chapter.fromResult(result));
-    }
+    //   return results.map((result: any) => Chapter.fromResult(result));
+    // }
   }
 
   public async getChapterByPath(path: string) {
@@ -304,6 +364,15 @@ class DBSqLiteHandler {
 
     const stmt = this.db!.prepare("DELETE FROM tokens");
     stmt.run();
+  }
+
+  public async deleteFavourite(path: string, username: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("DELETE FROM favourites WHERE path=:path AND username=:username");
+    stmt.run({ path: path, username: username });
   }
 }
 

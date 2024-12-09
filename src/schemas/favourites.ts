@@ -1,26 +1,26 @@
 export class Favourite {
-  path: string;
-  cover: string;
-  date_added: Date;
   username: string;
+  source: string;
+  path: string;
+  date_added: Date;
 
-  constructor(path: string, cover: string, date_added: Date, username: string) {
-    this.path = path;
-    this.cover = cover;
-    this.date_added = date_added;
+  constructor(username: string, source: string, path: string, date_added: Date) {
     this.username = username;
+    this.source = source;
+    this.path = path;
+    this.date_added = date_added;
   }
 
   static fromResult(data: any): Favourite {
-    return new Favourite(data.path, data.cover, new Date(data.date_added), data.username);
+    return new Favourite(data.username, data.source, data.path, new Date(data.date_added));
   }
 
   toJSON(): object {
     return {
-      path: this.path,
-      cover: this.cover,
-      date_added: this.date_added.toISOString(),
       username: this.username,
+      source: this.source,
+      path: this.path,
+      date_added: this.date_added,
     };
   }
 }
