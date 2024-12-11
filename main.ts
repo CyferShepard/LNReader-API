@@ -11,6 +11,7 @@ import { History } from "./src/schemas/history.ts";
 import { Favourite } from "./src/schemas/favourites.ts";
 import { NovelMeta } from "./src/schemas/novel_meta.ts";
 import { Chapter } from "./src/schemas/chapters.ts";
+import { NovelMetaWithChapters } from "./src/schemas/novel_metaWithChapters.ts";
 
 const sourceMapFilePath = resolve(Deno.cwd(), "sourceMap.json");
 const SECRET_KEY = await crypto.subtle.generateKey(
@@ -47,7 +48,7 @@ async function getSource(source: string) {
 // Middleware to check for authorization
 async function authMiddleware(context: Context, next: () => Promise<unknown>) {
   const authHeader = context.request.headers.get("Authorization");
-  if (!authHeader) {
+  if (!authHeader || authHeader.split(" ").length < 2) {
     context.response.status = 401;
     context.response.body = { error: "Unauthorized" };
     return;
@@ -289,12 +290,21 @@ router.post("/chapter", authMiddleware, async (context) => {
 
 //history
 router.get("/history", authMiddleware, async (context) => {
-  const path = context.request.url.searchParams.get("path");
+  let path: string | null | undefined = null;
+  try {
+    path = context.request.url.searchParams.get("path");
+  } catch (e) {
+    console.log(e);
+  }
+
+  if (path == undefined) {
+    path = null;
+  }
 
   const response = await dbSqLiteHandler.getHistory(context.state.user.username, path);
 
   context.response.body = response;
-  // context.response.headers.set("Content-Type", "application/json");
+  context.response.headers.set("Content-Type", "application/json");
 });
 
 router.post("/history", authMiddleware, async (context) => {
@@ -305,19 +315,30 @@ router.post("/history", authMiddleware, async (context) => {
     return;
   }
 
-  if ((await dbSqLiteHandler.getNovelByPath(novelPath)) == null) {
+  if ((await dbSqLiteHandler.getNovelByPath(novelPath)) == null || (await dbSqLiteHandler.getChapterByPath(path)) == null) {
     const findSourceIndex = await getSource(source);
     if (findSourceIndex != null) {
       const sourcePlugin = PLUGINS[findSourceIndex.index];
 
       const response = await sourcePlugin.parseNovel(novelPath);
 
-      const novelData = new NovelMeta(source, response["name"], novelPath, response["cover"], response["summary"]);
+      const novelData = new NovelMetaWithChapters(
+        source,
+        response["name"],
+        novelPath,
+        response["cover"],
+        response["summary"],
+        response["chapters"].map((c: any) => Chapter.fromResult(c))
+      );
       await dbSqLiteHandler.insertNovelMeta(novelData);
+      if (novelData.chapters) {
+        const chapterData = novelData.chapters.find((c: Chapter) => c.path == path);
+        if (chapterData) await dbSqLiteHandler.insertChapterMeta(chapterData, novelData);
+      }
     }
   }
 
-  const history: History = new History(context.state.user.username, source, path, new Date(), page, position);
+  const history: History = new History(context.state.user.username, source, path, new Date(), page, position, null, null);
 
   await dbSqLiteHandler.insertHistory(history);
 

@@ -104,7 +104,7 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT INTO chapter_meta VALUES (:source,:path,:name,:novelPath)");
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO chapter_meta VALUES (:source,:path,:name,:novelPath)");
     stmt.run({ source: novel.source, path: chapter.path, name: chapter.name, novelPath: novel.path });
   }
 
@@ -114,7 +114,7 @@ class DBSqLiteHandler {
     }
 
     const values = chapters.map(() => "(?, ?, ?, ?)").join(", ");
-    const stmt = this.db!.prepare(`INSERT INTO chapter_meta (source, path, name, novelPath) VALUES ${values}`);
+    const stmt = this.db!.prepare(`INSERT OR REPLACE INTO chapter_meta (source, path, name, novelPath) VALUES ${values}`);
 
     const params = chapters.flatMap((chapter) => [novel.source, chapter.path, chapter.name, novel.path]);
 
@@ -246,11 +246,14 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("SELECT * FROM novel_meta WHERE path=:path");
+    const stmt = this.db!
+      .prepare(`SELECT n.* , (SELECT json_group_array(json_object('source', c.source, 'path', c.path, 'name', c.name, 'novelPath', c.novelPath))
+        FROM chapter_meta c 
+        WHERE c.novelPath = n.path) AS chapters FROM novel_meta n WHERE n.path=:path`);
     const result: any = stmt.get({ path: path });
 
     if (result) {
-      return NovelMeta.fromResult(result);
+      return NovelMetaWithChapters.fromResult(result);
     }
   }
   public async getNovelsByPath(path: string[]) {
@@ -320,7 +323,11 @@ class DBSqLiteHandler {
     }
 
     if (path) {
-      const stmt = this.db!.prepare("SELECT * FROM history WHERE username=:username AND path=:path");
+      const stmt = this.db!.prepare(`SELECT h.*, 
+        (SELECT json_group_array(json_object('source', c.source, 'path', c.path, 'name', c.name, 'novelPath', c.novelPath))
+        FROM chapter_meta c 
+        WHERE c.path = h.path) chapter
+        FROM history h WHERE h.username=:username AND h.path=:path`);
       const result: any = stmt.get({ username: username, path: path });
 
       if (result) {
@@ -330,7 +337,26 @@ class DBSqLiteHandler {
       return null;
     }
 
-    const stmt = this.db!.prepare("SELECT * FROM history WHERE username=:username");
+    const stmt = this.db!.prepare(`WITH latest_history AS (
+  SELECT h.*,lh.novelPath,lh.max_last_read
+  FROM history h
+  JOIN (
+    SELECT c.novelPath, MAX(h.last_read) AS max_last_read, h.path
+    FROM history h
+    JOIN chapter_meta c ON h.path = c.path
+    GROUP BY c.novelPath
+  ) lh ON h.path = lh.path AND h.last_read = lh.max_last_read
+)
+SELECT lh.*, 
+       (SELECT json_object('source', c.source, 'path', c.path, 'name', c.name, 'novelPath', c.novelPath)
+        FROM chapter_meta c 
+        WHERE c.path = lh.path) AS chapter,
+       (SELECT json_object('source', n.source, 'path', n.path, 'name', n.name, 'cover', n.cover, 'summary', n.summary)
+        FROM novel_meta n 
+        WHERE n.path = lh.novelPath) AS novel
+FROM latest_history lh
+where username=:username
+ORDER BY lh.last_read DESC`);
     const results = stmt.all({ username: username });
 
     return results.map((result: any) => History.fromResult(result));
