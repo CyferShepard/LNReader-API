@@ -9,6 +9,7 @@
     "@std/assert": "jsr:@std/assert@1",
     "cheerio": "npm:cheerio@^1.0.0",
     "dayjs": "npm:dayjs@^1.11.13",
+    "lodash-es": "npm:lodash-es@^4.17.21",
     "npm:htmlparser2": "npm:htmlparser2@^9.1.0",
     "protobufjs": "npm:protobufjs@^7.4.0",
     "urlencode": "npm:urlencode@^2.0.0"

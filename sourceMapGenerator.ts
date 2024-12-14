@@ -7,27 +7,42 @@ const fileContent = await Deno.readTextFile(filePath);
 
 const importRegex = /import\s+p_(\d+)\s+from\s+"\.\/(\w+)\/(\w+)\.ts";/g;
 const sourceMap: {
-  source: string;
+  id: string;
   name: string;
-  icon: string;
   site: string;
-  language: string;
+  lang: string;
   version: string;
-  index: number;
+  url: string; // the url of raw code
+  iconUrl: string;
 }[] = [];
 
 let match;
 while ((match = importRegex.exec(fileContent)) !== null) {
   const index = parseInt(match[1], 10);
-  const language = match[2];
-  const source = match[3];
+  const lang = match[2];
+  // const id = match[3];
 
   const tempSource = PLUGINS[index];
+  const id = tempSource.id;
   const name = tempSource.name;
-  const icon = tempSource.icon;
   const site = tempSource.site;
+  // const lang = tempSource.lang;
   const version = tempSource.version;
-  sourceMap.push({ source, name, icon, site, language, version, index });
+
+  const url = tempSource.url ?? "";
+  const iconUrl = tempSource.icon;
+
+  const plugin = {
+    id,
+    name,
+    site,
+    lang,
+    version,
+    url,
+    iconUrl,
+    index,
+  };
+  sourceMap.push(plugin);
 }
 const outputFilePath = resolve(Deno.cwd(), "sourceMap.json");
 

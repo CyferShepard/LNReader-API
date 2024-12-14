@@ -52,7 +52,12 @@ export class History {
       last_read: this.last_read,
       page: this.page,
       position: this.position,
-      chapter: this.chapter ? Chapter.fromResult(JSON.parse(this.chapter as unknown as string)) : null,
+      chapter: this.chapter
+        ? Chapter.fromResult(
+            NovelMeta.fromResult(JSON.parse(this.novel as unknown as string)).name,
+            JSON.parse(this.chapter as unknown as string)
+          )
+        : null,
       novel: this.novel ? NovelMeta.fromResult(JSON.parse(this.novel as unknown as string)) : null,
     };
   }

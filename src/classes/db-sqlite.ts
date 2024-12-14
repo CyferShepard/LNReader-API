@@ -64,6 +64,7 @@ class DBSqLiteHandler {
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS chapter_meta (
         source TEXT,
+        chapter_index INTEGER,
         path TEXT ,
         name TEXT,
         novelPath TEXT,
@@ -104,8 +105,14 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT OR REPLACE INTO chapter_meta VALUES (:source,:path,:name,:novelPath)");
-    stmt.run({ source: novel.source, path: chapter.path, name: chapter.name, novelPath: novel.path });
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO chapter_meta VALUES (:source,:chapter_index,:path,:name,:novelPath)");
+    stmt.run({
+      source: novel.source,
+      chapter_index: chapter.chapter_index,
+      path: chapter.path,
+      name: chapter.name,
+      novelPath: novel.path,
+    });
   }
 
   public async insertChapterMetaBulk(chapters: Chapter[], novel: NovelMeta) {
@@ -113,10 +120,12 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const values = chapters.map(() => "(?, ?, ?, ?)").join(", ");
-    const stmt = this.db!.prepare(`INSERT OR REPLACE INTO chapter_meta (source, path, name, novelPath) VALUES ${values}`);
+    const values = chapters.map(() => "(?, ?, ?, ? ,?)").join(", ");
+    const stmt = this.db!.prepare(
+      `INSERT OR REPLACE INTO chapter_meta (source,chapter_index, path, name, novelPath) VALUES ${values}`
+    );
 
-    const params = chapters.flatMap((chapter) => [novel.source, chapter.path, chapter.name, novel.path]);
+    const params = chapters.flatMap((chapter) => [novel.source, chapter.chapter_index, chapter.path, chapter.name, novel.path]);
 
     try {
       this.db!.exec("BEGIN TRANSACTION");
@@ -135,8 +144,14 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT INTO chapters VALUES (:name,:path,:source,:content)");
-    stmt.run({ name: chapter.name, path: chapter.path, source: source, content: chapter.content });
+    const stmt = this.db!.prepare("INSERT INTO chapters VALUES (:name,:chapter_index,:path,:source,:content)");
+    stmt.run({
+      name: chapter.name,
+      chapter_index: chapter.chapter_index,
+      path: chapter.path,
+      source: source,
+      content: chapter.content,
+    });
   }
 
   // public async insertNovel(novel: Novel) {
@@ -302,7 +317,7 @@ class DBSqLiteHandler {
     const result: any = stmt.get({ path: path });
 
     if (result) {
-      return Chapter.fromResult(result);
+      return Chapter.fromResult("", result);
     }
   }
 
@@ -317,21 +332,56 @@ class DBSqLiteHandler {
   //   }
   // }
 
-  public async getHistory(username: string, path: string | null) {
+  public async getHistory(username: string, path: string | null, npath: string | null) {
     if (!this.db) {
       await this.initialize();
     }
 
     if (path) {
-      const stmt = this.db!.prepare(`SELECT h.*, 
-        (SELECT json_group_array(json_object('source', c.source, 'path', c.path, 'name', c.name, 'novelPath', c.novelPath))
+      const stmt = this.db!.prepare(`
+        SELECT lh.*, 
+       (SELECT json_object('source', c.source, 'path', c.path, 'name', c.name, 'novelPath', c.novelPath)
         FROM chapter_meta c 
-        WHERE c.path = h.path) chapter
-        FROM history h WHERE h.username=:username AND h.path=:path`);
-      const result: any = stmt.get({ username: username, path: path });
+        WHERE c.path=:path) AS chapter,
+       (SELECT json_object('source', n.source, 'path', n.path, 'name', n.name, 'cover', n.cover, 'summary', n.summary)
+        FROM novel_meta n 
+        join  chapter_meta c  on n.path=c.novelPath
+        WHERE c.path=:path) AS novel
+FROM history lh
+where lh.username=:username  and lh.path=:path
+ORDER BY lh.last_read DESC
+        `);
 
-      if (result) {
-        return History.fromResult(result);
+      const results: any = stmt.get({ username: username, path: path });
+
+      if (results) {
+        return History.fromResult(results);
+      }
+
+      return null;
+    }
+
+    if (npath) {
+      const stmt = this.db!.prepare(`
+        SELECT lh.*, 
+       (SELECT json_object('source', c.source, 'path', c.path, 'name', c.name, 'novelPath', c.novelPath)
+        FROM chapter_meta c 
+        WHERE c.novelPath=:path and c.path=lh.path) AS chapter,
+       (SELECT json_object('source', n.source, 'path', n.path, 'name', n.name, 'cover', n.cover, 'summary', n.summary)
+        FROM novel_meta n 
+        join  chapter_meta c  on n.path=c.novelPath
+        WHERE c.novelPath=:path) AS novel
+        FROM history lh
+       join  chapter_meta c  on lh.path=c.path
+        and c.novelPath=:path
+      where lh.username=:username 
+      ORDER BY lh.last_read DESC
+        `);
+
+      const results: any = stmt.all({ username: username, path: npath });
+
+      if (results) {
+        return results.map((result: any) => History.fromResult(result));
       }
 
       return null;

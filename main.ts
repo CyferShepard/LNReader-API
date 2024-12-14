@@ -25,24 +25,33 @@ const SECRET_KEY = await crypto.subtle.generateKey(
 
 const app = new Application();
 const router = new Router();
-let sourceMap: { source: string; name: string; icon: string; site: string; language: string; version: string; index: number }[] =
-  [];
+let sourceMap: {
+  id: string;
+  name: string;
+  site: string;
+  lang: string;
+  version: string;
+  url: string; // the url of raw code
+  iconUrl: string;
+  index: number;
+}[] = [];
 
 async function getSource(source: string) {
   if (sourceMap.length === 0) {
     const fileContent = await Deno.readTextFile(sourceMapFilePath);
     sourceMap = JSON.parse(fileContent) as {
-      source: string;
+      id: string;
       name: string;
-      icon: string;
       site: string;
-      language: string;
+      lang: string;
       version: string;
+      url: string; // the url of raw code
+      iconUrl: string;
       index: number;
     }[];
   }
 
-  return sourceMap.find((s) => s.source === source);
+  return sourceMap.find((s) => s.id === source);
 }
 
 // Middleware to check for authorization
@@ -171,9 +180,9 @@ router.get("/getSources", authMiddleware, async (context) => {
   }
 
   context.response.body = sourceMap
-    .filter((s) => s.language == language || !language)
+    .filter((s) => s.lang == language || !language)
     .map((s) => {
-      return { source: s.source, name: s.name, icon: s.icon, site: s.site, language: s.language, version: s.version };
+      return s;
     });
 });
 
@@ -187,7 +196,7 @@ router.post("/searchNovel", authMiddleware, async (context) => {
 
   const findSourceIndex = await getSource(source);
   if (!findSourceIndex) {
-    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.source) };
+    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.id) };
     return;
   }
 
@@ -208,7 +217,7 @@ router.post("/getPopular", authMiddleware, async (context) => {
   const findSourceIndex = await getSource(source);
 
   if (!findSourceIndex) {
-    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.source) };
+    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.id) };
     context.response.status = 400;
     return;
   }
@@ -223,6 +232,8 @@ router.post("/getPopular", authMiddleware, async (context) => {
 router.post("/novel", authMiddleware, async (context) => {
   const { source, path } = await context.request.body.json();
 
+  console.log("/novel", source, path);
+
   if (!source || !path) {
     context.response.body = { error: "Source and Path are required" };
     context.response.status = 400;
@@ -232,7 +243,7 @@ router.post("/novel", authMiddleware, async (context) => {
   const findSourceIndex = await getSource(source);
 
   if (!findSourceIndex) {
-    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.source) };
+    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.id) };
     return;
   }
 
@@ -263,12 +274,12 @@ function stripHtmlTags(html: string): string {
 }
 
 router.post("/chapter", authMiddleware, async (context) => {
-  const { source, path } = await context.request.body.json();
+  const { source, path, cleanText = true } = await context.request.body.json();
 
   const findSourceIndex = await getSource(source);
 
   if (!findSourceIndex) {
-    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.source) };
+    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.id) };
     return;
   }
 
@@ -277,13 +288,20 @@ router.post("/chapter", authMiddleware, async (context) => {
     return;
   }
 
+  console.log("source", source, "path", path);
+
   const sourcePlugin = PLUGINS[findSourceIndex.index];
 
   const response = await sourcePlugin.parseChapter(path);
 
-  const strippedContent = stripHtmlTags(response.trim());
+  if (cleanText) {
+    const strippedContent = stripHtmlTags(response.trim());
 
-  context.response.body = strippedContent.trim();
+    context.response.body = strippedContent.trim();
+    return;
+  }
+
+  context.response.body = response;
 });
 
 //App related enpoints
@@ -291,8 +309,10 @@ router.post("/chapter", authMiddleware, async (context) => {
 //history
 router.get("/history", authMiddleware, async (context) => {
   let path: string | null | undefined = null;
+  let npath: string | null | undefined = null;
   try {
     path = context.request.url.searchParams.get("path");
+    npath = context.request.url.searchParams.get("npath");
   } catch (e) {
     console.log(e);
   }
@@ -301,7 +321,11 @@ router.get("/history", authMiddleware, async (context) => {
     path = null;
   }
 
-  const response = await dbSqLiteHandler.getHistory(context.state.user.username, path);
+  if (npath == undefined) {
+    npath = null;
+  }
+
+  const response = await dbSqLiteHandler.getHistory(context.state.user.username, path, npath);
 
   context.response.body = response;
   context.response.headers.set("Content-Type", "application/json");
@@ -328,7 +352,7 @@ router.post("/history", authMiddleware, async (context) => {
         novelPath,
         response["cover"],
         response["summary"],
-        response["chapters"].map((c: any) => Chapter.fromResult(c))
+        response["chapters"].map((c: any) => Chapter.fromResult(response["name"], c))
       );
       await dbSqLiteHandler.insertNovelMeta(novelData);
       if (novelData.chapters) {
@@ -384,7 +408,7 @@ router.post("/favourites", authMiddleware, async (context) => {
     await dbSqLiteHandler.insertNovelMeta(novelData);
 
     await dbSqLiteHandler.insertChapterMetaBulk(
-      response["chapters"].map((c: any) => new Chapter(c["name"], c["path"])),
+      response["chapters"].map((c: any) => new Chapter(response["name"], c["name"], c["path"])),
       novelData
     );
   }
