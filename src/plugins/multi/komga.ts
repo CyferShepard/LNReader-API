@@ -1,45 +1,48 @@
-import { fetchApi } from "@libs/fetch.ts";
-import { Filters, FilterTypes } from "@libs/filterInputs.ts";
-import { NovelStatus } from "@libs/novelStatus.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { load as parseHTML } from "npm:cheerio";
-import { storage } from "@libs/storage.ts";
+import { fetchApi } from '@libs/fetch.ts';
+import { Filters, FilterTypes } from '@libs/filterInputs.ts';
+import { NovelStatus } from '@libs/novelStatus.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { load as parseHTML } from 'npm:cheerio';
+import { storage } from '@libs/storage.ts';
 
 class KomgaPlugin implements Plugin.PluginBase {
-  id = "komga";
-  name = "Komga";
-  icon = "src/multi/komga/icon.png";
-  version = "1.0.0";
+  id = 'komga';
+  name = 'Komga';
+  icon = 'src/multi/komga/icon.png';
+  version = '1.0.0';
 
-  site = storage.get("url");
-  email = storage.get("email");
-  password = storage.get("password");
+  site = storage.get('url');
+  email = storage.get('email');
+  password = storage.get('password');
 
   async makeRequest(url: string): Promise<string> {
     return await fetchApi(url, {
       headers: {
-        Accept: "application/json, text/plain, */*",
-        "Content-Type": "application/json;charset=utf-8",
-        Authorization: `Basic ${this.btoa(this.email + ":" + this.password)}`,
+        Accept: 'application/json, text/plain, */*',
+        'Content-Type': 'application/json;charset=utf-8',
+        'Authorization': `Basic ${this.btoa(this.email + ':' + this.password)}`,
       },
       Referer: this.site,
-    }).then((res) => res.text());
+    }).then(res => res.text());
   }
 
-  btoa(input: string = "") {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+  btoa(input: string = '') {
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
     let str = input;
-    let output = "";
+    let output = '';
 
     for (
       let block = 0, charCode, i = 0, map = chars;
-      str.charAt(i | 0) || ((map = "="), i % 1);
+      str.charAt(i | 0) || ((map = '='), i % 1);
       output += map.charAt(63 & (block >> (8 - (i % 1) * 8)))
     ) {
       charCode = str.charCodeAt((i += 3 / 4));
 
       if (charCode > 0xff) {
-        throw new Error("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
+        throw new Error(
+          "'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.",
+        );
       }
 
       block = (block << 8) | charCode;
@@ -71,7 +74,7 @@ class KomgaPlugin implements Plugin.PluginBase {
     for (let s of series) {
       novels.push({
         name: s.name,
-        path: "api/v1/series/" + s.id,
+        path: 'api/v1/series/' + s.id,
         cover: this.site + `api/v1/series/${s.id}/thumbnail`,
       });
     }
@@ -81,11 +84,18 @@ class KomgaPlugin implements Plugin.PluginBase {
 
   async popularNovels(
     pageNo: number,
-    { showLatestNovels, filters }: Plugin.PopularNovelsOptions<typeof this.filters>
+    {
+      showLatestNovels,
+      filters,
+    }: Plugin.PopularNovelsOptions<typeof this.filters>,
   ): Promise<Plugin.NovelItem[]> {
-    const read_status = filters?.read_status.value ? "&read_status=" + filters?.read_status.value : "";
-    const status = filters?.status.value ? "&status=" + filters?.status.value : "";
-    const sort = showLatestNovels ? "lastModified,desc" : "name,asc";
+    const read_status = filters?.read_status.value
+      ? '&read_status=' + filters?.read_status.value
+      : '';
+    const status = filters?.status.value
+      ? '&status=' + filters?.status.value
+      : '';
+    const sort = showLatestNovels ? 'lastModified,desc' : 'name,asc';
 
     const url = `${this.site}api/v1/series?page=${pageNo - 1}${read_status}${status}&sort=${sort}`;
 
@@ -95,7 +105,7 @@ class KomgaPlugin implements Plugin.PluginBase {
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: "Untitled",
+      name: 'Untitled',
     };
 
     const url = this.site + novelPath;
@@ -106,22 +116,26 @@ class KomgaPlugin implements Plugin.PluginBase {
 
     novel.name = series.name;
     novel.author = series.booksMetadata.authors
-      .filter((author: any) => author.role === "writer")
-      .reduce((accumulated: string, current: any) => accumulated + (accumulated !== "" ? ", " : "") + current.name, "");
+      .filter((author: any) => author.role === 'writer')
+      .reduce(
+        (accumulated: string, current: any) =>
+          accumulated + (accumulated !== '' ? ', ' : '') + current.name,
+        '',
+      );
     novel.cover = this.site + `api/v1/series/${series.id}/thumbnail`;
-    novel.genres = series.metadata.genres.join(", ");
+    novel.genres = series.metadata.genres.join(', ');
 
     switch (series.metadata.status) {
-      case "ENDED":
+      case 'ENDED':
         novel.status = NovelStatus.Completed;
         break;
-      case "ONGOING":
+      case 'ONGOING':
         novel.status = NovelStatus.Ongoing;
         break;
-      case "ABANDONED":
+      case 'ABANDONED':
         novel.status = NovelStatus.Cancelled;
         break;
-      case "HIATUS":
+      case 'HIATUS':
         novel.status = NovelStatus.OnHiatus;
         break;
       default:
@@ -132,12 +146,16 @@ class KomgaPlugin implements Plugin.PluginBase {
 
     const chapters: Plugin.ChapterItem[] = [];
 
-    const booksResponse = await this.makeRequest(this.site + `api/v1/series/${series.id}/books?unpaged=true`);
+    const booksResponse = await this.makeRequest(
+      this.site + `api/v1/series/${series.id}/books?unpaged=true`,
+    );
 
     const booksData = JSON.parse(booksResponse).content;
 
     for (let book of booksData) {
-      const bookManifestResponse = await this.makeRequest(this.site + `opds/v2/books/${book.id}/manifest`);
+      const bookManifestResponse = await this.makeRequest(
+        this.site + `opds/v2/books/${book.id}/manifest`,
+      );
 
       const bookManifest = JSON.parse(bookManifestResponse);
 
@@ -145,11 +163,13 @@ class KomgaPlugin implements Plugin.PluginBase {
 
       let i = 1;
       for (let page of bookManifest.readingOrder) {
-        const tocItem = toc.find((v: any) => v.href?.split("#")[0] === page.href);
+        const tocItem = toc.find(
+          (v: any) => v.href?.split('#')[0] === page.href,
+        );
         const title = tocItem ? tocItem.title : null;
         chapters.push({
-          name: `${i}/${bookManifest.readingOrder.length} - ${book.metadata.title}${title ? " - " + title : ""}`,
-          path: "opds/v2" + page.href?.split("opds/v2").pop(),
+          name: `${i}/${bookManifest.readingOrder.length} - ${book.metadata.title}${title ? ' - ' + title : ''}`,
+          path: 'opds/v2' + page.href?.split('opds/v2').pop(),
         });
         i++;
       }
@@ -160,7 +180,10 @@ class KomgaPlugin implements Plugin.PluginBase {
   }
   async parseChapter(chapterPath: string): Promise<string> {
     const chapterText = await this.makeRequest(this.site + chapterPath);
-    return this.addUrlToImageHref(chapterText, this.site + chapterPath.split("/").slice(0, -1).join("/") + "/");
+    return this.addUrlToImageHref(
+      chapterText,
+      this.site + chapterPath.split('/').slice(0, -1).join('/') + '/',
+    );
   }
 
   // Convert images to <img> tag and correct url
@@ -168,33 +191,36 @@ class KomgaPlugin implements Plugin.PluginBase {
     const $ = parseHTML(htmlString, { xmlMode: true });
 
     // Convert SVG <image> elements to <img> and add baseUrl if necessary
-    $("svg image").each((_, image) => {
-      const href = $(image).attr("href") || $(image).attr("xlink:href");
-      const width = $(image).attr("width");
-      const height = $(image).attr("height");
+    $('svg image').each((_, image) => {
+      const href = $(image).attr('href') || $(image).attr('xlink:href');
+      const width = $(image).attr('width');
+      const height = $(image).attr('height');
 
       if (href) {
-        const img = $("<img />").attr({
-          src: href.startsWith("http") ? href : `${baseUrl}${href}`,
+        const img = $('<img />').attr({
+          src: href.startsWith('http') ? href : `${baseUrl}${href}`,
           width: width || undefined,
           height: height || undefined,
         });
-        $(image).closest("svg").replaceWith(img);
+        $(image).closest('svg').replaceWith(img);
       }
     });
 
     // Update <img> elements to include the base URL if their src is relative
-    $("img").each((_, img) => {
-      const src = $(img).attr("src");
-      if (src && !src.startsWith("http")) {
-        $(img).attr("src", `${baseUrl}${src}`);
+    $('img').each((_, img) => {
+      const src = $(img).attr('src');
+      if (src && !src.startsWith('http')) {
+        $(img).attr('src', `${baseUrl}${src}`);
       }
     });
 
     return $.xml();
   }
 
-  async searchNovels(searchTerm: string, pageNo: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    pageNo: number,
+  ): Promise<Plugin.NovelItem[]> {
     const url = `${this.site}api/v1/series?search=${searchTerm}&page=${pageNo - 1}`;
 
     return await this.getSeries(url);
@@ -202,25 +228,25 @@ class KomgaPlugin implements Plugin.PluginBase {
 
   filters = {
     status: {
-      value: "",
-      label: "Status",
+      value: '',
+      label: 'Status',
       options: [
-        { label: "All", value: "" },
-        { label: "Completed", value: NovelStatus.Completed },
-        { label: "Ongoing", value: NovelStatus.Ongoing },
-        { label: "Cancelled", value: NovelStatus.Cancelled },
-        { label: "OnHiatus", value: NovelStatus.OnHiatus },
+        { label: 'All', value: '' },
+        { label: 'Completed', value: NovelStatus.Completed },
+        { label: 'Ongoing', value: NovelStatus.Ongoing },
+        { label: 'Cancelled', value: NovelStatus.Cancelled },
+        { label: 'OnHiatus', value: NovelStatus.OnHiatus },
       ],
       type: FilterTypes.Picker,
     },
     read_status: {
-      value: "",
-      label: "Read status",
+      value: '',
+      label: 'Read status',
       options: [
-        { label: "All", value: "" },
-        { label: "Unread", value: "UNREAD" },
-        { label: "Read", value: "READ" },
-        { label: "In progress", value: "IN_PROGRESS" },
+        { label: 'All', value: '' },
+        { label: 'Unread', value: 'UNREAD' },
+        { label: 'Read', value: 'READ' },
+        { label: 'In progress', value: 'IN_PROGRESS' },
       ],
       type: FilterTypes.Picker,
     },
@@ -228,17 +254,17 @@ class KomgaPlugin implements Plugin.PluginBase {
 
   pluginSettings = {
     email: {
-      value: "",
-      label: "Email",
-      type: "Text",
+      value: '',
+      label: 'Email',
+      type: 'Text',
     },
     password: {
-      value: "",
-      label: "Password",
+      value: '',
+      label: 'Password',
     },
     url: {
-      value: "",
-      label: "URL",
+      value: '',
+      label: 'URL',
     },
   };
 }

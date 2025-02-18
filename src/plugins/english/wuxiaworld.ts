@@ -1,8 +1,8 @@
-import { load as parseHTML } from "npm:cheerio";
-import { fetchApi, fetchProto } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { Filters } from "@libs/filterInputs.ts";
-import { NovelStatus } from "@libs/novelStatus.ts";
+import { load as parseHTML } from 'npm:cheerio';
+import { fetchApi, fetchProto } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { Filters } from '@libs/filterInputs.ts';
+import { NovelStatus } from '@libs/novelStatus.ts';
 
 type StringValue = {
   value: string;
@@ -101,13 +101,13 @@ type GetNovelResponse = {
 };
 
 class WuxiaWorld implements Plugin.PluginBase {
-  id = "wuxiaworld";
-  name = "Wuxia World";
-  icon = "src/en/wuxiaworld/icon.png";
-  site = "https://www.wuxiaworld.com/";
-  apiSite = "https://api2.wuxiaworld.com/wuxiaworld.api.v2.";
+  id = 'wuxiaworld';
+  name = 'Wuxia World';
+  icon = 'src/en/wuxiaworld/icon.png';
+  site = 'https://www.wuxiaworld.com/';
+  apiSite = 'https://api2.wuxiaworld.com/wuxiaworld.api.v2.';
   filters?: Filters | undefined;
-  version = "0.5.0";
+  version = '0.5.0';
 
   parseNovels(data: { items: NovelEntry[] }) {
     const novels: Plugin.NovelItem[] = [];
@@ -140,25 +140,27 @@ class WuxiaWorld implements Plugin.PluginBase {
     const data = await fetchProto<GetNovelResponse>(
       {
         proto: this.proto,
-        requestType: "GetNovelRequest",
-        responseType: "GetNovelResponse",
-        requestData: { slug: novelPath.split("/")[1] },
+        requestType: 'GetNovelRequest',
+        responseType: 'GetNovelResponse',
+        requestData: { slug: novelPath.split('/')[1] },
       },
-      this.apiSite + "Novels/GetNovel",
+      this.apiSite + 'Novels/GetNovel',
       {
         headers: {
-          "Content-Type": "application/grpc-web+proto",
+          'Content-Type': 'application/grpc-web+proto',
         },
-      }
+      },
     );
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: data.item?.name || "Untitled",
+      name: data.item?.name || 'Untitled',
       cover: data.item?.coverUrl?.value,
-      summary: parseHTML(data.item?.description?.value + "\n\n" + data.item?.synopsis?.value).text(),
+      summary: parseHTML(
+        data.item?.description?.value + '\n\n' + data.item?.synopsis?.value,
+      ).text(),
       author: data.item?.authorName?.value,
-      genres: data.item?.genres.join(","),
+      genres: data.item?.genres.join(','),
       chapters: [],
     };
 
@@ -193,37 +195,42 @@ class WuxiaWorld implements Plugin.PluginBase {
     const list = await fetchProto<GetChapterListResponse>(
       {
         proto: this.proto,
-        requestType: "GetChapterListRequest",
-        responseType: "GetChapterListResponse",
+        requestType: 'GetChapterListRequest',
+        responseType: 'GetChapterListResponse',
         requestData: { novelId: data.item?.id },
       },
-      this.apiSite + "Chapters/GetChapterList",
+      this.apiSite + 'Chapters/GetChapterList',
       {
         headers: {
-          "Content-Type": "application/grpc-web+proto",
+          'Content-Type': 'application/grpc-web+proto',
         },
-      }
+      },
     );
 
     const freeChapter =
-      Number(data.item?.karmaInfo?.maxFreeChapter?.units) + (data.item?.karmaInfo?.maxFreeChapter?.nanos || 0) / 1000000000 || 50;
+      Number(data.item?.karmaInfo?.maxFreeChapter?.units) +
+        (data.item?.karmaInfo?.maxFreeChapter?.nanos || 0) / 1000000000 || 50;
 
-    const chapter: Plugin.ChapterItem[] = list.items.flatMap((ChapterGroupItem: ChapterGroupItem) =>
-      ChapterGroupItem.chapterList.map((chapterItem: ChapterItem) => ({
-        page: ChapterGroupItem.title,
-        name:
-          chapterItem.name +
-          (chapterItem.relatedUserInfo?.isChapterUnlocked?.value === false ||
-          (!chapterItem.relatedUserInfo &&
-            Number(chapterItem.number?.units) + (chapterItem.number?.nanos || 0) / 1000000000 > freeChapter)
-            ? " 🔒"
-            : ""),
-        path: novelPath + chapterItem.slug,
-        chapterNumber: chapterItem.offset,
-        releaseTime: new Date(
-          (chapterItem.publishedAt?.seconds || 0) * 1000 + (chapterItem.publishedAt?.nanos || 0) / 1000000
-        ).toISOString(),
-      }))
+    const chapter: Plugin.ChapterItem[] = list.items.flatMap(
+      (ChapterGroupItem: ChapterGroupItem) =>
+        ChapterGroupItem.chapterList.map((chapterItem: ChapterItem) => ({
+          page: ChapterGroupItem.title,
+          name:
+            chapterItem.name +
+            (chapterItem.relatedUserInfo?.isChapterUnlocked?.value === false ||
+            (!chapterItem.relatedUserInfo &&
+              Number(chapterItem.number?.units) +
+                (chapterItem.number?.nanos || 0) / 1000000000 >
+                freeChapter)
+              ? ' 🔒'
+              : ''),
+          path: novelPath + chapterItem.slug,
+          chapterNumber: chapterItem.offset,
+          releaseTime: new Date(
+            (chapterItem.publishedAt?.seconds || 0) * 1000 +
+              (chapterItem.publishedAt?.nanos || 0) / 1000000,
+          ).toISOString(),
+        })),
     );
 
     novel.chapters = chapter;
@@ -232,12 +239,12 @@ class WuxiaWorld implements Plugin.PluginBase {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    const paths = chapterPath.split("/");
+    const paths = chapterPath.split('/');
     const data = await fetchProto<GetChapterResponse>(
       {
         proto: this.proto,
-        requestType: "GetChapterRequest",
-        responseType: "GetChapterResponse",
+        requestType: 'GetChapterRequest',
+        responseType: 'GetChapterResponse',
         requestData: {
           chapterProperty: {
             slugs: {
@@ -247,23 +254,23 @@ class WuxiaWorld implements Plugin.PluginBase {
           },
         },
       },
-      this.apiSite + "Chapters/GetChapter",
+      this.apiSite + 'Chapters/GetChapter',
       {
         headers: {
-          "Content-Type": "application/grpc-web+proto",
+          'Content-Type': 'application/grpc-web+proto',
         },
-      }
+      },
     );
     // loadedCheerio(".chapter-nav").remove();
     // loadedCheerio("#chapter-content > script").remove();
     // const chapterText = loadedCheerio("#chapter-content").html() || '';
 
-    const chapterText = data.item?.content?.value || "";
+    const chapterText = data.item?.content?.value || '';
     return chapterText;
   }
 
   async searchNovels(searchTerm: string): Promise<Plugin.NovelItem[]> {
-    const url = this.site + "api/novels/search?query=" + searchTerm;
+    const url = this.site + 'api/novels/search?query=' + searchTerm;
 
     const result = await fetchApi(url);
     const data = await result.json();

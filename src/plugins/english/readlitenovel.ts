@@ -1,40 +1,40 @@
-import { load as parseHTML } from "npm:cheerio";
-import { isUrlAbsolute } from "@libs/isAbsoluteUrl.ts";
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { Filters, FilterTypes } from "@libs/filterInputs.ts";
-import dayjs from "npm:dayjs";
+import { load as parseHTML } from 'npm:cheerio';
+import { isUrlAbsolute } from '@libs/isAbsoluteUrl.ts';
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { Filters, FilterTypes } from '@libs/filterInputs.ts';
+import dayjs from 'npm:dayjs';
 
 class ReadLiteNovel implements Plugin.PluginBase {
-  id = "rln.app";
-  name = "ReadLiteNovel";
-  version = "1.0.0";
-  icon = "src/en/readlitenovel/icon.png";
-  site = "https://rln.app";
+  id = 'rln.app';
+  name = 'ReadLiteNovel';
+  version = '1.0.0';
+  icon = 'src/en/readlitenovel/icon.png';
+  site = 'https://rln.app';
 
   parseAgoDate(date: string | undefined) {
     //parseMadaraDate
-    if (date?.includes("ago")) {
+    if (date?.includes('ago')) {
       const dayJSDate = dayjs(new Date()); // today
-      const timeAgo = date.match(/\d+/)?.[0] || "";
+      const timeAgo = date.match(/\d+/)?.[0] || '';
       const timeAgoInt = parseInt(timeAgo, 10);
 
       if (!timeAgo) return null; // there is no number!
 
-      if (date.includes("hours ago") || date.includes("hour ago")) {
-        dayJSDate.subtract(timeAgoInt, "hours"); // go back N hours
+      if (date.includes('hours ago') || date.includes('hour ago')) {
+        dayJSDate.subtract(timeAgoInt, 'hours'); // go back N hours
       }
 
-      if (date.includes("days ago") || date.includes("day ago")) {
-        dayJSDate.subtract(timeAgoInt, "days"); // go back N days
+      if (date.includes('days ago') || date.includes('day ago')) {
+        dayJSDate.subtract(timeAgoInt, 'days'); // go back N days
       }
 
-      if (date.includes("months ago") || date.includes("month ago")) {
-        dayJSDate.subtract(timeAgoInt, "months"); // go back N months
+      if (date.includes('months ago') || date.includes('month ago')) {
+        dayJSDate.subtract(timeAgoInt, 'months'); // go back N months
       }
 
-      if (date.includes("years ago") || date.includes("year ago")) {
-        dayJSDate.subtract(timeAgoInt, "years"); // go back N years
+      if (date.includes('years ago') || date.includes('year ago')) {
+        dayJSDate.subtract(timeAgoInt, 'years'); // go back N years
       }
 
       return dayJSDate.toISOString();
@@ -42,7 +42,10 @@ class ReadLiteNovel implements Plugin.PluginBase {
     return null; // there is no "ago" so give up
   }
 
-  async popularNovels(page: number, { filters }: Plugin.PopularNovelsOptions<typeof this.filters>): Promise<Plugin.NovelItem[]> {
+  async popularNovels(
+    page: number,
+    { filters }: Plugin.PopularNovelsOptions<typeof this.filters>,
+  ): Promise<Plugin.NovelItem[]> {
     const link = `${this.site}/ranking/${filters.order.value}/${page}`;
     const result = await fetchApi(link);
     const body = await result.text();
@@ -51,19 +54,22 @@ class ReadLiteNovel implements Plugin.PluginBase {
 
     const novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio(".category-items li").each((i, el) => {
-      const novelUrl = loadedCheerio(el).find(".category-name a").attr("href");
+    loadedCheerio('.category-items li').each((i, el) => {
+      const novelUrl = loadedCheerio(el).find('.category-name a').attr('href');
 
       if (!novelUrl) return;
-      const novelName = loadedCheerio(el).find(".category-name a").text().trim();
-      let novelCover = loadedCheerio(el).find(".category-img img").attr("src");
+      const novelName = loadedCheerio(el)
+        .find('.category-name a')
+        .text()
+        .trim();
+      let novelCover = loadedCheerio(el).find('.category-img img').attr('src');
 
       if (novelCover && !isUrlAbsolute(novelCover)) {
         novelCover = this.site + novelCover;
       }
 
       const novel = {
-        path: novelUrl?.replace(this.site, ""),
+        path: novelUrl?.replace(this.site, ''),
         name: novelName,
         cover: novelCover,
       };
@@ -80,51 +86,53 @@ class ReadLiteNovel implements Plugin.PluginBase {
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: loadedCheerio(".novel-title").text() || "Untitled",
-      cover: loadedCheerio(".novels-detail img").attr("src"),
-      summary: loadedCheerio(".empty-box").text().trim(),
+      name: loadedCheerio('.novel-title').text() || 'Untitled',
+      cover: loadedCheerio('.novels-detail img').attr('src'),
+      summary: loadedCheerio('.empty-box').text().trim(),
       chapters: [],
     };
 
-    loadedCheerio(".novels-detail-right li").each((i, el) => {
-      const detailName = loadedCheerio(el).find("div:first").text();
-      const detail = loadedCheerio(el).find("div:last");
+    loadedCheerio('.novels-detail-right li').each((i, el) => {
+      const detailName = loadedCheerio(el).find('div:first').text();
+      const detail = loadedCheerio(el).find('div:last');
 
       switch (detailName) {
-        case "Status:":
+        case 'Status:':
           novel.status = detail.text();
           break;
-        case "Genres:":
+        case 'Genres:':
           novel.genres =
             detail
-              .find("a")
+              .find('a')
               .map((i, el) => loadedCheerio(el).text())
               .toArray()
-              .join(", ") || detail.text();
+              .join(', ') || detail.text();
           break;
-        case "Author(s):":
+        case 'Author(s):':
           novel.author =
             detail
-              .find("a")
+              .find('a')
               .map((i, el) => loadedCheerio(el).text())
               .toArray()
-              .join(", ") || detail.text();
+              .join(', ') || detail.text();
           break;
-        case "Translator:":
+        case 'Translator:':
           novel.artist = detail.text();
           break;
       }
     });
     const chapter: Plugin.ChapterItem[] = [];
-    loadedCheerio(".cm-tabs-content li").each((i, el) => {
-      const chapterUrl = loadedCheerio(el).find("a").attr("href");
+    loadedCheerio('.cm-tabs-content li').each((i, el) => {
+      const chapterUrl = loadedCheerio(el).find('a').attr('href');
       if (!chapterUrl) return;
-      const chapterName = loadedCheerio(el).find("a").text().trim();
-      const releaseDate = this.parseAgoDate(loadedCheerio(el).find("svg").attr("data-bs-original-title")!);
+      const chapterName = loadedCheerio(el).find('a').text().trim();
+      const releaseDate = this.parseAgoDate(
+        loadedCheerio(el).find('svg').attr('data-bs-original-title')!,
+      );
 
       chapter.push({
         name: chapterName,
-        path: chapterUrl?.replace(this.site, ""),
+        path: chapterUrl?.replace(this.site, ''),
         releaseTime: releaseDate,
       });
     });
@@ -139,23 +147,25 @@ class ReadLiteNovel implements Plugin.PluginBase {
 
     const loadedCheerio = parseHTML(body);
 
-    const chapterText = loadedCheerio("#chapterText").html() || "";
+    const chapterText = loadedCheerio('#chapterText').html() || '';
 
     return chapterText;
   }
 
   async searchNovels(searchTerm: string): Promise<Plugin.NovelItem[]> {
-    const url = this.site + `/search/autocomplete?dataType=json&query=${searchTerm}`;
+    const url =
+      this.site + `/search/autocomplete?dataType=json&query=${searchTerm}`;
     const result = await fetchApi(url);
     const body = await result.json();
     const novels: Plugin.NovelItem[] = [];
 
-    body.results.forEach((item: { link: string; original_title: string; image: string }) =>
-      novels.push({
-        path: item.link,
-        name: item.original_title,
-        cover: item.image,
-      })
+    body.results.forEach(
+      (item: { link: string; original_title: string; image: string }) =>
+        novels.push({
+          path: item.link,
+          name: item.original_title,
+          cover: item.image,
+        }),
     );
 
     return novels;
@@ -163,13 +173,13 @@ class ReadLiteNovel implements Plugin.PluginBase {
 
   filters = {
     order: {
-      value: "top-rated",
-      label: "Order by",
+      value: 'top-rated',
+      label: 'Order by',
       options: [
-        { label: "MOST VIEWED", value: "most-viewed" },
-        { label: "TOP RATED", value: "top-rated" },
-        { label: "BOOKMARKS", value: "subscribers" },
-        { label: "NEW", value: "new" },
+        { label: 'MOST VIEWED', value: 'most-viewed' },
+        { label: 'TOP RATED', value: 'top-rated' },
+        { label: 'BOOKMARKS', value: 'subscribers' },
+        { label: 'NEW', value: 'new' },
       ],
       type: FilterTypes.Picker,
     },

@@ -1,59 +1,68 @@
-import { Plugin } from "@typings/plugin.ts";
-import { FilterTypes, Filters } from "@libs/filterInputs.ts";
-import { defaultCover } from "@libs/defaultCover.ts";
-import { fetchApi } from "@libs/fetch.ts";
-import { NovelStatus } from "@libs/novelStatus.ts";
+import { Plugin } from '@typings/plugin.ts';
+import { FilterTypes, Filters } from '@libs/filterInputs.ts';
+import { defaultCover } from '@libs/defaultCover.ts';
+import { fetchApi } from '@libs/fetch.ts';
+import { NovelStatus } from '@libs/novelStatus.ts';
 
 const statusKey: Record<string, string> = {
-  "0": NovelStatus.Unknown,
-  "1": NovelStatus.Ongoing,
-  "2": NovelStatus.Completed,
-  "3": NovelStatus.OnHiatus,
-  "4": NovelStatus.Cancelled,
+  '0': NovelStatus.Unknown,
+  '1': NovelStatus.Ongoing,
+  '2': NovelStatus.Completed,
+  '3': NovelStatus.OnHiatus,
+  '4': NovelStatus.Cancelled,
 };
 
 class Neobook implements Plugin.PluginBase {
-  id = "neobook";
-  name = "Neobook";
-  site = "https://neobook.org";
-  apiSite = "https://api.neobook.org/";
-  version = "1.0.1";
-  icon = "src/ru/neobook/icon.png";
+  id = 'neobook';
+  name = 'Neobook';
+  site = 'https://neobook.org';
+  apiSite = 'https://api.neobook.org/';
+  version = '1.0.1';
+  icon = 'src/ru/neobook/icon.png';
 
   async fetchNovels(
     page: number,
-    { filters, showLatestNovels }: Plugin.PopularNovelsOptions<typeof this.filters>,
-    searchTerm?: string
+    {
+      filters,
+      showLatestNovels,
+    }: Plugin.PopularNovelsOptions<typeof this.filters>,
+    searchTerm?: string,
   ): Promise<Plugin.NovelItem[]> {
     const formData = new FormData();
-    formData.append("version", "4.0");
-    formData.append("uid", "0");
-    formData.append("utoken", "");
-    formData.append("resource", "general");
-    formData.append("action", "get_bundle");
-    formData.append("bundle", "bundle_books");
-    formData.append("target", "feed");
-    formData.append("page", page.toString());
-    formData.append("filter_category_id", filters?.category?.value || "0");
-    formData.append("filter_completed", "-1");
-    formData.append("filter_search", searchTerm || "");
-    formData.append("filter_tags", filters?.tags?.value || "");
-    formData.append("filter_sort", showLatestNovels ? "new" : filters?.sort?.value || "popular");
-    formData.append("filter_timeread", filters?.timeread?.value || "0-999999");
+    formData.append('version', '4.0');
+    formData.append('uid', '0');
+    formData.append('utoken', '');
+    formData.append('resource', 'general');
+    formData.append('action', 'get_bundle');
+    formData.append('bundle', 'bundle_books');
+    formData.append('target', 'feed');
+    formData.append('page', page.toString());
+    formData.append('filter_category_id', filters?.category?.value || '0');
+    formData.append('filter_completed', '-1');
+    formData.append('filter_search', searchTerm || '');
+    formData.append('filter_tags', filters?.tags?.value || '');
+    formData.append(
+      'filter_sort',
+      showLatestNovels ? 'new' : filters?.sort?.value || 'popular',
+    );
+    formData.append('filter_timeread', filters?.timeread?.value || '0-999999');
 
-    const { bundle_books }: { bundle_books: BundleBooks } = await fetchApi(this.apiSite, {
-      method: "post",
-      body: formData,
-    }).then((res) => res.json());
+    const { bundle_books }: { bundle_books: BundleBooks } = await fetchApi(
+      this.apiSite,
+      {
+        method: 'post',
+        body: formData,
+      },
+    ).then(res => res.json());
     const novels: Plugin.NovelItem[] = [];
 
     if (bundle_books.feed?.length) {
-      bundle_books.feed?.forEach((novel) =>
+      bundle_books.feed?.forEach(novel =>
         novels.push({
           name: novel.title,
           cover: novel?.attachment?.image?.m || defaultCover,
-          path: novel.token + "/",
-        })
+          path: novel.token + '/',
+        }),
       );
     }
 
@@ -62,7 +71,10 @@ class Neobook implements Plugin.PluginBase {
 
   popularNovels = this.fetchNovels;
 
-  async searchNovels(searchTerm: string, page: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    page: number,
+  ): Promise<Plugin.NovelItem[]> {
     const defaultOptions: any = {
       filters: undefined,
       showLatestNovels: false,
@@ -71,11 +83,13 @@ class Neobook implements Plugin.PluginBase {
   }
 
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
-    const body = await fetchApi(this.resolveUrl(novelPath, true)).then((res) => res.text());
+    const body = await fetchApi(this.resolveUrl(novelPath, true)).then(res =>
+      res.text(),
+    );
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: "",
+      name: '',
       cover: defaultCover,
     };
 
@@ -84,22 +98,22 @@ class Neobook implements Plugin.PluginBase {
       const book: Novels = JSON.parse(bookRaw[1]);
 
       novel.name = book.title;
-      novel.summary = book.text?.replace?.(/<br>/g, "\n") || book.text_fix;
+      novel.summary = book.text?.replace?.(/<br>/g, '\n') || book.text_fix;
       novel.author =
         book.user && book.user.firstname && book.user.lastname
-          ? book.user.firstname + " " + book.user.lastname
-          : book.user?.initials || "";
-      novel.status = statusKey[book.status || "0"] || NovelStatus.Unknown;
+          ? book.user.firstname + ' ' + book.user.lastname
+          : book.user?.initials || '';
+      novel.status = statusKey[book.status || '0'] || NovelStatus.Unknown;
 
       if (book.attachment?.image?.m) novel.cover = book.attachment.image.m;
-      if (book.tags?.length) novel.genres = book.tags.join(",");
+      if (book.tags?.length) novel.genres = book.tags.join(',');
 
       const chapters: Plugin.ChapterItem[] = [];
 
       book.chapters?.forEach((chapter, chapterIndex) => {
-        if (chapter.access == "1" && chapter.status == "1") {
+        if (chapter.access == '1' && chapter.status == '1') {
           chapters.push({
-            name: chapter.title || "Глава " + (chapterIndex + 1),
+            name: chapter.title || 'Глава ' + (chapterIndex + 1),
             path: `?book=${book.token}&chapter=${chapter.token}`,
             releaseTime: null,
             chapterNumber: Number(chapter.sort) || chapterIndex + 1,
@@ -113,82 +127,85 @@ class Neobook implements Plugin.PluginBase {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    const body = await fetchApi(this.resolveUrl(chapterPath)).then((res) => res.text());
+    const body = await fetchApi(this.resolveUrl(chapterPath)).then(res =>
+      res.text(),
+    );
 
     const bookRaw = body.match(/var data = ({.*?});/);
-    let chapterText = "";
+    let chapterText = '';
 
     if (bookRaw instanceof Array && bookRaw[1]) {
-      const token = chapterPath.split("=")[2];
+      const token = chapterPath.split('=')[2];
       const book: Novels = JSON.parse(bookRaw[1]);
-      const chapter = book.chapters?.find?.((chapter) => chapter.token == token);
-      chapterText = (chapter?.data?.html || "").replace(/<br>/g, "");
+      const chapter = book.chapters?.find?.(chapter => chapter.token == token);
+      chapterText = (chapter?.data?.html || '').replace(/<br>/g, '');
     }
 
     return chapterText;
   }
 
-  resolveUrl = (path: string, isNovel?: boolean) => this.site + (isNovel ? "/book/" : "/reader/") + path;
+  resolveUrl = (path: string, isNovel?: boolean) =>
+    this.site + (isNovel ? '/book/' : '/reader/') + path;
 
   filters = {
     sort: {
-      label: "Сортировка:",
-      value: "popular",
+      label: 'Сортировка:',
+      value: 'popular',
       options: [
-        { label: "Сначала популярные", value: "popular" },
-        { label: "Сначала новые", value: "new" },
-        { label: "В случайном порядке", value: "rand" },
+        { label: 'Сначала популярные', value: 'popular' },
+        { label: 'Сначала новые', value: 'new' },
+        { label: 'В случайном порядке', value: 'rand' },
       ],
       type: FilterTypes.Picker,
     },
     timeread: {
-      label: "Время прочтения:",
-      value: "0-999999",
+      label: 'Время прочтения:',
+      value: '0-999999',
       options: [
-        { label: "Все", value: "0-999999" },
-        { label: "Менее 15 минут", value: "0-900" },
-        { label: "15-30 минут", value: "900-1800" },
-        { label: "30-60 минут", value: "1800-3600" },
-        { label: "1-2 часа", value: "3600-7200" },
-        { label: "Более 2 часов", value: "7200-999999" },
+        { label: 'Все', value: '0-999999' },
+        { label: 'Менее 15 минут', value: '0-900' },
+        { label: '15-30 минут', value: '900-1800' },
+        { label: '30-60 минут', value: '1800-3600' },
+        { label: '1-2 часа', value: '3600-7200' },
+        { label: 'Более 2 часов', value: '7200-999999' },
       ],
       type: FilterTypes.Picker,
     },
     category: {
-      label: "Жанр:",
-      value: "",
+      label: 'Жанр:',
+      value: '',
       options: [
-        { label: "Все", value: "" },
-        { label: "Антиутопия", value: "10" },
-        { label: "Детектив", value: "13" },
-        { label: "Детские книги", value: "14" },
-        { label: "Драма", value: "15" },
-        { label: "Другое", value: "16" },
-        { label: "История", value: "18" },
-        { label: "Мелодрама", value: "21" },
-        { label: "Мистика", value: "22" },
-        { label: "Научная фантастика", value: "23" },
-        { label: "Нон-фикшн", value: "35" },
-        { label: "Подростки и молодежь", value: "26" },
-        { label: "Постапокалипсис", value: "27" },
-        { label: "Поэзия", value: "28" },
-        { label: "Приключения", value: "29" },
-        { label: "Рассказ", value: "34" },
-        { label: "Роман", value: "36" },
-        { label: "Творчество", value: "40" },
-        { label: "Триллер", value: "91" },
-        { label: "Ужасы", value: "90" },
-        { label: "Фантастика", value: "41" },
-        { label: "Фанфик", value: "42" },
-        { label: "Фэнтези", value: "44" },
-        { label: "Эротика", value: "46" },
-        { label: "Юмор", value: "47" },
+        { label: 'Все', value: '' },
+        { label: 'Антиутопия', value: '10' },
+        { label: 'Детектив', value: '13' },
+        { label: 'Детские книги', value: '14' },
+        { label: 'Драма', value: '15' },
+        { label: 'Другое', value: '16' },
+        { label: 'История', value: '18' },
+        { label: 'Мелодрама', value: '21' },
+        { label: 'Мистика', value: '22' },
+        { label: 'Научная фантастика', value: '23' },
+        { label: 'Нон-фикшн', value: '35' },
+        { label: 'Подростки и молодежь', value: '26' },
+        { label: 'Постапокалипсис', value: '27' },
+        { label: 'Поэзия', value: '28' },
+        { label: 'Приключения', value: '29' },
+        { label: 'Рассказ', value: '34' },
+        { label: 'Роман', value: '36' },
+        { label: 'Творчество', value: '40' },
+        { label: 'Триллер', value: '91' },
+        { label: 'Ужасы', value: '90' },
+        { label: 'Фантастика', value: '41' },
+        { label: 'Фанфик', value: '42' },
+        { label: 'Фэнтези', value: '44' },
+        { label: 'Эротика', value: '46' },
+        { label: 'Юмор', value: '47' },
       ],
       type: FilterTypes.Picker,
     },
     tags: {
-      label: "Тэги:",
-      value: "",
+      label: 'Тэги:',
+      value: '',
       type: FilterTypes.TextInput,
     },
   } satisfies Filters;
@@ -389,7 +406,7 @@ type Price = {
   deadline: string;
 };
 
-type Currency = "NEO";
+type Currency = 'NEO';
 
 type Rating = {
   value: string;

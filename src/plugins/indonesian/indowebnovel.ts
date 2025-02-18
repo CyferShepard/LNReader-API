@@ -1,23 +1,28 @@
-import { CheerioAPI, load as parseHTML } from "npm:cheerio";
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { NovelStatus } from "@libs/novelStatus.ts";
-import { Filters, FilterTypes } from "@libs/filterInputs.ts";
+import { CheerioAPI, load as parseHTML } from 'npm:cheerio';
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { NovelStatus } from '@libs/novelStatus.ts';
+import { Filters, FilterTypes } from '@libs/filterInputs.ts';
 
 class IndoWebNovel implements Plugin.PluginBase {
-  id = "IDWN.id";
-  name = "IndoWebNovel";
-  icon = "src/id/indowebnovel/icon.png";
-  site = "https://indowebnovel.id/";
-  version = "1.2.3";
+  id = 'IDWN.id';
+  name = 'IndoWebNovel';
+  icon = 'src/id/indowebnovel/icon.png';
+  site = 'https://indowebnovel.id/';
+  version = '1.2.3';
 
   parseNovels(loadedCheerio: CheerioAPI) {
     const novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio(".flexbox2-item").each((i, el) => {
-      const novelName = loadedCheerio(el).find(".flexbox2-title span").first().text();
-      const novelCover = loadedCheerio(el).find("img").attr("src");
-      const novelUrl = loadedCheerio(el).find(".flexbox2-content > a").attr("href");
+    loadedCheerio('.flexbox2-item').each((i, el) => {
+      const novelName = loadedCheerio(el)
+        .find('.flexbox2-title span')
+        .first()
+        .text();
+      const novelCover = loadedCheerio(el).find('img').attr('src');
+      const novelUrl = loadedCheerio(el)
+        .find('.flexbox2-content > a')
+        .attr('href');
 
       if (!novelUrl) return;
 
@@ -32,7 +37,7 @@ class IndoWebNovel implements Plugin.PluginBase {
   }
 
   async popularNovels(
-    page = 1
+    page = 1,
     // { filters }: Plugin.PopularNovelsOptions<typeof this.filters>,
   ): Promise<Plugin.NovelItem[]> {
     /*
@@ -59,28 +64,33 @@ class IndoWebNovel implements Plugin.PluginBase {
     const body = await result.text();
 
     const loadedCheerio = parseHTML(body);
-    loadedCheerio(".series-synops div").remove();
+    loadedCheerio('.series-synops div').remove();
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: loadedCheerio(".series-title h2").text().trim() || "Untitled",
-      cover: loadedCheerio(".series-thumb img").attr("src"),
-      author: loadedCheerio(".series-infolist li:contains('Author') span").text().trim(),
-      status: loadedCheerio(".status").text().trim() === "Completed" ? NovelStatus.Completed : NovelStatus.Ongoing,
-      summary: loadedCheerio(".series-synops").text().trim(),
+      name: loadedCheerio('.series-title h2').text().trim() || 'Untitled',
+      cover: loadedCheerio('.series-thumb img').attr('src'),
+      author: loadedCheerio(".series-infolist li:contains('Author') span")
+        .text()
+        .trim(),
+      status:
+        loadedCheerio('.status').text().trim() === 'Completed'
+          ? NovelStatus.Completed
+          : NovelStatus.Ongoing,
+      summary: loadedCheerio('.series-synops').text().trim(),
       chapters: [],
     };
 
-    novel.genres = loadedCheerio(".series-genres a")
+    novel.genres = loadedCheerio('.series-genres a')
       .map((i, el) => loadedCheerio(el).text().trim())
       .toArray()
-      .join(",");
+      .join(',');
 
     const chapters: Plugin.ChapterItem[] = [];
 
-    loadedCheerio(".series-chapterlist li").each((i, el) => {
-      const chapterName = loadedCheerio(el).find("a").text().trim();
-      const chapterUrl = loadedCheerio(el).find("a").attr("href");
+    loadedCheerio('.series-chapterlist li').each((i, el) => {
+      const chapterName = loadedCheerio(el).find('a').text().trim();
+      const chapterUrl = loadedCheerio(el).find('a').attr('href');
 
       if (!chapterUrl) return;
 
@@ -101,12 +111,15 @@ class IndoWebNovel implements Plugin.PluginBase {
 
     const loadedCheerio = parseHTML(body);
 
-    const chapterText = loadedCheerio(".adsads").html() || "";
+    const chapterText = loadedCheerio('.adsads').html() || '';
 
     return chapterText;
   }
 
-  async searchNovels(searchTerm: string, page = 1): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    page = 1,
+  ): Promise<Plugin.NovelItem[]> {
     /*
     let link = `${this.site}advanced-search/page/${page}/?title=${searchTerm}&author=&yearx=`;
     link += `&status=${this.filters.status.value}`;

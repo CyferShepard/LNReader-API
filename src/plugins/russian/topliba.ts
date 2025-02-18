@@ -1,39 +1,45 @@
-import { Plugin } from "@typings/plugin.ts";
-import { FilterTypes, Filters } from "@libs/filterInputs.ts";
-import { fetchApi } from "@libs/fetch.ts";
-import { load as parseHTML } from "npm:cheerio";
+import { Plugin } from '@typings/plugin.ts';
+import { FilterTypes, Filters } from '@libs/filterInputs.ts';
+import { fetchApi } from '@libs/fetch.ts';
+import { load as parseHTML } from 'npm:cheerio';
 
 class TopLiba implements Plugin.PluginBase {
-  id = "TopLiba";
-  name = "ТопЛиба";
-  site = "https://topliba.com";
-  version = "1.0.0";
-  icon = "src/ru/topliba/icon.png";
-  _token = "";
+  id = 'TopLiba';
+  name = 'ТопЛиба';
+  site = 'https://topliba.com';
+  version = '1.0.0';
+  icon = 'src/ru/topliba/icon.png';
+  _token = '';
 
   async fetchNovels(
     page: number,
-    { showLatestNovels, filters }: Plugin.PopularNovelsOptions<typeof this.filters>,
-    searchTerm?: string
+    {
+      showLatestNovels,
+      filters,
+    }: Plugin.PopularNovelsOptions<typeof this.filters>,
+    searchTerm?: string,
   ): Promise<Plugin.NovelItem[]> {
     const data = new URLSearchParams({
-      order_field: showLatestNovels ? "date" : filters?.sort?.value || "rating",
+      order_field: showLatestNovels ? 'date' : filters?.sort?.value || 'rating',
       p: page,
     });
 
-    if (searchTerm) data.append("q", searchTerm);
-    const body = await fetchApi(this.site + "/?" + data.toString()).then((res) => res.text());
+    if (searchTerm) data.append('q', searchTerm);
+    const body = await fetchApi(this.site + '/?' + data.toString()).then(res =>
+      res.text(),
+    );
     const novels: Plugin.NovelItem[] = [];
 
     this._token = body.match(/<meta name="_token" content="(.*?)"/)?.[1];
 
     const elements = body.match(/<img class="cover" data-original=".*>/g) || [];
-    elements.forEach((element) => {
-      const [, path, name] = element.match(/data-original=".*covers\/(.*?)_.*title="(.*?)"/) || [];
+    elements.forEach(element => {
+      const [, path, name] =
+        element.match(/data-original=".*covers\/(.*?)_.*title="(.*?)"/) || [];
       if (path && name) {
         novels.push({
           name,
-          cover: this.site + "/covers/" + path + ".jpg",
+          cover: this.site + '/covers/' + path + '.jpg',
           path,
         });
       }
@@ -44,7 +50,10 @@ class TopLiba implements Plugin.PluginBase {
 
   popularNovels = this.fetchNovels;
 
-  async searchNovels(searchTerm: string, page: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    page: number,
+  ): Promise<Plugin.NovelItem[]> {
     const defaultOptions: any = {
       showLatestNovels: false,
       filters: {},
@@ -53,22 +62,26 @@ class TopLiba implements Plugin.PluginBase {
   }
 
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
-    const body = await fetchApi(this.resolveUrl(novelPath, true)).then((res) => res.text());
+    const body = await fetchApi(this.resolveUrl(novelPath, true)).then(res =>
+      res.text(),
+    );
     const loadedCheerio = parseHTML(body);
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: loadedCheerio("div > h1").text().trim(),
-      cover: this.site + "/covers/" + novelPath + ".jpg",
-      summary: loadedCheerio(".description").text().trim(),
-      author: loadedCheerio(".book-author > a").text().trim(),
-      genres: loadedCheerio(".book-genres > div > a")
+      name: loadedCheerio('div > h1').text().trim(),
+      cover: this.site + '/covers/' + novelPath + '.jpg',
+      summary: loadedCheerio('.description').text().trim(),
+      author: loadedCheerio('.book-author > a').text().trim(),
+      genres: loadedCheerio('.book-genres > div > a')
         .map((index, element) => loadedCheerio(element).text())
         .get()
-        .join(","),
+        .join(','),
     };
 
-    const chaptersHTML = await fetchApi(this.resolveUrl(novelPath)).then((res) => res.text());
+    const chaptersHTML = await fetchApi(this.resolveUrl(novelPath)).then(res =>
+      res.text(),
+    );
 
     this._token =
       chaptersHTML.match(/<meta name="_token" content="(.*?)"/)?.[1] ||
@@ -76,16 +89,23 @@ class TopLiba implements Plugin.PluginBase {
       this._token;
 
     const chapters: Plugin.ChapterItem[] = [];
-    const elements = chaptersHTML.match(/<li class="padding-\d+" data-capter="\d+">([\s\S]*?)</g) || [];
+    const elements =
+      chaptersHTML.match(
+        /<li class="padding-\d+" data-capter="\d+">([\s\S]*?)</g,
+      ) || [];
     elements.forEach((chapter, chapterIndex) => {
-      const [, padding, capter, name] = chapter.match(/class="padding-(\d+)" data-capter="(\d+)">([\s\S]*?)</) || [];
+      const [, padding, capter, name] =
+        chapter.match(
+          /class="padding-(\d+)" data-capter="(\d+)">([\s\S]*?)</,
+        ) || [];
 
       if (padding && capter && name) {
-        const id = padding === "0" ? capter : padding + "-" + (parseInt(capter, 10) - 1);
+        const id =
+          padding === '0' ? capter : padding + '-' + (parseInt(capter, 10) - 1);
 
         chapters.push({
           name: name.trim(),
-          path: novelPath + "?" + id,
+          path: novelPath + '?' + id,
           releaseTime: null,
           chapterNumber: chapterIndex + 1,
         });
@@ -97,40 +117,45 @@ class TopLiba implements Plugin.PluginBase {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    const [bookID, chapterID] = chapterPath.split("?");
+    const [bookID, chapterID] = chapterPath.split('?');
     if (!this._token) {
-      const chaptersHTML = await fetchApi(this.resolveUrl(bookID)).then((res) => res.text());
-      this._token = chaptersHTML.match(/<meta name="_token" content="(.*?)"/)?.[1];
+      const chaptersHTML = await fetchApi(this.resolveUrl(bookID)).then(res =>
+        res.text(),
+      );
+      this._token = chaptersHTML.match(
+        /<meta name="_token" content="(.*?)"/,
+      )?.[1];
     }
 
-    const chapterText = await fetchApi(this.resolveUrl(bookID) + "/chapter", {
+    const chapterText = await fetchApi(this.resolveUrl(bookID) + '/chapter', {
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
         Referer: this.resolveUrl(bookID),
         Origin: this.site,
       },
-      method: "POST",
+      method: 'POST',
       body: new URLSearchParams({
         chapter: chapterID,
         _token: this._token,
       }).toString(),
-    }).then((res) => res.text());
+    }).then(res => res.text());
 
     return chapterText;
   }
 
-  resolveUrl = (path: string, isNovel?: boolean) => this.site + (isNovel ? "/books/" + path : "/reader/" + path.split("?")[0]);
+  resolveUrl = (path: string, isNovel?: boolean) =>
+    this.site + (isNovel ? '/books/' + path : '/reader/' + path.split('?')[0]);
 
   filters = {
     sort: {
-      label: "Сортировка:",
-      value: "rating",
+      label: 'Сортировка:',
+      value: 'rating',
       options: [
-        { label: "По рейтингу", value: "rating" },
-        { label: "По популярности", value: "num_downloads" },
-        { label: "По году выхода", value: "year" },
-        { label: "По дате добавления", value: "date" },
-        { label: "По названию", value: "title" },
+        { label: 'По рейтингу', value: 'rating' },
+        { label: 'По популярности', value: 'num_downloads' },
+        { label: 'По году выхода', value: 'year' },
+        { label: 'По дате добавления', value: 'date' },
+        { label: 'По названию', value: 'title' },
       ],
       type: FilterTypes.Picker,
     },

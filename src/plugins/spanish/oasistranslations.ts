@@ -1,14 +1,14 @@
-import { fetchApi } from "@libs/fetch.ts";
-import { Filters } from "@libs/filterInputs.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { load as parseHTML } from "npm:cheerio";
+import { fetchApi } from '@libs/fetch.ts';
+import { Filters } from '@libs/filterInputs.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { load as parseHTML } from 'npm:cheerio';
 class Oasis implements Plugin.PluginBase {
-  id = "oasistranslations";
-  name = "Oasis Translations";
-  site = "https://oasistranslations.wordpress.com/";
-  version = "1.0.0";
+  id = 'oasistranslations';
+  name = 'Oasis Translations';
+  site = 'https://oasistranslations.wordpress.com/';
+  version = '1.0.0';
   filters?: Filters | undefined;
-  icon = "src/es/oasistranslations/icon.png";
+  icon = 'src/es/oasistranslations/icon.png';
   async popularNovels(): Promise<Plugin.NovelItem[]> {
     const result = await fetchApi(this.site);
     const body = await result.text();
@@ -17,21 +17,21 @@ class Oasis implements Plugin.PluginBase {
 
     const novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio(".menu-item-1819")
-      .find(".sub-menu > li")
+    loadedCheerio('.menu-item-1819')
+      .find('.sub-menu > li')
       .each((idx, ele) => {
         const novelName = loadedCheerio(ele).text();
         if (!novelName.match(/Activas|Finalizadas|Dropeadas/)) {
-          const novelCover = loadedCheerio(ele).find("img").attr("src");
+          const novelCover = loadedCheerio(ele).find('img').attr('src');
 
-          const novelUrl = loadedCheerio(ele).find("a").attr("href");
+          const novelUrl = loadedCheerio(ele).find('a').attr('href');
 
           if (!novelUrl) return;
 
           const novel = {
             name: novelName,
             cover: novelCover,
-            path: novelUrl.replace(this.site, ""),
+            path: novelUrl.replace(this.site, ''),
           };
 
           novels.push(novel);
@@ -50,37 +50,37 @@ class Oasis implements Plugin.PluginBase {
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: loadedCheerio("h1.entry-title")
+      name: loadedCheerio('h1.entry-title')
         .text()
-        .replace(/[\t\n]/g, "")
+        .replace(/[\t\n]/g, '')
         .trim(),
     };
-    novel.cover = loadedCheerio('img[loading="lazy"]').attr("src");
+    novel.cover = loadedCheerio('img[loading="lazy"]').attr('src');
 
-    loadedCheerio(".entry-content > p").each(() => {
-      if (loadedCheerio(this).text().includes("Autor")) {
+    loadedCheerio('.entry-content > p').each(() => {
+      if (loadedCheerio(this).text().includes('Autor')) {
         const details = loadedCheerio(this)
           .html()
           ?.match(/<\/strong>(.|\n)*?<br>/g)
-          ?.map((detail) => detail.replace(/<strong>|<\/strong>|<br>|:\s/g, ""));
+          ?.map(detail => detail.replace(/<strong>|<\/strong>|<br>|:\s/g, ''));
 
-        novel.genres = "";
+        novel.genres = '';
         if (details) {
           novel.author = details[2];
-          novel.genres = details[4].replace(/\s|&nbsp;/g, "");
+          novel.genres = details[4].replace(/\s|&nbsp;/g, '');
         }
       }
     });
 
     // let novelSummary = $(this).next().html();
-    novel.summary = "";
+    novel.summary = '';
 
     const novelChapters: Plugin.ChapterItem[] = [];
 
-    loadedCheerio(".entry-content")
-      .find("a")
+    loadedCheerio('.entry-content')
+      .find('a')
       .each((idx, ele) => {
-        const chapterUrl = loadedCheerio(ele).attr("href");
+        const chapterUrl = loadedCheerio(ele).attr('href');
 
         if (chapterUrl && chapterUrl.includes(this.site)) {
           const chapterName = loadedCheerio(ele).text();
@@ -89,7 +89,7 @@ class Oasis implements Plugin.PluginBase {
           const chapter = {
             name: chapterName,
             releaseTime: releaseDate,
-            path: chapterUrl.replace(this.site, ""),
+            path: chapterUrl.replace(this.site, ''),
           };
 
           novelChapters.push(chapter);
@@ -108,9 +108,9 @@ class Oasis implements Plugin.PluginBase {
 
     const loadedCheerio = parseHTML(body);
 
-    loadedCheerio("div#jp-post-flair").remove();
+    loadedCheerio('div#jp-post-flair').remove();
 
-    const chapterText = loadedCheerio(".entry-content").html() || "";
+    const chapterText = loadedCheerio('.entry-content').html() || '';
 
     return chapterText;
   }
@@ -123,28 +123,30 @@ class Oasis implements Plugin.PluginBase {
     const loadedCheerio = parseHTML(body);
 
     let novels: Plugin.NovelItem[] = [];
-    loadedCheerio(".menu-item-1819")
-      .find(".sub-menu > li")
+    loadedCheerio('.menu-item-1819')
+      .find('.sub-menu > li')
       .each((idx, ele) => {
         const novelName = loadedCheerio(ele).text();
         if (!novelName.match(/Activas|Finalizadas|Dropeadas/)) {
-          const novelCover = loadedCheerio(ele).find("img").attr("src");
+          const novelCover = loadedCheerio(ele).find('img').attr('src');
 
-          const novelUrl = loadedCheerio(ele).find("a").attr("href");
+          const novelUrl = loadedCheerio(ele).find('a').attr('href');
 
           if (!novelUrl) return;
 
           const novel = {
             name: novelName,
             cover: novelCover,
-            path: novelUrl.replace(this.site, ""),
+            path: novelUrl.replace(this.site, ''),
           };
 
           novels.push(novel);
         }
       });
 
-    novels = novels.filter((novel) => novel.name.toLowerCase().includes(searchTerm));
+    novels = novels.filter(novel =>
+      novel.name.toLowerCase().includes(searchTerm),
+    );
 
     return novels;
   }

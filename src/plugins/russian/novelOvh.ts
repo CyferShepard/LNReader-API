@@ -1,71 +1,95 @@
-import { Plugin } from "@typings/plugin.ts";
-import { FilterTypes, Filters } from "@libs/filterInputs.ts";
-import { fetchApi } from "@libs/fetch.ts";
-import { NovelStatus } from "@libs/novelStatus.ts";
-import dayjs from "npm:dayjs";
+import { Plugin } from '@typings/plugin.ts';
+import { FilterTypes, Filters } from '@libs/filterInputs.ts';
+import { fetchApi } from '@libs/fetch.ts';
+import { NovelStatus } from '@libs/novelStatus.ts';
+import dayjs from 'npm:dayjs';
 
 class novelOvh implements Plugin.PluginBase {
-  id = "novelovh";
-  name = "НовелОВХ";
-  site = "https://novel.ovh";
-  apiSite = "https://api.novel.ovh/v2/";
-  version = "1.0.2";
-  icon = "src/ru/novelovh/icon.png";
+  id = 'novelovh';
+  name = 'НовелОВХ';
+  site = 'https://novel.ovh';
+  apiSite = 'https://api.novel.ovh/v2/';
+  version = '1.0.3';
+  icon = 'src/ru/novelovh/icon.png';
 
-  async popularNovels(pageNo: number, { showLatestNovels, filters }: Plugin.PopularNovelsOptions): Promise<Plugin.NovelItem[]> {
-    let url = this.site + "/content?page=" + (pageNo - 1);
-    url += "&sort=" + (showLatestNovels ? "updatedAt" : filters?.sort?.value || "averageRating") + ",desc";
+  async popularNovels(
+    pageNo: number,
+    { showLatestNovels, filters }: Plugin.PopularNovelsOptions,
+  ): Promise<Plugin.NovelItem[]> {
+    let url = this.apiSite + 'books?page=' + (pageNo - 1);
+    url +=
+      '&sort=' +
+      (showLatestNovels
+        ? 'updatedAt'
+        : filters?.sort?.value || 'averageRating') +
+      ',desc';
 
-    const { books }: { books: BooksEntity[] } = await fetchApi(url + "&_data=routes/reader/book/index").then((res) => res.json());
+    const books: BooksEntity[] = await fetchApi(url).then(res => res.json());
 
     const novels: Plugin.NovelItem[] = [];
-    books.forEach((novel) =>
+    books.forEach(novel =>
       novels.push({
         name: novel.name.ru,
         cover: novel.poster,
         path: novel.slug,
-      })
+      }),
     );
 
     return novels;
   }
 
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
-    const { book, chapters }: responseNovel = await fetchApi(
-      this.site + "/content/" + novelPath + "?_data=routes/reader/book/$slug/index"
-    ).then((res) => res.json());
+    const { book, branches, chapters }: responseNovel = await fetchApi(
+      this.site +
+        '/content/' +
+        novelPath +
+        '?_data=routes/reader/book/$slug/index',
+    ).then(res => res.json());
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
       name: book.name.ru,
       cover: book.poster,
-      genres: book.labels?.map?.((label) => label.name).join(","),
+      genres: book.labels?.map?.(label => label.name).join(','),
       summary: book.description,
-      status: book.status == "ONGOING" ? NovelStatus.Ongoing : NovelStatus.Completed,
+      status:
+        book.status == 'ONGOING' ? NovelStatus.Ongoing : NovelStatus.Completed,
     };
 
-    book.relations?.forEach((person) => {
+    book.relations?.forEach(person => {
       switch (person.type) {
-        case "AUTHOR":
+        case 'AUTHOR':
           novel.author = person.publisher.name;
           break;
-        case "ARTIST":
+        case 'ARTIST':
           novel.artist = person.publisher.name;
           break;
       }
     });
 
-    const chaptersRes: Plugin.ChapterItem[] = [];
+    const branch_name: Record<string, string> = {};
+    if (branches.length) {
+      branches.forEach(({ id, publishers }) => {
+        if (id && publishers?.length)
+          branch_name[id] = publishers[0].name || 'Неизвестный';
+      });
+    }
 
+    const chaptersRes: Plugin.ChapterItem[] = [];
     chapters.forEach((chapter, chapterIndex) =>
       chaptersRes.push({
         name:
           chapter.title ||
-          "Том " + (chapter.volume || 0) + " " + (chapter.name || "Глава " + (chapter.number || chapters.length - chapterIndex)),
-        path: novelPath + "/" + chapter.id + "/0",
-        releaseTime: dayjs(chapter.createdAt).format("LLL"),
+          'Том ' +
+            (chapter.volume || 0) +
+            ' ' +
+            (chapter.name ||
+              'Глава ' + (chapter.number || chapters.length - chapterIndex)),
+        path: novelPath + '/' + chapter.id,
+        releaseTime: dayjs(chapter.createdAt).format('LLL'),
         chapterNumber: chapters.length - chapterIndex,
-      })
+        page: branch_name[chapter.branchId] || 'Главная страница',
+      }),
     );
 
     novel.chapters = chaptersRes.reverse();
@@ -73,80 +97,142 @@ class novelOvh implements Plugin.PluginBase {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    const book: responseChapter = await fetchApi(this.apiSite + "chapters/" + chapterPath.split("/")[1]).then((res) =>
-      res.json()
-    );
+    const book: responseChapter = await fetchApi(
+      this.apiSite + 'chapters/' + chapterPath.split('/')[1],
+    ).then(res => res.json());
 
-    const image = Object.fromEntries(book?.pages?.map(({ id, image }) => [id, image]) || []);
+    const image = Object.fromEntries(
+      book?.pages?.map(({ id, image }) => [id, image]) || [],
+    );
 
     const chapterText = this.jsonToHtml(book.content.content || [], image);
     return chapterText;
   }
 
   async searchNovels(searchTerm: string): Promise<Plugin.NovelItem[]> {
-    const url = this.apiSite + "books?type=NOVEL&search=" + searchTerm;
-    const books: BooksEntity[] = await fetchApi(url).then((res) => res.json());
+    const url = this.apiSite + 'books?type=NOVEL&search=' + searchTerm;
+    const books: BooksEntity[] = await fetchApi(url).then(res => res.json());
 
     const novels: Plugin.NovelItem[] = [];
-    books.forEach((novel) =>
+    books.forEach(novel =>
       novels.push({
         name: novel.name.ru,
         cover: novel.poster,
         path: novel.slug,
-      })
+      }),
     );
 
     return novels;
   }
 
-  jsonToHtml = (json: ContentEntity[], image: Record<string, string>, html = "") => {
-    json.forEach((element) => {
+  jsonToHtml = (
+    json: ContentEntity[],
+    image: Record<string, string>,
+    html = '',
+  ) => {
+    json.forEach(element => {
       switch (element.type) {
-        case "image":
+        case 'image':
           if (element.attrs?.pages?.[0]) {
             html += `<img src="${image[element.attrs.pages[0]]}"/>`;
           }
           break;
-        case "hardBreak":
-          html += "<br>";
+        case 'hardBreak':
+          html += '<br>';
           break;
-        case "horizontalRule":
-        case "delimiter":
+        case 'horizontalRule':
+        case 'delimiter':
           html += '<h2 style="text-align: center">***</h2>';
           break;
-        case "paragraph":
+        case 'paragraph':
           html +=
-            "<p" +
-            (element?.attrs?.textAlign ? ` style="text-align: ${element.attrs.textAlign}"` : "") +
-            ">" +
-            (element.content ? this.jsonToHtml(element.content, image) : "<br>") +
-            "</p>";
+            '<p>' +
+            (element.content
+              ? this.jsonToHtml(element.content, image)
+              : '<br>') +
+            '</p>';
           break;
-        case "text":
+        case 'orderedList':
+          html +=
+            '<ol>' +
+            (element.content
+              ? this.jsonToHtml(element.content, image)
+              : '<br>') +
+            '</ol>';
+          break;
+        case 'listItem':
+          html +=
+            '<li>' +
+            (element.content
+              ? this.jsonToHtml(element.content, image)
+              : '<br>') +
+            '</li>';
+          break;
+        case 'blockquote':
+          html +=
+            '<blockquote>' +
+            (element.content
+              ? this.jsonToHtml(element.content, image)
+              : '<br>') +
+            '</blockquote>';
+          break;
+        case 'italic':
+          html +=
+            '<i>' +
+            (element.content
+              ? this.jsonToHtml(element.content, image)
+              : '<br>') +
+            '</i>';
+          break;
+        case 'bold':
+          html +=
+            '<b>' +
+            (element.content
+              ? this.jsonToHtml(element.content, image)
+              : '<br>') +
+            '</b>';
+          break;
+        case 'underline':
+          html +=
+            '<u>' +
+            (element.content
+              ? this.jsonToHtml(element.content, image)
+              : '<br>') +
+            '</u>';
+          break;
+        case 'heading':
+          html +=
+            '<h2>' +
+            (element.content
+              ? this.jsonToHtml(element.content, image)
+              : '<br>') +
+            '</h2>';
+          break;
+        case 'text':
           html += element.text;
           break;
         default:
-          html += JSON.stringify(element, null, "\t"); //maybe I missed something.
+          html += JSON.stringify(element, null, '\t'); //maybe I missed something.
           break;
       }
     });
     return html;
   };
 
-  resolveUrl = (path: string) => this.site + "/novel/" + path;
+  resolveUrl = (path: string) => this.site + '/content/' + path;
 
   filters = {
     sort: {
-      label: "Сортировка",
-      value: "averageRating",
+      label: 'Сортировка',
+      value: 'averageRating',
       options: [
-        { label: "Кол-во просмотров", value: "viewsCount" },
-        { label: "Кол-во лайков", value: "likesCount" },
-        { label: "Кол-во глав", value: "chaptersCount" },
-        { label: "Кол-во закладок", value: "bookmarksCount" },
-        { label: "Рейтингу", value: "averageRating" },
-        { label: "Дате создания", value: "createdAt" },
-        { label: "Дате обновления", value: "updatedAt" },
+        { label: 'Кол-во просмотров', value: 'viewsCount' },
+        { label: 'Кол-во лайков', value: 'likesCount' },
+        { label: 'Кол-во глав', value: 'chaptersCount' },
+        { label: 'Кол-во закладок', value: 'bookmarksCount' },
+        { label: 'Рейтингу', value: 'averageRating' },
+        { label: 'Дате создания', value: 'createdAt' },
+        { label: 'Дате обновления', value: 'updatedAt' },
       ],
       type: FilterTypes.Picker,
     },

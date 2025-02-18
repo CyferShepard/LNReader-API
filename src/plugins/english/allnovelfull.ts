@@ -1,26 +1,28 @@
-import { CheerioAPI, load as parseHTML } from "npm:cheerio";
-import { fetchApi } from "@libs/fetch.ts";
-import { FilterTypes, Filters } from "@libs/filterInputs.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { isUrlAbsolute } from "@libs/isAbsoluteUrl.ts";
+import { CheerioAPI, load as parseHTML } from 'npm:cheerio';
+import { fetchApi } from '@libs/fetch.ts';
+import { FilterTypes, Filters } from '@libs/filterInputs.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { isUrlAbsolute } from '@libs/isAbsoluteUrl.ts';
 
 class AllNovelFullPlugin implements Plugin.PluginBase {
-  id = "anf.net";
-  name = "AllNovelFull";
-  icon = "src/en/allnovelfull/icon.png";
-  site = "https://allnovelfull.net";
-  version = "1.0.0";
+  id = 'anf.net';
+  name = 'AllNovelFull';
+  icon = 'src/en/allnovelfull/icon.png';
+  site = 'https://allnovelfull.net';
+  version = '1.0.1';
 
   parseNovels(loadedCheerio: CheerioAPI) {
     const novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio(".col-truyen-main .list-truyen .row").each((i, el) => {
-      const novelUrl = loadedCheerio(el).find("h3.truyen-title > a").attr("href");
+    loadedCheerio('.col-truyen-main .list-truyen .row').each((i, el) => {
+      const novelUrl = loadedCheerio(el)
+        .find('h3.truyen-title > a')
+        .attr('href');
       if (!novelUrl) return;
 
-      const novelName = loadedCheerio(el).find("h3.truyen-title > a").text();
+      const novelName = loadedCheerio(el).find('h3.truyen-title > a').text();
 
-      let novelCover = loadedCheerio(el).find("img.cover").attr("src");
+      let novelCover = loadedCheerio(el).find('img.cover').attr('src');
       if (novelCover && !isUrlAbsolute(novelCover)) {
         novelCover = this.site + novelCover;
       }
@@ -37,7 +39,7 @@ class AllNovelFullPlugin implements Plugin.PluginBase {
 
   async popularNovels(
     pageNo: number,
-    { filters }: Plugin.PopularNovelsOptions<typeof this.filters>
+    { filters }: Plugin.PopularNovelsOptions<typeof this.filters>,
   ): Promise<Plugin.NovelItem[]> {
     let link = this.site;
 
@@ -62,37 +64,37 @@ class AllNovelFullPlugin implements Plugin.PluginBase {
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: loadedCheerio(".book > img").attr("alt") || "Untitled",
-      cover: this.site + loadedCheerio(".book > img").attr("src"),
-      summary: loadedCheerio(".desc-text").text().trim(),
+      name: loadedCheerio('.book > img').attr('alt') || 'Untitled',
+      cover: this.site + loadedCheerio('.book > img').attr('src'),
+      summary: loadedCheerio('.desc-text').text().trim(),
       chapters: [],
     };
 
-    loadedCheerio(".info > div").each((i, el) => {
-      const detailName = loadedCheerio(el).find("h3").text();
+    loadedCheerio('.info > div').each((i, el) => {
+      const detailName = loadedCheerio(el).find('h3').text();
       const detail = loadedCheerio(el)
-        .find("a")
+        .find('a')
         .map((a, ex) => loadedCheerio(ex).text())
         .toArray()
-        .join(",");
+        .join(',');
 
       switch (detailName) {
-        case "Author:":
+        case 'Author:':
           novel.author = detail;
           break;
-        case "Status:":
+        case 'Status:':
           novel.status = detail;
           break;
-        case "Genre:":
+        case 'Genre:':
           novel.genres = detail;
           break;
       }
     });
 
-    const novelId = loadedCheerio("#rating").attr("data-novel-id");
+    const novelId = loadedCheerio('#rating').attr('data-novel-id');
 
     const getChapters = async (id: string) => {
-      const chaptersUrl = this.site + "/ajax/chapter-option?novelId=" + id;
+      const chaptersUrl = this.site + '/ajax/chapter-option?novelId=' + id;
 
       const data = await fetchApi(chaptersUrl);
       const chapters = await data.text();
@@ -101,9 +103,9 @@ class AllNovelFullPlugin implements Plugin.PluginBase {
 
       const chapter: Plugin.ChapterItem[] = [];
 
-      loadedCheerio("select > option").each((i, el) => {
+      loadedCheerio('select > option').each((i, el) => {
         const chapterName = loadedCheerio(el).text();
-        const chapterUrl = loadedCheerio(el).attr("value");
+        const chapterUrl = loadedCheerio(el).attr('value');
 
         if (!chapterUrl) return;
 
@@ -129,73 +131,85 @@ class AllNovelFullPlugin implements Plugin.PluginBase {
 
     const loadedCheerio = parseHTML(body);
 
-    const chapterText = loadedCheerio("#chapter-content").html() || "";
+    const chapterText = loadedCheerio('#chapter-content').html() || '';
 
     return chapterText;
   }
 
-  async searchNovels(searchTerm: string, page: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    page: number,
+  ): Promise<Plugin.NovelItem[]> {
     const url = `${this.site}/search?keyword=${searchTerm}&page=${page}`;
     const result = await fetchApi(url);
     const body = await result.text();
 
     const loadedCheerio = parseHTML(body);
+    const lastPage = loadedCheerio('.pagination-container ul li a')
+      .last()
+      .attr('data-page');
+    if (!lastPage) {
+      // no pagination
+      if (page > 1) return [];
+    } else {
+      if (parseInt(lastPage) && page > parseInt(lastPage)) return [];
+    }
     return this.parseNovels(loadedCheerio);
   }
 
   filters = {
     order: {
-      value: "/most-popular",
-      label: "Order by",
+      value: '/most-popular',
+      label: 'Order by',
       options: [
-        { label: "Latest Release", value: "/latest-release-novel" },
-        { label: "Hot Novel", value: "/hot-novel" },
-        { label: "Completed Novel", value: "/completed-novel" },
-        { label: "Most Popular", value: "/most-popular" },
+        { label: 'Latest Release', value: '/latest-release-novel' },
+        { label: 'Hot Novel', value: '/hot-novel' },
+        { label: 'Completed Novel', value: '/completed-novel' },
+        { label: 'Most Popular', value: '/most-popular' },
       ],
       type: FilterTypes.Picker,
     },
     genres: {
-      value: "",
-      label: "Genre",
+      value: '',
+      label: 'Genre',
       options: [
-        { label: "None", value: "" },
-        { label: "Shounen", value: "/genre/Shounen" },
-        { label: "Harem", value: "/genre/Harem" },
-        { label: "Comedy", value: "/genre/Comedy" },
-        { label: "Martial Arts", value: "/genre/Martial+Arts" },
-        { label: "School Life", value: "/genre/School+Life" },
-        { label: "Mystery", value: "/genre/Mystery" },
-        { label: "Shoujo", value: "/genre/Shoujo" },
-        { label: "Romance", value: "/genre/Romance" },
-        { label: "Sci-fi", value: "/genre/Sci-fi" },
-        { label: "Gender Bender", value: "/genre/Gender+Bender" },
-        { label: "Mature", value: "/genre/Mature" },
-        { label: "Fantasy", value: "/genre/Fantasy" },
-        { label: "Horror", value: "/genre/Horror" },
-        { label: "Drama", value: "/genre/Drama" },
-        { label: "Tragedy", value: "/genre/Tragedy" },
-        { label: "Supernatural", value: "/genre/Supernatural" },
-        { label: "Ecchi", value: "/genre/Ecchi" },
-        { label: "Xuanhuan", value: "/genre/Xuanhuan" },
-        { label: "Adventure", value: "/genre/Adventure" },
-        { label: "Action", value: "/genre/Action" },
-        { label: "Psychological", value: "/genre/Psychological" },
-        { label: "Xianxia", value: "/genre/Xianxia" },
-        { label: "Wuxia", value: "/genre/Wuxia" },
-        { label: "Historical", value: "/genre/Historical" },
-        { label: "Slice of Life", value: "/genre/Slice+of+Life" },
-        { label: "Seinen", value: "/genre/Seinen" },
-        { label: "Lolicon", value: "/genre/Lolicon" },
-        { label: "Adult", value: "/genre/Adult" },
-        { label: "Josei", value: "/genre/Josei" },
-        { label: "Sports", value: "/genre/Sports" },
-        { label: "Smut", value: "/genre/Smut" },
-        { label: "Mecha", value: "/genre/Mecha" },
-        { label: "Yaoi", value: "/genre/Yaoi" },
-        { label: "Shounen Ai", value: "/genre/Shounen+Ai" },
-        { label: "Magical Realism", value: "/genre/Magical+Realism" },
-        { label: "Video Games", value: "/genre/Video+Games" },
+        { label: 'None', value: '' },
+        { label: 'Shounen', value: '/genre/Shounen' },
+        { label: 'Harem', value: '/genre/Harem' },
+        { label: 'Comedy', value: '/genre/Comedy' },
+        { label: 'Martial Arts', value: '/genre/Martial+Arts' },
+        { label: 'School Life', value: '/genre/School+Life' },
+        { label: 'Mystery', value: '/genre/Mystery' },
+        { label: 'Shoujo', value: '/genre/Shoujo' },
+        { label: 'Romance', value: '/genre/Romance' },
+        { label: 'Sci-fi', value: '/genre/Sci-fi' },
+        { label: 'Gender Bender', value: '/genre/Gender+Bender' },
+        { label: 'Mature', value: '/genre/Mature' },
+        { label: 'Fantasy', value: '/genre/Fantasy' },
+        { label: 'Horror', value: '/genre/Horror' },
+        { label: 'Drama', value: '/genre/Drama' },
+        { label: 'Tragedy', value: '/genre/Tragedy' },
+        { label: 'Supernatural', value: '/genre/Supernatural' },
+        { label: 'Ecchi', value: '/genre/Ecchi' },
+        { label: 'Xuanhuan', value: '/genre/Xuanhuan' },
+        { label: 'Adventure', value: '/genre/Adventure' },
+        { label: 'Action', value: '/genre/Action' },
+        { label: 'Psychological', value: '/genre/Psychological' },
+        { label: 'Xianxia', value: '/genre/Xianxia' },
+        { label: 'Wuxia', value: '/genre/Wuxia' },
+        { label: 'Historical', value: '/genre/Historical' },
+        { label: 'Slice of Life', value: '/genre/Slice+of+Life' },
+        { label: 'Seinen', value: '/genre/Seinen' },
+        { label: 'Lolicon', value: '/genre/Lolicon' },
+        { label: 'Adult', value: '/genre/Adult' },
+        { label: 'Josei', value: '/genre/Josei' },
+        { label: 'Sports', value: '/genre/Sports' },
+        { label: 'Smut', value: '/genre/Smut' },
+        { label: 'Mecha', value: '/genre/Mecha' },
+        { label: 'Yaoi', value: '/genre/Yaoi' },
+        { label: 'Shounen Ai', value: '/genre/Shounen+Ai' },
+        { label: 'Magical Realism', value: '/genre/Magical+Realism' },
+        { label: 'Video Games', value: '/genre/Video+Games' },
       ],
       type: FilterTypes.Picker,
     },

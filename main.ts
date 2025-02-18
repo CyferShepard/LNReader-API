@@ -13,7 +13,6 @@ import { NovelMeta } from "./src/schemas/novel_meta.ts";
 import { Chapter } from "./src/schemas/chapters.ts";
 import { NovelMetaWithChapters } from "./src/schemas/novel_metaWithChapters.ts";
 
-const sourceMapFilePath = resolve(Deno.cwd(), "sourceMap.json");
 const SECRET_KEY = await crypto.subtle.generateKey(
   {
     name: "HMAC",
@@ -25,33 +24,11 @@ const SECRET_KEY = await crypto.subtle.generateKey(
 
 const app = new Application();
 const router = new Router();
-let sourceMap: {
-  id: string;
-  name: string;
-  site: string;
-  lang: string;
-  version: string;
-  url: string; // the url of raw code
-  iconUrl: string;
-  index: number;
-}[] = [];
 
-async function getSource(source: string) {
-  if (sourceMap.length === 0) {
-    const fileContent = await Deno.readTextFile(sourceMapFilePath);
-    sourceMap = JSON.parse(fileContent) as {
-      id: string;
-      name: string;
-      site: string;
-      lang: string;
-      version: string;
-      url: string; // the url of raw code
-      iconUrl: string;
-      index: number;
-    }[];
-  }
-
-  return sourceMap.find((s) => s.id === source);
+function getSource(source: string) {
+  return PLUGINS.find((p) => {
+    p.id == source;
+  });
 }
 
 // Middleware to check for authorization
@@ -85,6 +62,10 @@ async function generateToken(user: User): Promise<string> {
   const token = await create({ alg: "HS256", typ: "JWT" }, payload, SECRET_KEY);
   return token;
 }
+
+// Plugin stuff
+
+var selectedPlugin = null;
 
 router.get("/", (context) => {
   context.response.body = "Hello, world!";
@@ -174,33 +155,51 @@ router.get("/clearTokens", authMiddleware, async (context) => {
 
 //ln reader endpoints
 router.get("/getSources", authMiddleware, async (context) => {
-  const language = context.request.url.searchParams.get("language");
-  if (sourceMap.length === 0) {
-    await getSource("");
-  }
+  context.response.body = PLUGINS;
+});
 
-  context.response.body = sourceMap
-    .filter((s) => s.lang == language || !language)
-    .map((s) => {
-      return s;
-    });
+router.get("/getActiveSources", authMiddleware, async (context) => {
+  context.response.body = { source: selectedPlugin };
+});
+
+router.get("/setSource", authMiddleware, async (context) => {
+  let source: string | null | undefined = null;
+  try {
+    source = context.request.url.searchParams.get("source");
+
+    if (source == undefined) {
+      selectedPlugin = null;
+      context.response.body = { source: selectedPlugin };
+    }
+
+    if (source != null) {
+      var _selectedPlugin = PLUGINS.find((p) => p.id == source);
+      if (_selectedPlugin == undefined) {
+        context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
+        return;
+      }
+      selectedPlugin = _selectedPlugin;
+      context.response.body = { source: selectedPlugin };
+    }
+  } catch (e) {
+    console.log(e);
+  }
 });
 
 router.post("/searchNovel", authMiddleware, async (context) => {
   const { source, searchTerm, page = 1 } = await context.request.body.json();
 
-  if (!source || !searchTerm) {
-    context.response.body = { error: "Source and Search Term are required" };
+  if (!searchTerm) {
+    context.response.body = { error: "Search Term are required" };
     return;
   }
 
-  const findSourceIndex = await getSource(source);
-  if (!findSourceIndex) {
-    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.id) };
+  const sourcePlugin = selectedPlugin ?? getSource(source);
+  if (!sourcePlugin) {
+    context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
     return;
   }
 
-  const sourcePlugin = PLUGINS[findSourceIndex.index];
   const response = await sourcePlugin.searchNovels(searchTerm, page);
   context.response.body = response;
 });
@@ -214,15 +213,13 @@ router.post("/getPopular", authMiddleware, async (context) => {
     return;
   }
 
-  const findSourceIndex = await getSource(source);
+  const sourcePlugin = selectedPlugin ?? getSource(source);
 
-  if (!findSourceIndex) {
-    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.id) };
+  if (!sourcePlugin) {
+    context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
     context.response.status = 400;
     return;
   }
-
-  const sourcePlugin = PLUGINS[findSourceIndex.index];
 
   const response = await sourcePlugin.popularNovels(page, { showLatestNovels: showLatestNovels, filters: sourcePlugin.filters });
 
@@ -240,10 +237,10 @@ router.post("/novel", authMiddleware, async (context) => {
     return;
   }
 
-  const findSourceIndex = await getSource(source);
+  const sourcePlugin = selectedPlugin ?? getSource(source);
 
-  if (!findSourceIndex) {
-    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.id) };
+  if (!sourcePlugin) {
+    context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
     return;
   }
 
@@ -251,8 +248,6 @@ router.post("/novel", authMiddleware, async (context) => {
     context.response.body = { error: "Path is required" };
     return;
   }
-
-  const sourcePlugin = PLUGINS[findSourceIndex.index];
 
   const response = await sourcePlugin.parseNovel(path);
 
@@ -276,10 +271,10 @@ function stripHtmlTags(html: string): string {
 router.post("/chapter", authMiddleware, async (context) => {
   const { source, path, cleanText = true } = await context.request.body.json();
 
-  const findSourceIndex = await getSource(source);
+  const sourcePlugin = selectedPlugin ?? getSource(source);
 
-  if (!findSourceIndex) {
-    context.response.body = { error: "Source not found", "available sources": sourceMap.map((s) => s.id) };
+  if (!sourcePlugin) {
+    context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
     return;
   }
 
@@ -289,8 +284,6 @@ router.post("/chapter", authMiddleware, async (context) => {
   }
 
   console.log("source", source, "path", path);
-
-  const sourcePlugin = PLUGINS[findSourceIndex.index];
 
   const response = await sourcePlugin.parseChapter(path);
 
@@ -340,10 +333,8 @@ router.post("/history", authMiddleware, async (context) => {
   }
 
   if ((await dbSqLiteHandler.getNovelByPath(novelPath)) == null || (await dbSqLiteHandler.getChapterByPath(path)) == null) {
-    const findSourceIndex = await getSource(source);
-    if (findSourceIndex != null) {
-      const sourcePlugin = PLUGINS[findSourceIndex.index];
-
+    const sourcePlugin = await getSource(source);
+    if (sourcePlugin != null) {
       const response = await sourcePlugin.parseNovel(novelPath);
 
       const novelData = new NovelMetaWithChapters(
@@ -398,10 +389,8 @@ router.post("/favourites", authMiddleware, async (context) => {
     return;
   }
 
-  const findSourceIndex = await getSource(source);
-  if (findSourceIndex != null) {
-    const sourcePlugin = PLUGINS[findSourceIndex.index];
-
+  const sourcePlugin = await getSource(source);
+  if (sourcePlugin != null) {
     const response = await sourcePlugin.parseNovel(path);
 
     const novelData = new NovelMeta(source, response["name"], path, response["cover"], response["summary"]);

@@ -1,37 +1,45 @@
-import { Plugin } from "@typings/plugin.ts";
-import { FilterTypes, Filters } from "@libs/filterInputs.ts";
-import { defaultCover } from "@libs/defaultCover.ts";
-import { fetchApi } from "@libs/fetch.ts";
-import { NovelStatus } from "@libs/novelStatus.ts";
-import dayjs from "npm:dayjs";
+import { Plugin } from '@typings/plugin.ts';
+import { FilterTypes, Filters } from '@libs/filterInputs.ts';
+import { defaultCover } from '@libs/defaultCover.ts';
+import { fetchApi } from '@libs/fetch.ts';
+import { NovelStatus } from '@libs/novelStatus.ts';
+import dayjs from 'npm:dayjs';
 
-const regex = /<script id="__NEXT_DATA__" type="application\/json">(\{.*?\})<\/script>/;
+const regex =
+  /<script id="__NEXT_DATA__" type="application\/json">(\{.*?\})<\/script>/;
 
 class RNRF implements Plugin.PluginBase {
-  id = "RNRF";
-  name = "РанобэРФ";
-  site = "https://ранобэ.рф";
-  version = "1.0.1";
-  icon = "src/ru/ranoberf/icon.png";
+  id = 'RNRF';
+  name = 'РанобэРФ';
+  site = 'https://ранобэ.рф';
+  version = '1.0.1';
+  icon = 'src/ru/ranoberf/icon.png';
 
-  async popularNovels(pageNo: number, { showLatestNovels, filters }: Plugin.PopularNovelsOptions): Promise<Plugin.NovelItem[]> {
-    let url = this.site + "/books?order=";
-    url += showLatestNovels ? "lastPublishedChapter" : filters?.sort?.value || "popular";
-    url += "&page=" + pageNo;
+  async popularNovels(
+    pageNo: number,
+    { showLatestNovels, filters }: Plugin.PopularNovelsOptions,
+  ): Promise<Plugin.NovelItem[]> {
+    let url = this.site + '/books?order=';
+    url += showLatestNovels
+      ? 'lastPublishedChapter'
+      : filters?.sort?.value || 'popular';
+    url += '&page=' + pageNo;
 
-    const body = await fetchApi(url).then((res) => res.text());
+    const body = await fetchApi(url).then(res => res.text());
     const novels: Plugin.NovelItem[] = [];
 
     const jsonRaw = body.match(regex);
     if (jsonRaw instanceof Array && jsonRaw[1]) {
       const json: response = JSON.parse(jsonRaw[1]);
 
-      json.props.pageProps?.totalData?.items?.forEach((novel) =>
+      json.props.pageProps?.totalData?.items?.forEach(novel =>
         novels.push({
           name: novel.title,
-          cover: novel?.verticalImage?.url ? this.site + novel.verticalImage.url : defaultCover,
-          path: "/" + novel.slug,
-        })
+          cover: novel?.verticalImage?.url
+            ? this.site + novel.verticalImage.url
+            : defaultCover,
+          path: '/' + novel.slug,
+        }),
       );
     }
 
@@ -39,10 +47,10 @@ class RNRF implements Plugin.PluginBase {
   }
 
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
-    const body = await fetchApi(this.site + novelPath).then((res) => res.text());
+    const body = await fetchApi(this.site + novelPath).then(res => res.text());
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: "",
+      name: '',
     };
 
     const jsonRaw = body.match(regex);
@@ -52,11 +60,16 @@ class RNRF implements Plugin.PluginBase {
       novel.name = book.title;
       novel.summary = book.description;
 
-      novel.cover = book.verticalImage?.url ? this.site + book.verticalImage.url : defaultCover;
-      novel.status = book?.additionalInfo.includes("Активен") ? NovelStatus.Ongoing : NovelStatus.Completed;
+      novel.cover = book.verticalImage?.url
+        ? this.site + book.verticalImage.url
+        : defaultCover;
+      novel.status = book?.additionalInfo.includes('Активен')
+        ? NovelStatus.Ongoing
+        : NovelStatus.Completed;
 
       if (book.author) novel.author = book.author;
-      if (book.genres?.length) novel.genres = book?.genres.map((item) => item.title).join(",");
+      if (book.genres?.length)
+        novel.genres = book?.genres.map(item => item.title).join(',');
 
       if (book.chapters?.length) {
         const chapters: Plugin.ChapterItem[] = [];
@@ -65,7 +78,7 @@ class RNRF implements Plugin.PluginBase {
             chapters.push({
               name: chapter.title,
               path: chapter.url,
-              releaseTime: dayjs(chapter.publishedAt).format("LLL"),
+              releaseTime: dayjs(chapter.publishedAt).format('LLL'),
               chapterNumber: book.chapters.length - chapterIndex,
             });
           }
@@ -78,29 +91,36 @@ class RNRF implements Plugin.PluginBase {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    const body = await fetchApi(this.site + chapterPath).then((res) => res.text());
+    const body = await fetchApi(this.site + chapterPath).then(res =>
+      res.text(),
+    );
 
     const jsonRaw = body.match(regex);
     if (jsonRaw instanceof Array && jsonRaw[1]) {
-      const chapter: string = JSON.parse(jsonRaw[1])?.props?.pageProps?.chapter?.content?.text || "";
+      const chapter: string =
+        JSON.parse(jsonRaw[1])?.props?.pageProps?.chapter?.content?.text || '';
 
       return chapter;
     }
 
-    return "";
+    return '';
   }
 
   async searchNovels(searchTerm: string): Promise<Plugin.NovelItem[]> {
     const url = `${this.site}/v3/books?filter[or][0][title][like]=${searchTerm}&filter[or][1][titleEn][like]=${searchTerm}&filter[or][2][fullTitle][like]=${searchTerm}&filter[status][]=active&filter[status][]=abandoned&filter[status][]=completed&expand=verticalImage`;
-    const { items }: { items: Item[] } = await fetchApi(url).then((res) => res.json());
+    const { items }: { items: Item[] } = await fetchApi(url).then(res =>
+      res.json(),
+    );
     const novels: Plugin.NovelItem[] = [];
 
-    items.forEach((novel) =>
+    items.forEach(novel =>
       novels.push({
         name: novel.title,
-        cover: novel?.verticalImage?.url ? this.site + novel.verticalImage.url : defaultCover,
-        path: "/" + novel.slug,
-      })
+        cover: novel?.verticalImage?.url
+          ? this.site + novel.verticalImage.url
+          : defaultCover,
+        path: '/' + novel.slug,
+      }),
     );
 
     return novels;
@@ -108,13 +128,13 @@ class RNRF implements Plugin.PluginBase {
 
   filters = {
     sort: {
-      label: "Сортировка",
-      value: "popular",
+      label: 'Сортировка',
+      value: 'popular',
       options: [
-        { label: "Рейтинг", value: "popular" },
-        { label: "Дате добавления", value: "new" },
-        { label: "Дате обновления", value: "lastPublishedChapter" },
-        { label: "Законченные", value: "completed" },
+        { label: 'Рейтинг', value: 'popular' },
+        { label: 'Дате добавления', value: 'new' },
+        { label: 'Дате обновления', value: 'lastPublishedChapter' },
+        { label: 'Законченные', value: 'completed' },
       ],
       type: FilterTypes.Picker,
     },

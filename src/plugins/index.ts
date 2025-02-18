@@ -1,185 +1,232 @@
-import { Plugin } from "@typings/plugin.ts";
-import p_0 from "./arabic/dilartube.ts";
-import p_1 from "./arabic/rewayatclub.ts";
-import p_2 from "./arabic/sunovels.ts";
-import p_3 from "./chinese/69shu.ts";
-import p_4 from "./chinese/69xinshu.ts";
-import p_5 from "./chinese/linovelib.ts";
-import p_6 from "./chinese/linovelib_tw.ts";
-import p_7 from "./english/allnovelfull.ts";
-import p_8 from "./english/ao3.ts";
-import p_9 from "./english/bestlightnovel.ts";
-import p_10 from "./english/divinedaolibrary.ts";
-import p_11 from "./english/dreambigtl.ts";
-import p_12 from "./english/earlynovel.ts";
-import p_13 from "./english/faqwikius.ts";
-import p_14 from "./english/foxteller.ts";
-import p_15 from "./english/freewebnovel.ts";
-import p_16 from "./english/genesis.ts";
-import p_17 from "./english/LibRead.ts";
-import p_18 from "./english/lightnovelpub.ts";
-import p_19 from "./english/lnmtl.ts";
-import p_20 from "./english/mtlreader.ts";
-import p_21 from "./english/mvlempyr.ts";
-import p_22 from "./english/novelbin.ts";
-import p_23 from "./english/novelbuddy.ts";
-import p_24 from "./english/novelfire.ts";
-import p_25 from "./english/novelfull.ts";
-import p_26 from "./english/novelhall.ts";
-import p_27 from "./english/NovelOnline.ts";
-import p_28 from "./english/novelupdates.ts";
-import p_29 from "./english/pawread.ts";
-import p_30 from "./english/rainofsnow.ts";
-import p_31 from "./english/readlitenovel.ts";
-import p_32 from "./english/relibrary.ts";
-import p_33 from "./english/royalroad.ts";
-import p_34 from "./english/scribblehub.ts";
-import p_35 from "./english/StorySeedling.ts";
-import p_36 from "./english/vynovel.ts";
-import p_37 from "./english/webnovel.ts";
-import p_38 from "./english/wtrlab.ts";
-import p_39 from "./english/wuxiaworld.ts";
-import p_40 from "./french/chireads.ts";
-import p_41 from "./french/harkeneliwood.ts";
-import p_42 from "./french/kisswood.ts";
-import p_43 from "./french/noveldeglace.ts";
-import p_44 from "./french/novhell.ts";
-import p_45 from "./french/phenixscans.ts";
-import p_46 from "./french/warriorlegendtrad.ts";
-import p_47 from "./french/wuxialnscantrad.ts";
-import p_48 from "./french/xiaowaz.ts";
-import p_49 from "./indonesian/indowebnovel.ts";
-import p_50 from "./indonesian/novelringan.ts";
-import p_51 from "./indonesian/sakuranovel.ts";
-import p_52 from "./japanese/kakuyomu.ts";
-import p_53 from "./japanese/Syosetu.ts";
-import p_54 from "./korean/Agitoon.ts";
-import p_55 from "./multi/komga.ts";
-import p_56 from "./polish/novelki.ts";
-import p_57 from "./portuguese/blogdoamonnovels.ts";
-import p_58 from "./portuguese/novelmania.ts";
-import p_59 from "./portuguese/tsundoku.ts";
-import p_60 from "./russian/authortoday.ts";
-import p_61 from "./russian/bookriver.ts";
-import p_62 from "./russian/ficbook.ts";
-import p_63 from "./russian/jaomix.ts";
-import p_64 from "./russian/LitSpace.ts";
-import p_65 from "./russian/neobook.ts";
-import p_66 from "./russian/novelOvh.ts";
-import p_67 from "./russian/novelTL.ts";
-import p_68 from "./russian/ranobehub.ts";
-import p_69 from "./russian/ranobelib.ts";
-import p_70 from "./russian/ranoberf.ts";
-import p_71 from "./russian/renovels.ts";
-import p_72 from "./russian/ruvers.ts";
-import p_73 from "./russian/topliba.ts";
-import p_74 from "./russian/zelluloza.ts";
-import p_75 from "./spanish/hasutl.ts";
-import p_76 from "./spanish/novelasligera.ts";
-import p_77 from "./spanish/novelawuxia.ts";
-import p_78 from "./spanish/oasistranslations.ts";
-import p_79 from "./spanish/skynovels.ts";
-import p_80 from "./spanish/tunovelaligera.ts";
-import p_81 from "./spanish/yukitls.ts";
-import p_82 from "./turkish/epiknovel.ts";
-import p_83 from "./ukrainian/smakolykytl.ts";
-import p_84 from "./vietnamese/lightnovelvn.ts";
-import p_85 from "./vietnamese/LNHako.ts";
-import p_86 from "./vietnamese/nettruyen.ts";
-import p_87 from "./vietnamese/truyenchu.ts";
-import p_88 from "./vietnamese/Truyenconect.ts";
-import p_89 from "./vietnamese/truyenfull.ts";
+import { Plugin } from '../types/plugin.ts';
+import p_0 from "./arabic/ArNovel[madara].ts";
+import p_1 from "./arabic/Azora[madara].ts";
+import p_2 from "./arabic/dilartube.ts";
+import p_3 from "./arabic/HizoManga[madara].ts";
+import p_4 from "./arabic/KolNovel[lightnovelwp].ts";
+import p_5 from "./arabic/Novel4Up[madara].ts";
+import p_6 from "./arabic/NovelsParadise[lightnovelwp].ts";
+import p_7 from "./arabic/Olaoecyou[madara].ts";
+import p_8 from "./arabic/rewayatclub.ts";
+import p_9 from "./arabic/Riwyat[madara].ts";
+import p_10 from "./arabic/sunovels.ts";
+import p_11 from "./chinese/69shu.ts";
+import p_12 from "./chinese/69xinshu.ts";
+import p_13 from "./chinese/linovelib.ts";
+import p_14 from "./chinese/linovelib_tw.ts";
+import p_15 from "./english/allnovelfull.ts";
+import p_16 from "./english/AllNovel[readnovelfull].ts";
+import p_17 from "./english/ao3.ts";
+import p_18 from "./english/ArcaneTranslations[lightnovelwp].ts";
+import p_19 from "./english/BelleReservoir[madara].ts";
+import p_20 from "./english/bestlightnovel.ts";
+import p_21 from "./english/BoxNovel[madara].ts";
+import p_22 from "./english/chrysanthemumgarden.ts";
+import p_23 from "./english/CitrusAurora[madara].ts";
+import p_24 from "./english/comrademao.broken.ts";
+import p_25 from "./english/CoralBoutique[madara].ts";
+import p_26 from "./english/CPUnovel[lightnovelwp].ts";
+import p_27 from "./english/DaoistQuest[fictioneer].ts";
+import p_28 from "./english/DaoNovel[madara].ts";
+import p_29 from "./english/DaoTranslate[lightnovelwp].ts";
+import p_30 from "./english/divinedaolibrary.ts";
+import p_31 from "./english/DragonTea[madara].ts";
+import p_32 from "./english/dreambigtl.ts";
+import p_33 from "./english/DuskBlossoms[madara].ts";
+import p_34 from "./english/earlynovel.ts";
+import p_35 from "./english/ElloTL[lightnovelwp].ts";
+import p_36 from "./english/Eternalune[madara].ts";
+import p_37 from "./english/FanNovel[readwn].ts";
+import p_38 from "./english/FansMTL[readwn].ts";
+import p_39 from "./english/FansTranslations[madara].ts";
+import p_40 from "./english/faqwikius.ts";
+import p_41 from "./english/fenrirrealm.ts";
+import p_42 from "./english/fictionzone.ts";
+import p_43 from "./english/FirstKissNovel[madara].ts";
+import p_44 from "./english/Foxaholic[madara].ts";
+import p_45 from "./english/foxteller.ts";
+import p_46 from "./english/freewebnovel.ts";
+import p_47 from "./english/GalaxyTranslations[madara].ts";
+import p_48 from "./english/genesis.ts";
+import p_49 from "./english/Guavaread[madara].ts";
+import p_50 from "./english/HiraethTranslation[madara].ts";
+import p_51 from "./english/HotNovelPub[hotnovelpub].ts";
+import p_52 from "./english/inkitt.ts";
+import p_53 from "./english/Ippotranslations[lightnovelwp].ts";
+import p_54 from "./english/KeopiTranslations[lightnovelwp].ts";
+import p_55 from "./english/KnoxT[lightnovelwp].ts";
+import p_56 from "./english/LazyGirlTranslations[lightnovelwp].ts";
+import p_57 from "./english/LibRead.ts";
+import p_58 from "./english/LightNovelCave[lightnovelworld].ts";
+import p_59 from "./english/LightNovelHeaven[madara].ts";
+import p_60 from "./english/LightNovelPlus[readnovelfull].ts";
+import p_61 from "./english/lightnovelpub.ts";
+import p_62 from "./english/LightNovelPubVip[lightnovelworld].ts";
+import p_63 from "./english/LightNovelUpdates[madara].ts";
+import p_64 from "./english/LightNovelWord[lightnovelworld].ts";
+import p_65 from "./english/LilyontheValley[fictioneer].ts";
+import p_66 from "./english/lnmtl.ts";
+import p_67 from "./english/Ltnovel[readwn].ts";
+import p_68 from "./english/LunarLetters[madara].ts";
+import p_69 from "./english/Meownovel[madara].ts";
+import p_70 from "./english/MoonlightNovels[lightnovelwp].ts";
+import p_71 from "./english/MostNovel[madara].ts";
+import p_72 from "./english/MTLNovel[madara].ts";
+import p_73 from "./english/MTLNovel[mtlnovel].ts";
+import p_74 from "./english/mtlreader.ts";
+import p_75 from "./english/mvlempyr.ts";
+import p_76 from "./english/MysticalSeries[madara].ts";
+import p_77 from "./english/NeoSekaiTranslations[madara].ts";
+import p_78 from "./english/NitroManga[madara].ts";
+import p_79 from "./english/NobleMTL[lightnovelwp].ts";
+import p_80 from "./english/novelbin.ts";
+import p_81 from "./english/novelbuddy.ts";
+import p_82 from "./english/novelfire.ts";
+import p_83 from "./english/novelfull.ts";
+import p_84 from "./english/novelhall.ts";
+import p_85 from "./english/novelight.ts";
+import p_86 from "./english/NovelLib[fictioneer].ts";
+import p_87 from "./english/NovelMultiverse[madara].ts";
+import p_88 from "./english/NovelOnline.ts";
+import p_89 from "./english/NovelsKnight[lightnovelwp].ts";
+import p_90 from "./english/NovelTranslate[madara].ts";
+import p_91 from "./english/novelupdates.ts";
+import p_92 from "./english/PandaMachineTranslations[lightnovelwp].ts";
+import p_93 from "./english/PastelTales[madara].ts";
+import p_94 from "./english/pawread.ts";
+import p_95 from "./english/rainofsnow.ts";
+import p_96 from "./english/Ranobes[ranobes].ts";
+import p_97 from "./english/ReadFanfic[madara].ts";
+import p_98 from "./english/readfrom.ts";
+import p_99 from "./english/readlitenovel.ts";
+import p_100 from "./english/ReadNovelFull[readnovelfull].ts";
+import p_101 from "./english/relibrary.ts";
+import p_102 from "./english/RequiemTranslations[lightnovelwp].ts";
+import p_103 from "./english/royalroad.ts";
+import p_104 from "./english/SalmonLatte[madara].ts";
+import p_105 from "./english/scribblehub.ts";
+import p_106 from "./english/SleepyTranslations[madara].ts";
+import p_107 from "./english/SonicMTL[madara].ts";
+import p_108 from "./english/SrankManga[madara].ts";
+import p_109 from "./english/StorySeedling.ts";
+import p_110 from "./english/SweetEscape[madara].ts";
+import p_111 from "./english/SystemTranslation[lightnovelwp].ts";
+import p_112 from "./english/TranslatinOtaku[madara].ts";
+import p_113 from "./english/UniversalNovel[lightnovelwp].ts";
+import p_114 from "./english/VandyTranslate[lightnovelwp].ts";
+import p_115 from "./english/VioletLily[madara].ts";
+import p_116 from "./english/vynovel.ts";
+import p_117 from "./english/webnovel.ts";
+import p_118 from "./english/WebNovelLover[madara].ts";
+import p_119 from "./english/WebNovelPub[lightnovelworld].ts";
+import p_120 from "./english/WhiteMoonlightNovels[lightnovelwp].ts";
+import p_121 from "./english/WooksTeahouse[madara].ts";
+import p_122 from "./english/WordExcerpt[madara].ts";
+import p_123 from "./english/wtrlab.ts";
+import p_124 from "./english/Wuxiabox[readwn].ts";
+import p_125 from "./english/Wuxiafox[readwn].ts";
+import p_126 from "./english/WuxiaSpace[readwn].ts";
+import p_127 from "./english/WuxiaV[readwn].ts";
+import p_128 from "./english/wuxiaworld.ts";
+import p_129 from "./english/WuxiaWorldSite[madara].ts";
+import p_130 from "./english/ZetroTranslation[madara].ts";
+import p_131 from "./french/chireads.ts";
+import p_132 from "./french/harkeneliwood.ts";
+import p_133 from "./french/kisswood.ts";
+import p_134 from "./french/LighNovelFR[lightnovelwp].ts";
+import p_135 from "./french/MTLNovel(FR)[mtlnovel].ts";
+import p_136 from "./french/noveldeglace.ts";
+import p_137 from "./french/novhell.ts";
+import p_138 from "./french/phenixscans.ts";
+import p_139 from "./french/warriorlegendtrad.ts";
+import p_140 from "./french/WorldNovel[madara].ts";
+import p_141 from "./french/wuxialnscantrad.ts";
+import p_142 from "./french/xiaowaz.ts";
+import p_143 from "./indonesian/BacaLightNovel[lightnovelwp].ts";
+import p_144 from "./indonesian/indowebnovel.ts";
+import p_145 from "./indonesian/MeioNovel[madara].ts";
+import p_146 from "./indonesian/MTLNovel(ID)[mtlnovel].ts";
+import p_147 from "./indonesian/NovelBookID[madara].ts";
+import p_148 from "./indonesian/novelringan.ts";
+import p_149 from "./indonesian/Risenovel[madara].ts";
+import p_150 from "./indonesian/sakuranovel.ts";
+import p_151 from "./indonesian/SekteNovel[lightnovelwp].ts";
+import p_152 from "./indonesian/WBNovel[madara].ts";
+import p_153 from "./japanese/kakuyomu.ts";
+import p_154 from "./japanese/Syosetu.ts";
+import p_155 from "./korean/Agitoon.ts";
+import p_156 from "./korean/FortuneEternal[madara].ts";
+import p_157 from "./multi/komga.ts";
+import p_158 from "./polish/novelki.ts";
+import p_159 from "./portuguese/BetterNovels[lightnovelwp].ts";
+import p_160 from "./portuguese/blogdoamonnovels.ts";
+import p_161 from "./portuguese/CentralNovel[lightnovelwp].ts";
+import p_162 from "./portuguese/Kiniga[madara].ts";
+import p_163 from "./portuguese/LaNovels[hotnovelpub].ts";
+import p_164 from "./portuguese/LightNovelBrasil[lightnovelwp].ts";
+import p_165 from "./portuguese/MTLNovel(PT)[mtlnovel].ts";
+import p_166 from "./portuguese/novelmania.ts";
+import p_167 from "./portuguese/tsundoku.ts";
+import p_168 from "./russian/authortoday.ts";
+import p_169 from "./russian/Bookhamster[ifreedom].ts";
+import p_170 from "./russian/bookriver.ts";
+import p_171 from "./russian/Erolate[rulate].ts";
+import p_172 from "./russian/EzNovels[hotnovelpub].ts";
+import p_173 from "./russian/ficbook.ts";
+import p_174 from "./russian/jaomix.ts";
+import p_175 from "./russian/LitSpace.ts";
+import p_176 from "./russian/MTLNovel(RU)[mtlnovel].ts";
+import p_177 from "./russian/neobook.ts";
+import p_178 from "./russian/novelOvh.ts";
+import p_179 from "./russian/novelTL.ts";
+import p_180 from "./russian/ranobehub.ts";
+import p_181 from "./russian/ranobelib.ts";
+import p_182 from "./russian/ranoberf.ts";
+import p_183 from "./russian/Ranobes(RU)[ranobes].ts";
+import p_184 from "./russian/renovels.ts";
+import p_185 from "./russian/Rulate[rulate].ts";
+import p_186 from "./russian/ruvers.ts";
+import p_187 from "./russian/topliba.ts";
+import p_188 from "./russian/zelluloza.ts";
+import p_189 from "./russian/СвободныйМирРанобэ[ifreedom].ts";
+import p_190 from "./spanish/AllNovelRead[lightnovelwp].ts";
+import p_191 from "./spanish/hasutl.ts";
+import p_192 from "./spanish/LightNovelDaily[hotnovelpub].ts";
+import p_193 from "./spanish/MTLNovel(ES)[mtlnovel].ts";
+import p_194 from "./spanish/novelasligera.ts";
+import p_195 from "./spanish/novelawuxia.ts";
+import p_196 from "./spanish/oasistranslations.ts";
+import p_197 from "./spanish/PanchoTranslations[madara].ts";
+import p_198 from "./spanish/skynovels.ts";
+import p_199 from "./spanish/TraduccionesAmistosas[madara].ts";
+import p_200 from "./spanish/tunovelaligera.ts";
+import p_201 from "./spanish/yukitls.ts";
+import p_202 from "./thai/NovelLucky[madara].ts";
+import p_203 from "./thai/NovelPDF[madara].ts";
+import p_204 from "./turkish/ArazNovel[madara].ts";
+import p_205 from "./turkish/EKTAPLAR[madara].ts";
+import p_206 from "./turkish/epiknovel.ts";
+import p_207 from "./turkish/KodeksLibrary[lightnovelwp].ts";
+import p_208 from "./turkish/lshnovel.broken.ts";
+import p_209 from "./turkish/MangaTR.ts";
+import p_210 from "./turkish/NABSCANS[madara].ts";
+import p_211 from "./turkish/Namevt[lightnovelwp].ts";
+import p_212 from "./turkish/Novelokutr[madara].ts";
+import p_213 from "./turkish/Noveloku[madara].ts";
+import p_214 from "./turkish/NovelTR[lightnovelwp].ts";
+import p_215 from "./turkish/RagnarScans[madara].ts";
+import p_216 from "./turkish/ThNovels[hotnovelpub].ts";
+import p_217 from "./turkish/TurkceLightNovels[madara].ts";
+import p_218 from "./turkish/WebNovelOku[madara].ts";
+import p_219 from "./ukrainian/bakainua.ts";
+import p_220 from "./ukrainian/smakolykytl.ts";
+import p_221 from "./ukrainian/uaranobeclub.ts";
+import p_222 from "./vietnamese/lightnovelvn.ts";
+import p_223 from "./vietnamese/LNHako.ts";
+import p_224 from "./vietnamese/nettruyen.ts";
+import p_225 from "./vietnamese/truyenchu.ts";
+import p_226 from "./vietnamese/Truyenconect.ts";
+import p_227 from "./vietnamese/truyenfull.ts";
 
-const PLUGINS: Plugin.PluginBase[] = [
-  p_0,
-  p_1,
-  p_2,
-  p_3,
-  p_4,
-  p_5,
-  p_6,
-  p_7,
-  p_8,
-  p_9,
-  p_10,
-  p_11,
-  p_12,
-  p_13,
-  p_14,
-  p_15,
-  p_16,
-  p_17,
-  p_18,
-  p_19,
-  p_20,
-  p_21,
-  p_22,
-  p_23,
-  p_24,
-  p_25,
-  p_26,
-  p_27,
-  p_28,
-  p_29,
-  p_30,
-  p_31,
-  p_32,
-  p_33,
-  p_34,
-  p_35,
-  p_36,
-  p_37,
-  p_38,
-  p_39,
-  p_40,
-  p_41,
-  p_42,
-  p_43,
-  p_44,
-  p_45,
-  p_46,
-  p_47,
-  p_48,
-  p_49,
-  p_50,
-  p_51,
-  p_52,
-  p_53,
-  p_54,
-  p_55,
-  p_56,
-  p_57,
-  p_58,
-  p_59,
-  p_60,
-  p_61,
-  p_62,
-  p_63,
-  p_64,
-  p_65,
-  p_66,
-  p_67,
-  p_68,
-  p_69,
-  p_70,
-  p_71,
-  p_72,
-  p_73,
-  p_74,
-  p_75,
-  p_76,
-  p_77,
-  p_78,
-  p_79,
-  p_80,
-  p_81,
-  p_82,
-  p_83,
-  p_84,
-  p_85,
-  p_86,
-  p_87,
-  p_88,
-  p_89,
-];
-export default PLUGINS;
+const PLUGINS: Plugin.PluginBase[] = [p_0, p_1, p_2, p_3, p_4, p_5, p_6, p_7, p_8, p_9, p_10, p_11, p_12, p_13, p_14, p_15, p_16, p_17, p_18, p_19, p_20, p_21, p_22, p_23, p_24, p_25, p_26, p_27, p_28, p_29, p_30, p_31, p_32, p_33, p_34, p_35, p_36, p_37, p_38, p_39, p_40, p_41, p_42, p_43, p_44, p_45, p_46, p_47, p_48, p_49, p_50, p_51, p_52, p_53, p_54, p_55, p_56, p_57, p_58, p_59, p_60, p_61, p_62, p_63, p_64, p_65, p_66, p_67, p_68, p_69, p_70, p_71, p_72, p_73, p_74, p_75, p_76, p_77, p_78, p_79, p_80, p_81, p_82, p_83, p_84, p_85, p_86, p_87, p_88, p_89, p_90, p_91, p_92, p_93, p_94, p_95, p_96, p_97, p_98, p_99, p_100, p_101, p_102, p_103, p_104, p_105, p_106, p_107, p_108, p_109, p_110, p_111, p_112, p_113, p_114, p_115, p_116, p_117, p_118, p_119, p_120, p_121, p_122, p_123, p_124, p_125, p_126, p_127, p_128, p_129, p_130, p_131, p_132, p_133, p_134, p_135, p_136, p_137, p_138, p_139, p_140, p_141, p_142, p_143, p_144, p_145, p_146, p_147, p_148, p_149, p_150, p_151, p_152, p_153, p_154, p_155, p_156, p_157, p_158, p_159, p_160, p_161, p_162, p_163, p_164, p_165, p_166, p_167, p_168, p_169, p_170, p_171, p_172, p_173, p_174, p_175, p_176, p_177, p_178, p_179, p_180, p_181, p_182, p_183, p_184, p_185, p_186, p_187, p_188, p_189, p_190, p_191, p_192, p_193, p_194, p_195, p_196, p_197, p_198, p_199, p_200, p_201, p_202, p_203, p_204, p_205, p_206, p_207, p_208, p_209, p_210, p_211, p_212, p_213, p_214, p_215, p_216, p_217, p_218, p_219, p_220, p_221, p_222, p_223, p_224, p_225, p_226, p_227]; 
+export default PLUGINS

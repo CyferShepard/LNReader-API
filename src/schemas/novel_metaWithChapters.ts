@@ -16,7 +16,7 @@ export class NovelMetaWithChapters extends NovelMeta {
       data.path,
       data.cover,
       data.summary,
-      data.chapters.map((c: any) => Chapter.fromResult(c))
+      data.chapters.map((c: any) => Chapter.fromResult(data.name, c))
     );
   }
 

@@ -1,15 +1,15 @@
-import { fetchApi } from "@libs/fetch.ts";
-import { Filters } from "@libs/filterInputs.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { load as parseHTML } from "npm:cheerio";
+import { fetchApi } from '@libs/fetch.ts';
+import { Filters } from '@libs/filterInputs.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { load as parseHTML } from 'npm:cheerio';
 
 class Yuuki implements Plugin.PluginBase {
-  id = "yuukitls";
-  name = "Yuuki Tls";
-  icon = "src/es/yuukitls/icon.png";
-  site = "https://yuukitls.com/";
+  id = 'yuukitls';
+  name = 'Yuuki Tls';
+  icon = 'src/es/yuukitls/icon.png';
+  site = 'https://yuukitls.com/';
   filters?: Filters | undefined;
-  version = "1.0.0";
+  version = '1.0.0';
 
   async popularNovels(): Promise<Plugin.NovelItem[]> {
     const result = await fetchApi(this.site);
@@ -19,20 +19,20 @@ class Yuuki implements Plugin.PluginBase {
 
     const novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio(".quadmenu-navbar-collapse ul li:nth-child(2)")
-      .find("li")
+    loadedCheerio('.quadmenu-navbar-collapse ul li:nth-child(2)')
+      .find('li')
       .each((idx, ele) => {
         const novelName = loadedCheerio(ele)
           .text()
-          .replace(/[\s\n]+/g, " ");
-        const novelCover = loadedCheerio(ele).find("img").attr("src");
+          .replace(/[\s\n]+/g, ' ');
+        const novelCover = loadedCheerio(ele).find('img').attr('src');
 
-        const novelUrl = loadedCheerio(ele).find("a").attr("href");
+        const novelUrl = loadedCheerio(ele).find('a').attr('href');
         if (!novelUrl) return;
         const novel = {
           name: novelName,
           cover: novelCover,
-          path: novelUrl.replace(this.site, ""),
+          path: novelUrl.replace(this.site, ''),
         };
 
         novels.push(novel);
@@ -50,38 +50,41 @@ class Yuuki implements Plugin.PluginBase {
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: loadedCheerio("h1.entry-title")
+      name: loadedCheerio('h1.entry-title')
         .text()
-        .replace(/[\t\n]/g, "")
+        .replace(/[\t\n]/g, '')
         .trim(),
     };
 
-    novel.cover = loadedCheerio('img[loading="lazy"]').attr("src");
+    novel.cover = loadedCheerio('img[loading="lazy"]').attr('src');
 
-    loadedCheerio(".entry-content")
-      .find("div")
+    loadedCheerio('.entry-content')
+      .find('div')
       .each(function () {
-        if (loadedCheerio(this).text().includes("Escritor:")) {
-          novel.author = loadedCheerio(this).text().replace("Escritor: ", "").trim();
+        if (loadedCheerio(this).text().includes('Escritor:')) {
+          novel.author = loadedCheerio(this)
+            .text()
+            .replace('Escritor: ', '')
+            .trim();
         }
-        if (loadedCheerio(this).text().includes("Género:")) {
+        if (loadedCheerio(this).text().includes('Género:')) {
           novel.genres = loadedCheerio(this)
             .text()
-            .replace(/Género: |\s/g, "");
+            .replace(/Género: |\s/g, '');
         }
 
-        if (loadedCheerio(this).text().includes("Sinopsis:")) {
+        if (loadedCheerio(this).text().includes('Sinopsis:')) {
           novel.summary = loadedCheerio(this).next().text();
         }
       });
 
     const novelChapters: Plugin.ChapterItem[] = [];
 
-    if (loadedCheerio(".entry-content").find("li").length) {
-      loadedCheerio(".entry-content")
-        .find("li")
+    if (loadedCheerio('.entry-content').find('li').length) {
+      loadedCheerio('.entry-content')
+        .find('li')
         .each((idx, ele) => {
-          const chapterUrl = loadedCheerio(ele).find("a").attr("href");
+          const chapterUrl = loadedCheerio(ele).find('a').attr('href');
 
           if (chapterUrl && chapterUrl.includes(this.site)) {
             const chapterName = loadedCheerio(ele).text();
@@ -90,17 +93,17 @@ class Yuuki implements Plugin.PluginBase {
             const chapter = {
               name: chapterName,
               releaseTime: releaseDate,
-              path: chapterUrl.replace(this.site, ""),
+              path: chapterUrl.replace(this.site, ''),
             };
 
             novelChapters.push(chapter);
           }
         });
     } else {
-      loadedCheerio(".entry-content")
-        .find("p")
+      loadedCheerio('.entry-content')
+        .find('p')
         .each((idx, ele) => {
-          const chapterUrl = loadedCheerio(ele).find("a").attr("href");
+          const chapterUrl = loadedCheerio(ele).find('a').attr('href');
 
           if (chapterUrl && chapterUrl.includes(this.site)) {
             const chapterName = loadedCheerio(ele).text();
@@ -109,7 +112,7 @@ class Yuuki implements Plugin.PluginBase {
             const chapter = {
               name: chapterName,
               releaseTime: releaseDate,
-              path: chapterUrl.replace(this.site, ""),
+              path: chapterUrl.replace(this.site, ''),
             };
 
             novelChapters.push(chapter);
@@ -128,7 +131,7 @@ class Yuuki implements Plugin.PluginBase {
     const body = await result.text();
 
     const loadedCheerio = parseHTML(body);
-    const chapterText = loadedCheerio(".entry-content").html() || "";
+    const chapterText = loadedCheerio('.entry-content').html() || '';
 
     return chapterText;
   }
@@ -142,25 +145,27 @@ class Yuuki implements Plugin.PluginBase {
 
     let novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio(".menu-item-2869")
-      .find(".menu-item.menu-item-type-post_type.menu-item-object-post")
+    loadedCheerio('.menu-item-2869')
+      .find('.menu-item.menu-item-type-post_type.menu-item-object-post')
       .each((idx, ele) => {
         const novelName = loadedCheerio(ele).text();
-        const novelCover = loadedCheerio(ele).find("img").attr("src");
+        const novelCover = loadedCheerio(ele).find('img').attr('src');
 
-        const novelUrl = loadedCheerio(ele).find("a").attr("href");
+        const novelUrl = loadedCheerio(ele).find('a').attr('href');
         if (!novelUrl) return;
 
         const novel = {
           name: novelName,
           cover: novelCover,
-          path: novelUrl.replace(this.site, ""),
+          path: novelUrl.replace(this.site, ''),
         };
 
         novels.push(novel);
       });
 
-    novels = novels.filter((novel) => novel.name.toLowerCase().includes(searchTerm));
+    novels = novels.filter(novel =>
+      novel.name.toLowerCase().includes(searchTerm),
+    );
 
     return novels;
   }

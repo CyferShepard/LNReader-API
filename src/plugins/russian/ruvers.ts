@@ -1,37 +1,39 @@
-import { Plugin } from "@typings/plugin.ts";
-import { FilterTypes, Filters } from "@libs/filterInputs.ts";
-import { defaultCover } from "@libs/defaultCover.ts";
-import { fetchApi } from "@libs/fetch.ts";
-import { NovelStatus } from "@libs/novelStatus.ts";
-import { load as parseHTML } from "npm:cheerio";
-import dayjs from "npm:dayjs";
+import { Plugin } from '@typings/plugin.ts';
+import { FilterTypes, Filters } from '@libs/filterInputs.ts';
+import { defaultCover } from '@libs/defaultCover.ts';
+import { fetchApi } from '@libs/fetch.ts';
+import { NovelStatus } from '@libs/novelStatus.ts';
+import { load as parseHTML } from 'npm:cheerio';
+import dayjs from 'npm:dayjs';
 
 class RV implements Plugin.PluginBase {
-  id = "RV";
-  name = "Ruvers";
-  site = "https://ruvers.ru/";
-  version = "1.0.0";
-  icon = "src/ru/ruvers/icon.png";
+  id = 'RV';
+  name = 'Ruvers';
+  site = 'https://ruvers.ru/';
+  version = '1.0.0';
+  icon = 'src/ru/ruvers/icon.png';
 
   async fetchNovels(
     page: number,
     { filters }: Plugin.PopularNovelsOptions<typeof this.filters>,
-    searchTerm?: string
+    searchTerm?: string,
   ): Promise<Plugin.NovelItem[]> {
-    let url = this.site + "api/books?page=" + page;
-    url += "&sort=" + (filters?.sort?.value || "-rating");
+    let url = this.site + 'api/books?page=' + page;
+    url += '&sort=' + (filters?.sort?.value || '-rating');
 
-    if (searchTerm) url += "&search=" + searchTerm;
+    if (searchTerm) url += '&search=' + searchTerm;
 
-    const { data }: { data: book[] } = await fetchApi(url).then((res) => res.json());
+    const { data }: { data: book[] } = await fetchApi(url).then(res =>
+      res.json(),
+    );
     const novels: Plugin.NovelItem[] = [];
 
-    data.forEach((novel) =>
+    data.forEach(novel =>
       novels.push({
         name: novel.name,
         cover: novel.images[0] ? this.site + novel.images[0] : defaultCover,
         path: novel.slug,
-      })
+      }),
     );
 
     return novels;
@@ -39,43 +41,51 @@ class RV implements Plugin.PluginBase {
 
   popularNovels = this.fetchNovels;
 
-  async searchNovels(searchTerm: string, page: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    page: number,
+  ): Promise<Plugin.NovelItem[]> {
     const defaultOptions: any = { filters: {} };
     return this.fetchNovels(page, defaultOptions, searchTerm);
   }
 
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
-    const body = await fetchApi(this.site + novelPath).then((res) => res.text());
+    const body = await fetchApi(this.site + novelPath).then(res => res.text());
     const loadedCheerio = parseHTML(body);
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: loadedCheerio("div.name > h1").text().trim(),
-      cover: loadedCheerio(".slider_prods_single > img").attr("src"),
-      summary: loadedCheerio(".book_description").text().trim(),
-      genres: loadedCheerio(".genres > a")
+      name: loadedCheerio('div.name > h1').text().trim(),
+      cover: loadedCheerio('.slider_prods_single > img').attr('src'),
+      summary: loadedCheerio('.book_description').text().trim(),
+      genres: loadedCheerio('.genres > a')
         .map((index, element) => loadedCheerio(element).text()?.trim())
         .get()
-        .join(","),
-      status: loadedCheerio(".status_row > div:nth-child(1) > a").text().includes("В работе")
+        .join(','),
+      status: loadedCheerio('.status_row > div:nth-child(1) > a')
+        .text()
+        .includes('В работе')
         ? NovelStatus.Ongoing
         : NovelStatus.Completed,
     };
 
-    const bookId = loadedCheerio("comments-list").attr("commentable-id");
+    const bookId = loadedCheerio('comments-list').attr('commentable-id');
 
-    const chaptersJSON: { data: chapters[] } = await fetchApi(this.site + "api/books/" + bookId + "/chapters/all").then((res) =>
-      res.json()
-    );
+    const chaptersJSON: { data: chapters[] } = await fetchApi(
+      this.site + 'api/books/' + bookId + '/chapters/all',
+    ).then(res => res.json());
 
     if (chaptersJSON.data.length) {
       const chapters: Plugin.ChapterItem[] = [];
       chaptersJSON.data.forEach((chapter, chapterIndex) => {
-        if (chapter.is_published && (chapter.is_free || chapter.purchased_by_user)) {
+        if (
+          chapter.is_published &&
+          (chapter.is_free || chapter.purchased_by_user)
+        ) {
           chapters.push({
-            name: "Глава " + chapter.number + " " + (chapter.name || ""),
-            path: novelPath + "/" + chapter.id,
-            releaseTime: dayjs(chapter.created_at).format("LLL"),
+            name: 'Глава ' + chapter.number + ' ' + (chapter.name || ''),
+            path: novelPath + '/' + chapter.id,
+            releaseTime: dayjs(chapter.created_at).format('LLL'),
             chapterNumber: chapterIndex + 1,
           });
         }
@@ -88,21 +98,25 @@ class RV implements Plugin.PluginBase {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    const body = await fetchApi(this.site + chapterPath).then((res) => res.text());
-    const encrypted = body.match(/(mobile-books|books)-chapters-text-component.*:text='"(.*?)"'/s)?.[2];
-    if (!encrypted) throw new Error("No chapter found");
+    const body = await fetchApi(this.site + chapterPath).then(res =>
+      res.text(),
+    );
+    const encrypted = body.match(
+      /(mobile-books|books)-chapters-text-component.*:text='"(.*?)"'/s,
+    )?.[2];
+    if (!encrypted) throw new Error('No chapter found');
 
     return unicodeToUtf8(encrypted);
   }
 
   filters = {
     sort: {
-      label: "Сортировка",
-      value: "-rating",
+      label: 'Сортировка',
+      value: '-rating',
       options: [
-        { label: "По названию", value: "name" },
-        { label: "По дате добавления", value: "-created_at" },
-        { label: "По рейтингу", value: "-rating" },
+        { label: 'По названию', value: 'name' },
+        { label: 'По дате добавления', value: '-created_at' },
+        { label: 'По рейтингу', value: '-rating' },
       ],
       type: FilterTypes.Picker,
     },
@@ -162,5 +176,7 @@ type chapters = {
 };
 
 function unicodeToUtf8(unicode: string) {
-  return unicode.replace(/\\u([\d\w]{4})/gi, (match, hex) => String.fromCharCode(parseInt(hex, 16)));
+  return unicode.replace(/\\u([\d\w]{4})/gi, (match, hex) =>
+    String.fromCharCode(parseInt(hex, 16)),
+  );
 }

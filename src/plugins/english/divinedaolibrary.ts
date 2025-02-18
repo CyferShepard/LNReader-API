@@ -1,27 +1,27 @@
-import { defaultCover } from "@libs/defaultCover.ts";
-import { fetchApi } from "@libs/fetch.ts";
-import { Filters, FilterTypes, FilterValueWithType } from "@libs/filterInputs.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { load as parseHTML } from "npm:cheerio";
+import { defaultCover } from '@libs/defaultCover.ts';
+import { fetchApi } from '@libs/fetch.ts';
+import { Filters, FilterTypes, FilterValueWithType } from '@libs/filterInputs.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { load as parseHTML } from 'npm:cheerio';
 
 class DDLPlugin implements Plugin.PluginBase {
-  id = "DDL.com";
-  name = "Divine Dao Library";
-  site = "https://www.divinedaolibrary.com/";
-  version = "1.1.0";
-  icon = "src/en/divinedaolibrary/icon.png";
+  id = 'DDL.com';
+  name = 'Divine Dao Library';
+  site = 'https://www.divinedaolibrary.com/';
+  version = '1.1.0';
+  icon = 'src/en/divinedaolibrary/icon.png';
 
   filters = {
     category: {
       type: FilterTypes.CheckboxGroup,
-      label: "State",
-      value: ["Completed", "Translating", "Lost in Voting Poll", "Dropped"],
+      label: 'State',
+      value: ['Completed', 'Translating', 'Lost in Voting Poll', 'Dropped'],
       options: [
-        { label: "Completed", value: "Completed" },
-        { label: "Translating", value: "Translating" },
-        { label: "Lost in Voting Poll", value: "Lost in Voting Poll" },
-        { label: "Dropped", value: "Dropped" },
-        { label: "Personally Written", value: "Personally Written" },
+        { label: 'Completed', value: 'Completed' },
+        { label: 'Translating', value: 'Translating' },
+        { label: 'Lost in Voting Poll', value: 'Lost in Voting Poll' },
+        { label: 'Dropped', value: 'Dropped' },
+        { label: 'Personally Written', value: 'Personally Written' },
       ],
     },
   } satisfies Filters;
@@ -39,7 +39,7 @@ class DDLPlugin implements Plugin.PluginBase {
     if (!url.startsWith(this.site)) {
       return undefined;
     }
-    const trimmed = url.substring(this.site.length).replace(/(^\/+|\/+$)/g, "");
+    const trimmed = url.substring(this.site.length).replace(/(^\/+|\/+$)/g, '');
     if (trimmed.length === 0) {
       return undefined;
     }
@@ -54,12 +54,14 @@ class DDLPlugin implements Plugin.PluginBase {
    */
   async asyncMap<T, U>(
     collection: readonly T[],
-    callbackfn: (value: T, index: number, array: readonly T[]) => Promise<U>
+    callbackfn: (value: T, index: number, array: readonly T[]) => Promise<U>,
   ): Promise<Exclude<U, undefined>[]> {
     return (await Promise.allSettled(collection.map(callbackfn)))
       .filter(
-        <U>(p: PromiseSettledResult<U>): p is PromiseFulfilledResult<Exclude<U, undefined>> =>
-          p.status === "fulfilled" && p.value !== undefined
+        <U>(
+          p: PromiseSettledResult<U>,
+        ): p is PromiseFulfilledResult<Exclude<U, undefined>> =>
+          p.status === 'fulfilled' && p.value !== undefined,
       )
       .map(({ value }) => value);
   }
@@ -74,13 +76,13 @@ class DDLPlugin implements Plugin.PluginBase {
    */
   async findLatestChapter(novelPath: string): Promise<string | undefined> {
     const link = `${this.site}wp-json/wp/v2/categories?slug=${novelPath}`;
-    const guessCategory = await fetchApi(link).then((res) => res.json());
+    const guessCategory = await fetchApi(link).then(res => res.json());
     if (guessCategory.length !== 1) {
       return undefined;
     }
     const categoryId = guessCategory[0].id;
     const chapterLink = `${this.site}wp-json/wp/v2/posts?categories=${categoryId}&per_page=1`;
-    const lastChapter = await fetchApi(chapterLink).then((res) => res.json());
+    const lastChapter = await fetchApi(chapterLink).then(res => res.json());
     if (lastChapter.length !== 1) {
       return undefined;
     }
@@ -94,20 +96,23 @@ class DDLPlugin implements Plugin.PluginBase {
    *
    * @private
    */
-  async grabNovel(path: string, getChapters = false): Promise<(Plugin.SourceNovel & Required<Plugin.NovelItem>) | undefined> {
+  async grabNovel(
+    path: string,
+    getChapters = false,
+  ): Promise<(Plugin.SourceNovel & Required<Plugin.NovelItem>) | undefined> {
     const link = `${this.site}wp-json/wp/v2/pages?slug=${path}`;
-    const data = await fetchApi(link).then((res) => res.json());
+    const data = await fetchApi(link).then(res => res.json());
     if (data.length !== 1) {
       return undefined;
     }
     const content = parseHTML(data[0].content.rendered);
     const excerpt = parseHTML(data[0].excerpt.rendered);
-    const image = content("img").first();
+    const image = content('img').first();
     let chapters: Plugin.ChapterItem[] = [];
     if (getChapters) {
-      const linkedChapters = content("li > span > a")
+      const linkedChapters = content('li > span > a')
         .map((_, anchorEl) => {
-          const chapterPath = this.getPath(anchorEl.attribs["href"]);
+          const chapterPath = this.getPath(anchorEl.attribs['href']);
           if (!chapterPath) return;
           return {
             name: content(anchorEl).text(),
@@ -117,7 +122,13 @@ class DDLPlugin implements Plugin.PluginBase {
         .toArray();
       const lastChapterPath = await this.findLatestChapter(path);
       if (lastChapterPath) {
-        chapters = linkedChapters.slice(0, 1 + linkedChapters.findIndex((chapter) => chapter.path === lastChapterPath));
+        chapters = linkedChapters.slice(
+          0,
+          1 +
+            linkedChapters.findIndex(
+              chapter => chapter.path === lastChapterPath,
+            ),
+        );
       } else {
         chapters = linkedChapters;
       }
@@ -125,15 +136,15 @@ class DDLPlugin implements Plugin.PluginBase {
     return {
       name: data[0].title.rendered,
       path,
-      cover: image.attr("data-lazy-src") ?? image.attr("src") ?? defaultCover,
-      author: content("h3")
+      cover: image.attr('data-lazy-src') ?? image.attr('src') ?? defaultCover,
+      author: content('h3')
         .first()
         .text()
-        .replace(/^Author:\s*/g, ""),
-      summary: excerpt("p")
+        .replace(/^Author:\s*/g, ''),
+      summary: excerpt('p')
         .first()
         .text()
-        .replace(/^.+Description\s*/g, ""),
+        .replace(/^.+Description\s*/g, ''),
       chapters,
     };
   }
@@ -168,20 +179,22 @@ class DDLPlugin implements Plugin.PluginBase {
    *
    * @private
    */
-  async grabCachedNovels(): Promise<readonly (readonly [string, string, string])[] | undefined> {
+  async grabCachedNovels(): Promise<
+    readonly (readonly [string, string, string])[] | undefined
+  > {
     if (this.allNovelsCache) {
       return this.allNovelsCache;
     }
-    const body = await fetchApi(this.site + "novels").then((res) => res.text());
+    const body = await fetchApi(this.site + 'novels').then(res => res.text());
     const loadedCheerio = parseHTML(body);
-    const novels = loadedCheerio(".entry-content ul")
+    const novels = loadedCheerio('.entry-content ul')
       .map((_, listEl) => {
         const list = loadedCheerio(listEl);
         const category = list.prev().text();
         return list
-          .find("a")
+          .find('a')
           .map((_, anchorEl) => {
-            const path = this.getPath(anchorEl.attribs["href"]);
+            const path = this.getPath(anchorEl.attribs['href']);
             if (!path) return;
             const name = loadedCheerio(anchorEl).text();
             return [[category, name, path]] as const;
@@ -199,12 +212,12 @@ class DDLPlugin implements Plugin.PluginBase {
    * @private
    */
   async latestNovels(): Promise<readonly string[]> {
-    const body = await fetchApi(this.site).then((res) => res.text());
+    const body = await fetchApi(this.site).then(res => res.text());
     const loadedCheerio = parseHTML(body);
-    const novelPaths = loadedCheerio("#main")
+    const novelPaths = loadedCheerio('#main')
       .find('a[rel="category tag"]')
       .map((_, anchorEl) => {
-        const path = this.getPath(anchorEl.attribs["href"]);
+        const path = this.getPath(anchorEl.attribs['href']);
         return path;
       })
       .toArray();
@@ -217,18 +230,30 @@ class DDLPlugin implements Plugin.PluginBase {
    *
    * @private
    */
-  async allNovels(categoryFilter: FilterValueWithType<FilterTypes.CheckboxGroup>) {
+  async allNovels(
+    categoryFilter: FilterValueWithType<FilterTypes.CheckboxGroup>,
+  ) {
     const allNovels = await this.grabCachedNovels();
     if (!allNovels) return [];
-    return allNovels.filter(([category]) => categoryFilter.value.includes(category)).map(([, , path]) => path);
+    return allNovels
+      .filter(([category]) => categoryFilter.value.includes(category))
+      .map(([, , path]) => path);
   }
 
-  async popularNovels(pageNo: number, options: Plugin.PopularNovelsOptions<typeof this.filters>): Promise<Plugin.NovelItem[]> {
+  async popularNovels(
+    pageNo: number,
+    options: Plugin.PopularNovelsOptions<typeof this.filters>,
+  ): Promise<Plugin.NovelItem[]> {
     if (pageNo !== 1) {
       return [];
     }
-    const novelsList = options.showLatestNovels ? this.latestNovels() : this.allNovels(options.filters.category);
-    return await this.asyncMap(await novelsList, this.grabCachedNovel.bind(this));
+    const novelsList = options.showLatestNovels
+      ? this.latestNovels()
+      : this.allNovels(options.filters.category);
+    return await this.asyncMap(
+      await novelsList,
+      this.grabCachedNovel.bind(this),
+    );
   }
 
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
@@ -241,25 +266,33 @@ class DDLPlugin implements Plugin.PluginBase {
 
   async parseChapter(chapterPath: string): Promise<string> {
     const chapterLink = `${this.site}wp-json/wp/v2/posts?slug=${chapterPath}`;
-    const chapter = await fetchApi(chapterLink).then((res) => res.json());
+    const chapter = await fetchApi(chapterLink).then(res => res.json());
     if (chapter.length !== 1) {
-      return "";
+      return '';
     }
     const title = `<h1>${chapter[0].title.rendered}</h1>`;
     const content = chapter[0].content.rendered;
     return `${title}${content}`;
   }
 
-  async searchNovels(searchTerm: string, pageNo: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    pageNo: number,
+  ): Promise<Plugin.NovelItem[]> {
     if (pageNo !== 1) {
       return [];
     }
     const allNovels = await this.grabCachedNovels();
     if (!allNovels) return [];
     const foundNovels = allNovels
-      .filter(([, name]) => name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()))
+      .filter(([, name]) =>
+        name.toLocaleLowerCase().includes(searchTerm.toLocaleLowerCase()),
+      )
       .map(([, , path]) => path);
-    return await this.asyncMap(await foundNovels, this.grabCachedNovel.bind(this));
+    return await this.asyncMap(
+      await foundNovels,
+      this.grabCachedNovel.bind(this),
+    );
   }
 }
 

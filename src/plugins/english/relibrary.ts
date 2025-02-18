@@ -1,10 +1,10 @@
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { Filters } from "@libs/filterInputs.ts";
-import { load as loadCheerio } from "npm:cheerio";
-import { defaultCover } from "@libs/defaultCover.ts";
-// import { NovelItem } from "../../test_web/static/js";
-// import { isUrlAbsolute } from '@libs/isAbsoluteUrl.ts';
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { Filters } from '@libs/filterInputs.ts';
+import { load as loadCheerio } from 'npm:cheerio';
+import { defaultCover } from '@libs/defaultCover.ts';
+
+// import { isUrlAbsolute } from "@libs/isAbsoluteUrl";
 
 type FuzzySearchOptions = {
   caseSensitive: boolean;
@@ -30,14 +30,17 @@ class FuzzySearch<Item> {
   private options: FuzzySearchOptions;
   private getItems: (item: Item) => string[];
 
-  constructor(getItems: (item: Item) => string[], options: Partial<FuzzySearchOptions>) {
+  constructor(
+    getItems: (item: Item) => string[],
+    options: Partial<FuzzySearchOptions>,
+  ) {
     this.haystack = [];
     this.options = Object.assign(
       {
         caseSensitive: false,
         sort: false,
       },
-      options
+      options,
     );
     this.getItems = getItems;
   }
@@ -79,7 +82,7 @@ class FuzzySearch<Item> {
       results.sort((a, b) => a.score - b.score);
     }
 
-    return results.map((result) => result.item);
+    return results.map(result => result.item);
   }
 
   isMatch(item: string, query: string): number | undefined {
@@ -106,7 +109,7 @@ class FuzzySearch<Item> {
   }
 
   nearestIndexesFor(item: string, query: string): number[] | undefined {
-    const letters = query.split("");
+    const letters = query.split('');
     const indexes: number[][] = [];
 
     const idxFL = this.idxFirstLetter(item, query);
@@ -145,25 +148,25 @@ class FuzzySearch<Item> {
     const match = query[0];
 
     return item
-      .split("")
+      .split('')
       .map((letter, index) => {
         if (letter !== match) {
           return;
         }
         return index;
       })
-      .filter((index) => index !== undefined) as number[];
+      .filter(index => index !== undefined) as number[];
   }
 }
 
 class ReLibraryPlugin implements Plugin.PluginBase {
-  id = "ReLib";
-  name = "Re:Library";
-  icon = "src/en/relibrary/icon.png";
-  site = "https://re-library.com";
-  version = "1.0.0";
+  id = 'ReLib';
+  name = 'Re:Library';
+  icon = 'src/en/relibrary/icon.png';
+  site = 'https://re-library.com';
+  version = '1.0.0';
 
-  private searchFunc = new FuzzySearch<Plugin.NovelItem>((item) => [item.name], {
+  private searchFunc = new FuzzySearch<Plugin.NovelItem>(item => [item.name], {
     sort: true,
     caseSensitive: false,
   });
@@ -174,12 +177,17 @@ class ReLibraryPlugin implements Plugin.PluginBase {
     const body = await result.text();
 
     const loadedCheerio = loadCheerio(body);
-    loadedCheerio(".entry-content > ol > li").each((_i, el) => {
+    loadedCheerio('.entry-content > ol > li').each((_i, el) => {
       const novel: Partial<NovelItem> = {};
-      novel.name = loadedCheerio(el).find("h3 > a").text();
-      novel.path = loadedCheerio(el).find("table > tbody > tr > td > a").attr("href");
+      novel.name = loadedCheerio(el).find('h3 > a').text();
+      novel.path = loadedCheerio(el)
+        .find('table > tbody > tr > td > a')
+        .attr('href');
       if (novel.name === undefined || novel.path === undefined) return;
-      novel.cover = loadedCheerio(el).find("table > tbody > tr > td > a > img").attr("src") || defaultCover;
+      novel.cover =
+        loadedCheerio(el)
+          .find('table > tbody > tr > td > a > img')
+          .attr('src') || defaultCover;
       if (novel.path.startsWith(this.site)) {
         novel.path = novel.path.slice(this.site.length);
       }
@@ -194,12 +202,15 @@ class ReLibraryPlugin implements Plugin.PluginBase {
     const body = await result.text();
 
     const loadedCheerio = loadCheerio(body);
-    loadedCheerio("article.type-page.page").each((_i, el) => {
+    loadedCheerio('article.type-page.page').each((_i, el) => {
       const novel: Partial<Plugin.NovelItem> = {};
-      novel.name = loadedCheerio(el).find(".entry-title").text();
-      novel.path = loadedCheerio(el).find(".entry-title a").attr("href");
+      novel.name = loadedCheerio(el).find('.entry-title').text();
+      novel.path = loadedCheerio(el).find('.entry-title a').attr('href');
       if (novel.path === undefined || novel.name === undefined) return;
-      novel.cover = loadedCheerio(el).find(".entry-content > table > tbody > tr > td > img").attr("src") || defaultCover;
+      novel.cover =
+        loadedCheerio(el)
+          .find('.entry-content > table > tbody > tr > td > img')
+          .attr('src') || defaultCover;
       if (novel.path.startsWith(this.site)) {
         novel.path = novel.path.slice(this.site.length);
       }
@@ -208,11 +219,18 @@ class ReLibraryPlugin implements Plugin.PluginBase {
     return novels;
   }
 
-  async popularNovels(pageNo: number, { showLatestNovels }: Plugin.PopularNovelsOptions<Filters>): Promise<Plugin.NovelItem[]> {
+  async popularNovels(
+    pageNo: number,
+    { showLatestNovels }: Plugin.PopularNovelsOptions<Filters>,
+  ): Promise<Plugin.NovelItem[]> {
     // The most-popular page only has a single page, so we return an empty array in case you ask for the impossible
     // the lastest page do have paginated result, so we support that.
-    if (showLatestNovels) return this.lastestNovelsInner(`${this.site}/tag/translations/page/${pageNo}`);
-    else if (pageNo === 1) return this.popularNovelsInner(`${this.site}/translations/most-popular/`);
+    if (showLatestNovels)
+      return this.lastestNovelsInner(
+        `${this.site}/tag/translations/page/${pageNo}`,
+      );
+    else if (pageNo === 1)
+      return this.popularNovelsInner(`${this.site}/translations/most-popular/`);
     else return [];
   }
 
@@ -232,44 +250,67 @@ class ReLibraryPlugin implements Plugin.PluginBase {
     const loadedCheerio = loadCheerio(body);
 
     // If it doesn't find the name I should just throw an error (or early return) since the scraping is broken
-    novel.name = loadedCheerio("header.entry-header > .entry-title").text().trim();
+    novel.name = loadedCheerio('header.entry-header > .entry-title')
+      .text()
+      .trim();
 
-    if (novel.name === undefined || novel.name === "404 – Page not found") throw new Error(`Invalid novel for url ${novelPath}`);
+    if (novel.name === undefined || novel.name === '404 – Page not found')
+      throw new Error(`Invalid novel for url ${novelPath}`);
 
     // Find the cover
-    novel.cover = loadedCheerio(".entry-content > table > tbody > tr > td > img").attr("src") || defaultCover;
+    novel.cover =
+      loadedCheerio('.entry-content > table > tbody > tr > td > img').attr(
+        'src',
+      ) || defaultCover;
 
     // Genres in comma separated "list"
     novel.genres = (() => {
       const genres: string[] = [];
-      loadedCheerio(".entry-content > table > tbody > tr > td > p > span > a").each((_i, el) => {
+      loadedCheerio(
+        '.entry-content > table > tbody > tr > td > p > span > a',
+      ).each((_i, el) => {
         genres.push(loadedCheerio(el).text().trim());
       });
-      return genres.join(", ");
+      return genres.join(', ');
     })();
 
     // Handle the novel status
     // Sadly some novels just state the status inside the summary...
     // I don't even know if the snippet here works for *most* of the novels preset, or only for a few
-    loadedCheerio(".entry-content > table > tbody > tr > td > p").each(function (_i, el) {
-      if (loadedCheerio(el).find("strong").text().toLowerCase().trim().startsWith("status")) {
-        loadedCheerio(el).find("strong").remove();
-        novel.status = loadedCheerio(el).text();
-      }
-    });
+    loadedCheerio('.entry-content > table > tbody > tr > td > p').each(
+      function (_i, el) {
+        if (
+          loadedCheerio(el)
+            .find('strong')
+            .text()
+            .toLowerCase()
+            .trim()
+            .startsWith('status')
+        ) {
+          loadedCheerio(el).find('strong').remove();
+          novel.status = loadedCheerio(el).text();
+        }
+      },
+    );
 
-    novel.summary = loadedCheerio(".entry-content > div.su-box > div.su-box-content").text();
+    novel.summary = loadedCheerio(
+      '.entry-content > div.su-box > div.su-box-content',
+    ).text();
 
     const chapters: Plugin.ChapterItem[] = [];
 
     let chapter_idx = 0;
-    loadedCheerio(".entry-content > div.su-accordion").each((_i1, el) => {
+    loadedCheerio('.entry-content > div.su-accordion').each((_i1, el) => {
       loadedCheerio(el)
-        .find("li.page_item > a")
+        .find('li.page_item > a')
         .each((_i2, chap_el) => {
           chapter_idx += 1;
-          let chap_path = loadedCheerio(chap_el).attr("href")?.trim();
-          if (loadedCheerio(chap_el).text() === undefined || chap_path === undefined) return;
+          let chap_path = loadedCheerio(chap_el).attr('href')?.trim();
+          if (
+            loadedCheerio(chap_el).text() === undefined ||
+            chap_path === undefined
+          )
+            return;
           if (chap_path.startsWith(this.site)) {
             chap_path = chap_path.slice(this.site.length);
           }
@@ -294,20 +335,25 @@ class ReLibraryPlugin implements Plugin.PluginBase {
 
     const loadedCheerio = loadCheerio(body);
     const text: string[] = [];
-    loadedCheerio(".entry-content > p")
+    loadedCheerio('.entry-content > p')
       .slice(1)
       .each((_i, el) => {
-        loadedCheerio(el).find("span").remove();
+        loadedCheerio(el).find('span').remove();
         const t = loadedCheerio(el).html();
         if (t === undefined) return;
         text.push(`<p>${t}</p>`);
       });
     if (text.length == 0)
-      throw new Error(`Invalid Parsing of chapter, couldn't find any text for url "${this.site}/${chapterPath}"`);
-    return text.join("");
+      throw new Error(
+        `Invalid Parsing of chapter, couldn't find any text for url "${this.site}/${chapterPath}"`,
+      );
+    return text.join('');
   }
 
-  async searchNovels(searchTerm: string, pageNo: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    pageNo: number,
+  ): Promise<Plugin.NovelItem[]> {
     // We only want to serve a single "page" since we do the search client side.
     if (pageNo !== 1) return [];
 
@@ -317,10 +363,10 @@ class ReLibraryPlugin implements Plugin.PluginBase {
 
     const loadedCheerio = loadCheerio(body);
 
-    loadedCheerio(".entry-content table a").each((_i, el) => {
+    loadedCheerio('.entry-content table a').each((_i, el) => {
       const e = loadedCheerio(el);
-      if (e && e.attr("href") && e.text()) {
-        let path = e.attr("href")!;
+      if (e && e.attr('href') && e.text()) {
+        let path = e.attr('href')!;
         if (path.startsWith(this.site)) {
           path = path.slice(this.site.length);
         }

@@ -1,16 +1,16 @@
-import { load as parseHTML } from "npm:cheerio";
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
+import { load as parseHTML } from 'npm:cheerio';
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
 
 class HasulTL implements Plugin.PluginBase {
-  id = "HasuTL";
-  name = "Hasu Translations";
-  icon = "src/es/hasutl/icon.jpg";
-  site = "https://hasutl.wordpress.com/";
-  version = "1.0.0";
+  id = 'HasuTL';
+  name = 'Hasu Translations';
+  icon = 'src/es/hasutl/icon.jpg';
+  site = 'https://hasutl.wordpress.com/';
+  version = '1.0.0';
 
   async popularNovels(): Promise<Plugin.NovelItem[]> {
-    const url = this.site + "light-novels-activas/";
+    const url = this.site + 'light-novels-activas/';
 
     const result = await fetchApi(url);
     const body = await result.text();
@@ -19,18 +19,20 @@ class HasulTL implements Plugin.PluginBase {
 
     const novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio("div.wp-block-columns").each((idx, ele) => {
-      const novelName = loadedCheerio(ele).find(".wp-block-button").text();
-      const novelCover = loadedCheerio(ele).find("img").attr("src");
+    loadedCheerio('div.wp-block-columns').each((idx, ele) => {
+      const novelName = loadedCheerio(ele).find('.wp-block-button').text();
+      const novelCover = loadedCheerio(ele).find('img').attr('src');
 
-      const novelUrl = loadedCheerio(ele).find(".wp-block-button > a").attr("href");
+      const novelUrl = loadedCheerio(ele)
+        .find('.wp-block-button > a')
+        .attr('href');
 
       if (!novelUrl) return;
 
       const novel = {
         name: novelName,
         cover: novelCover,
-        path: novelUrl.replace(this.site, ""),
+        path: novelUrl.replace(this.site, ''),
       };
       novels.push(novel);
     });
@@ -47,30 +49,30 @@ class HasulTL implements Plugin.PluginBase {
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: loadedCheerio(".post-header").text(),
+      name: loadedCheerio('.post-header').text(),
     };
-    novel.cover = loadedCheerio(".featured-media > img").attr("src");
+    novel.cover = loadedCheerio('.featured-media > img').attr('src');
 
-    const novelSummary = loadedCheerio(".post-content").find("p").html()!;
+    const novelSummary = loadedCheerio('.post-content').find('p').html()!;
     novel.summary = novelSummary;
 
     const novelChapters: Plugin.ChapterItem[] = [];
 
-    loadedCheerio(".wp-block-media-text__content")
-      .find("a")
+    loadedCheerio('.wp-block-media-text__content')
+      .find('a')
       .each((idx, ele) => {
         const chapterName = loadedCheerio(ele).text().trim();
 
         const releaseDate = null;
 
-        const chapterUrl = loadedCheerio(ele).attr("href");
+        const chapterUrl = loadedCheerio(ele).attr('href');
 
         if (!chapterUrl) return;
 
         const chapter = {
           name: chapterName,
           releaseTime: releaseDate,
-          path: chapterUrl.replace(this.site, ""),
+          path: chapterUrl.replace(this.site, ''),
         };
 
         novelChapters.push(chapter);
@@ -88,7 +90,7 @@ class HasulTL implements Plugin.PluginBase {
 
     const loadedCheerio = parseHTML(body);
 
-    const chapterText = loadedCheerio(".post-content").html() || "";
+    const chapterText = loadedCheerio('.post-content').html() || '';
 
     return chapterText;
   }
@@ -102,19 +104,23 @@ class HasulTL implements Plugin.PluginBase {
 
     const novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio(".post-container").each((idx, ele) => {
-      const novelName = loadedCheerio(ele).find(".post-header").text();
-      if (!novelName.includes("Cap") && !novelName.includes("Vol") && !novelName.includes("Light Novels")) {
-        const novelCover = loadedCheerio(ele).find("img").attr("src");
+    loadedCheerio('.post-container').each((idx, ele) => {
+      const novelName = loadedCheerio(ele).find('.post-header').text();
+      if (
+        !novelName.includes('Cap') &&
+        !novelName.includes('Vol') &&
+        !novelName.includes('Light Novels')
+      ) {
+        const novelCover = loadedCheerio(ele).find('img').attr('src');
 
-        const novelUrl = loadedCheerio(ele).find("a").attr("href");
+        const novelUrl = loadedCheerio(ele).find('a').attr('href');
 
         if (!novelUrl) return;
 
         const novel = {
           name: novelName,
           cover: novelCover,
-          path: novelUrl.replace(this.site, ""),
+          path: novelUrl.replace(this.site, ''),
         };
 
         novels.push(novel);

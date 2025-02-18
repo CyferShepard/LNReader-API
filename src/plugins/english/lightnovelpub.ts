@@ -1,18 +1,18 @@
-import { Parser } from "npm:htmlparser2";
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { Filters, FilterTypes } from "@libs/filterInputs.ts";
-import dayjs from "npm:dayjs";
+import { Parser } from 'npm:htmlparser2';
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { Filters, FilterTypes } from '@libs/filterInputs.ts';
+import dayjs from 'npm:dayjs';
 
 class LightNovelPub implements Plugin.PagePlugin {
-  id = "lightnovelpub";
-  name = "LightNovelPub";
-  version = "2.1.0";
-  icon = "src/en/lightnovelpub/icon.png";
-  site = "https://www.lightnovelpub.com/";
+  id = 'lightnovelpub';
+  name = 'LightNovelPub';
+  version = '2.1.0';
+  icon = 'src/en/lightnovelpub/icon.png';
+  site = 'https://www.lightnovelpub.com/';
   headers = {
-    Accept: "application/json",
-    "Content-Type": "application/json",
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
   };
 
   parseNovels(html: string) {
@@ -22,12 +22,12 @@ class LightNovelPub implements Plugin.PagePlugin {
     const parser = new Parser({
       onopentag(name, attribs) {
         if (isParsingNovel) {
-          if (name === "a") {
-            tempNovel.path = attribs["href"].slice(1);
-            tempNovel.name = attribs["title"];
+          if (name === 'a') {
+            tempNovel.path = attribs['href'].slice(1);
+            tempNovel.name = attribs['title'];
           }
-          if (name === "img") {
-            tempNovel.cover = attribs["data-src"] || attribs["src"];
+          if (name === 'img') {
+            tempNovel.cover = attribs['data-src'] || attribs['src'];
           }
           if (tempNovel.path && tempNovel.cover) {
             novels.push(tempNovel);
@@ -36,12 +36,12 @@ class LightNovelPub implements Plugin.PagePlugin {
         }
       },
       onattribute(name, value) {
-        if (name === "class" && value === "novel-item") {
+        if (name === 'class' && value === 'novel-item') {
           isParsingNovel = true;
         }
       },
       onclosetag(name) {
-        if (name === "li") {
+        if (name === 'li') {
           isParsingNovel = false;
         }
       },
@@ -51,24 +51,29 @@ class LightNovelPub implements Plugin.PagePlugin {
     return novels;
   }
 
-  async popularNovels(page: number, { filters }: Plugin.PopularNovelsOptions<typeof this.filters>): Promise<Plugin.NovelItem[]> {
+  async popularNovels(
+    page: number,
+    { filters }: Plugin.PopularNovelsOptions<typeof this.filters>,
+  ): Promise<Plugin.NovelItem[]> {
     let link = `${this.site}browse/`;
     link += `${filters.genres.value}/`;
     link += `${filters.order.value}/`;
     link += `${filters.status.value}/`;
     link += page;
 
-    const body = await fetchApi(link).then((r) => r.text());
+    const body = await fetchApi(link).then(r => r.text());
 
     return this.parseNovels(body);
   }
 
-  async parseNovel(novelPath: string): Promise<Plugin.SourceNovel & { totalPages: number }> {
-    const body = await fetchApi(this.site + novelPath).then((r) => r.text());
+  async parseNovel(
+    novelPath: string,
+  ): Promise<Plugin.SourceNovel & { totalPages: number }> {
+    const body = await fetchApi(this.site + novelPath).then(r => r.text());
     const novel: Plugin.SourceNovel & { totalPages: number } = {
       path: novelPath,
-      name: "",
-      summary: "",
+      name: '',
+      summary: '',
       totalPages: 1,
       chapters: [],
     };
@@ -84,41 +89,41 @@ class LightNovelPub implements Plugin.PagePlugin {
     let isCover = false;
     const parser = new Parser({
       onopentag(name, attribs) {
-        if (name === "h1" && attribs["class"]?.includes("novel-title")) {
+        if (name === 'h1' && attribs['class']?.includes('novel-title')) {
           isNovelName = true;
         }
-        if (name === "div" && attribs["class"]?.includes("content")) {
+        if (name === 'div' && attribs['class']?.includes('content')) {
           isSummary = true;
         }
-        if (name === "figure" && attribs["class"] === "cover") {
+        if (name === 'figure' && attribs['class'] === 'cover') {
           isCover = true;
         }
         if (isCover) {
-          if (name === "img") {
-            novel.cover = attribs["data-src"] || attribs["src"];
+          if (name === 'img') {
+            novel.cover = attribs['data-src'] || attribs['src'];
           }
         }
       },
       onopentagname(name) {
-        if (isHeaderStats && name === "strong") {
+        if (isHeaderStats && name === 'strong') {
           isStatus = true;
         }
-        if (isSummary && name === "br") {
-          novel.summary += "\n";
+        if (isSummary && name === 'br') {
+          novel.summary += '\n';
         }
-        if (isGenres && name === "a") {
+        if (isGenres && name === 'a') {
           isTags = true;
         }
       },
       onattribute(name, value) {
-        if (name === "class" && value === "header-stats") {
+        if (name === 'class' && value === 'header-stats') {
           isTotalChapters = true;
           isHeaderStats = true;
         }
-        if (name === "itemprop" && value === "author") {
+        if (name === 'itemprop' && value === 'author') {
           isAuthorName = true;
         }
-        if (name === "class" && value === "categories") {
+        if (name === 'class' && value === 'categories') {
           isGenres = true;
         }
       },
@@ -143,41 +148,41 @@ class LightNovelPub implements Plugin.PagePlugin {
         }
       },
       onclosetag(name) {
-        if (name === "strong") {
+        if (name === 'strong') {
           isTotalChapters = false;
           isStatus = false;
         }
-        if (name === "i") {
+        if (name === 'i') {
           isStatus = false;
         }
-        if (name === "h1") {
+        if (name === 'h1') {
           isNovelName = false;
         }
-        if (name === "span") {
+        if (name === 'span') {
           isAuthorName = false;
         }
-        if (name === "div") {
+        if (name === 'div') {
           isHeaderStats = false;
           isSummary = false;
           isGenres = false;
         }
-        if (name === "a") {
+        if (name === 'a') {
           isTags = false;
         }
-        if (name === "figure") {
+        if (name === 'figure') {
           isCover = false;
         }
       },
     });
     parser.write(body);
     parser.end();
-    novel.genres = genreArray.join(", ");
+    novel.genres = genreArray.join(', ');
     return novel;
   }
 
   async parsePage(novelPath: string, page: string): Promise<Plugin.SourcePage> {
-    const url = this.site + novelPath + "/chapters/page-" + page;
-    const body = await fetchApi(url).then((res) => res.text());
+    const url = this.site + novelPath + '/chapters/page-' + page;
+    const body = await fetchApi(url).then(res => res.text());
     const chapter: Plugin.ChapterItem[] = [];
     let tempChapter = {} as Plugin.ChapterItem;
     let isChapterItem = false;
@@ -185,19 +190,25 @@ class LightNovelPub implements Plugin.PagePlugin {
     const parser = new Parser({
       onopentag(name, attribs) {
         if (isChapterList) {
-          if (name === "li") {
+          if (name === 'li') {
             isChapterItem = true;
-            tempChapter.chapterNumber = Number(attribs["data-orderno"]);
+            tempChapter.chapterNumber = Number(attribs['data-orderno']);
           }
           if (isChapterItem) {
-            if (name === "a") {
-              tempChapter.name = attribs["title"];
-              tempChapter.path = attribs["href"].slice(1);
+            if (name === 'a') {
+              tempChapter.name = attribs['title'];
+              tempChapter.path = attribs['href'].slice(1);
             }
-            if (name === "time") {
-              tempChapter.releaseTime = dayjs(attribs["datetime"]).toISOString();
+            if (name === 'time') {
+              tempChapter.releaseTime = dayjs(
+                attribs['datetime'],
+              ).toISOString();
             }
-            if (tempChapter.chapterNumber && tempChapter.path && tempChapter.releaseTime) {
+            if (
+              tempChapter.chapterNumber &&
+              tempChapter.path &&
+              tempChapter.releaseTime
+            ) {
               chapter.push(tempChapter);
               tempChapter = {} as Plugin.ChapterItem;
             }
@@ -205,15 +216,15 @@ class LightNovelPub implements Plugin.PagePlugin {
         }
       },
       onattribute(name, value) {
-        if (name === "class" && value === "chapter-list") {
+        if (name === 'class' && value === 'chapter-list') {
           isChapterList = true;
         }
       },
       onclosetag(name) {
-        if (name === "a") {
+        if (name === 'a') {
           isChapterItem = false;
         }
-        if (name === "ul") {
+        if (name === 'ul') {
           isChapterList = false;
         }
       },
@@ -225,29 +236,34 @@ class LightNovelPub implements Plugin.PagePlugin {
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
-    const html = await fetchApi(this.site + chapterPath).then((r) => r.text());
+    const html = await fetchApi(this.site + chapterPath).then(r => r.text());
     const parts: string[] = [];
-    const regexPatterns: RegExp[] = [/(<div id="chapter-container[^]+?)<div class="chapternav/];
+    const regexPatterns: RegExp[] = [
+      /(<div id="chapter-container[^]+?)<div class="chapternav/,
+    ];
     const extractContent = (patterns: RegExp[]) => {
-      patterns.forEach((regex) => {
+      patterns.forEach(regex => {
         const match = html.match(regex)?.[1];
         if (match) parts.push(match);
       });
     };
     extractContent(regexPatterns);
     const chapterText = parts.join();
-    return chapterText.replace(/(?<=\/p>).*?(?=<p>)/g, "");
+    return chapterText.replace(/(?<=\/p>).*?(?=<p>)/g, '');
   }
 
   async searchNovels(searchTerm: string): Promise<Plugin.NovelItem[]> {
     const url = `${this.site}lnsearchlive`;
     const link = `${this.site}search`;
-    const response = await fetchApi(link).then((r) => r.text());
-    let verifytoken = "";
+    const response = await fetchApi(link).then(r => r.text());
+    let verifytoken = '';
     const parser = new Parser({
       onopentag(name, attribs) {
-        if (name === "input" && attribs["name"]?.includes("LNRequestVerifyToken")) {
-          verifytoken = attribs["value"];
+        if (
+          name === 'input' &&
+          attribs['name']?.includes('LNRequestVerifyToken')
+        ) {
+          verifytoken = attribs['value'];
         }
       },
     });
@@ -255,84 +271,84 @@ class LightNovelPub implements Plugin.PagePlugin {
     parser.end();
 
     const formData = new FormData();
-    formData.append("inputContent", searchTerm);
+    formData.append('inputContent', searchTerm);
 
     const body = await fetchApi(url, {
-      method: "POST",
+      method: 'POST',
       headers: { LNRequestVerifyToken: verifytoken! },
       body: formData,
-    }).then((r) => r.json());
+    }).then(r => r.json());
 
     return this.parseNovels(body.resultview);
   }
 
   filters = {
     order: {
-      value: "popular",
-      label: "Order by",
+      value: 'popular',
+      label: 'Order by',
       options: [
-        { label: "New", value: "new" },
-        { label: "Popular", value: "popular" },
-        { label: "Updates", value: "updated" },
+        { label: 'New', value: 'new' },
+        { label: 'Popular', value: 'popular' },
+        { label: 'Updates', value: 'updated' },
       ],
       type: FilterTypes.Picker,
     },
     status: {
-      value: "all",
-      label: "Status",
+      value: 'all',
+      label: 'Status',
       options: [
-        { label: "All", value: "all" },
-        { label: "Completed", value: "completed" },
-        { label: "Ongoing", value: "ongoing" },
+        { label: 'All', value: 'all' },
+        { label: 'Completed', value: 'completed' },
+        { label: 'Ongoing', value: 'ongoing' },
       ],
       type: FilterTypes.Picker,
     },
     genres: {
-      value: "all",
-      label: "Genre",
+      value: 'all',
+      label: 'Genre',
       options: [
-        { label: "All", value: "all" },
-        { label: "Action", value: "action" },
-        { label: "Adventure", value: "adventure" },
-        { label: "Drama", value: "drama" },
-        { label: "Fantasy", value: "fantasy" },
-        { label: "Harem", value: "harem" },
-        { label: "Martial Arts", value: "martial-arts" },
-        { label: "Mature", value: "mature" },
-        { label: "Romance", value: "romance" },
-        { label: "Tragedy", value: "tragedy" },
-        { label: "Xuanhuan", value: "xuanhuan" },
-        { label: "Ecchi", value: "ecchi" },
-        { label: "Comedy", value: "comedy" },
-        { label: "Slice of Life", value: "slice-of-life" },
-        { label: "Mystery", value: "mystery" },
-        { label: "Supernatural", value: "supernatural" },
-        { label: "Psychological", value: "psychological" },
-        { label: "Sci-fi", value: "sci-fi" },
-        { label: "Xianxia", value: "xianxia" },
-        { label: "School Life", value: "school-life" },
-        { label: "Josei", value: "josei" },
-        { label: "Wuxia", value: "wuxia" },
-        { label: "Shounen", value: "shounen" },
-        { label: "Horror", value: "horror" },
-        { label: "Mecha", value: "mecha" },
-        { label: "Historical", value: "historical" },
-        { label: "Shoujo", value: "shoujo" },
-        { label: "Adult", value: "adult" },
-        { label: "Seinen", value: "seinen" },
-        { label: "Sports", value: "sports" },
-        { label: "Lolicon", value: "lolicon" },
-        { label: "Gender Bender", value: "gender-bender" },
-        { label: "Shounen Ai", value: "shounen-ai" },
-        { label: "Yaoi", value: "yaoi" },
-        { label: "Video Games", value: "video-games" },
-        { label: "Smut", value: "smut" },
-        { label: "Magical Realism", value: "magical-realism" },
-        { label: "Eastern Fantasy", value: "eastern-fantasy" },
-        { label: "Contemporary Romance", value: "contemporary-romance" },
-        { label: "Fantasy Romance", value: "fantasy-romance" },
-        { label: "Shoujo Ai", value: "shoujo-ai" },
-        { label: "Yuri", value: "yuri" },
+        { label: 'All', value: 'all' },
+        { label: 'Action', value: 'action' },
+        { label: 'Adventure', value: 'adventure' },
+        { label: 'Drama', value: 'drama' },
+        { label: 'Fantasy', value: 'fantasy' },
+        { label: 'Harem', value: 'harem' },
+        { label: 'Martial Arts', value: 'martial-arts' },
+        { label: 'Mature', value: 'mature' },
+        { label: 'Romance', value: 'romance' },
+        { label: 'Tragedy', value: 'tragedy' },
+        { label: 'Xuanhuan', value: 'xuanhuan' },
+        { label: 'Ecchi', value: 'ecchi' },
+        { label: 'Comedy', value: 'comedy' },
+        { label: 'Slice of Life', value: 'slice-of-life' },
+        { label: 'Mystery', value: 'mystery' },
+        { label: 'Supernatural', value: 'supernatural' },
+        { label: 'Psychological', value: 'psychological' },
+        { label: 'Sci-fi', value: 'sci-fi' },
+        { label: 'Xianxia', value: 'xianxia' },
+        { label: 'School Life', value: 'school-life' },
+        { label: 'Josei', value: 'josei' },
+        { label: 'Wuxia', value: 'wuxia' },
+        { label: 'Shounen', value: 'shounen' },
+        { label: 'Horror', value: 'horror' },
+        { label: 'Mecha', value: 'mecha' },
+        { label: 'Historical', value: 'historical' },
+        { label: 'Shoujo', value: 'shoujo' },
+        { label: 'Adult', value: 'adult' },
+        { label: 'Seinen', value: 'seinen' },
+        { label: 'Sports', value: 'sports' },
+        { label: 'Lolicon', value: 'lolicon' },
+        { label: 'Gender Bender', value: 'gender-bender' },
+        { label: 'Shounen Ai', value: 'shounen-ai' },
+        { label: 'Yaoi', value: 'yaoi' },
+        { label: 'Video Games', value: 'video-games' },
+        { label: 'Smut', value: 'smut' },
+        { label: 'Magical Realism', value: 'magical-realism' },
+        { label: 'Eastern Fantasy', value: 'eastern-fantasy' },
+        { label: 'Contemporary Romance', value: 'contemporary-romance' },
+        { label: 'Fantasy Romance', value: 'fantasy-romance' },
+        { label: 'Shoujo Ai', value: 'shoujo-ai' },
+        { label: 'Yuri', value: 'yuri' },
       ],
       type: FilterTypes.Picker,
     },

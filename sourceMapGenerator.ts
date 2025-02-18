@@ -20,6 +20,8 @@ let match;
 while ((match = importRegex.exec(fileContent)) !== null) {
   const index = parseInt(match[1], 10);
   const lang = match[2];
+
+  // console.log("./src/plugins" + match[0].substring(match[0].indexOf(`/`), match[0].indexOf(`;`)));
   // const id = match[3];
 
   const tempSource = PLUGINS[index];
@@ -29,8 +31,10 @@ while ((match = importRegex.exec(fileContent)) !== null) {
   // const lang = tempSource.lang;
   const version = tempSource.version;
 
-  const url = tempSource.url ?? "";
+  const url = "./src/plugins" + match[0].substring(match[0].indexOf(`/`), match[0].indexOf(`;`) - 1);
   const iconUrl = tempSource.icon;
+
+  console.log(url);
 
   const plugin = {
     id,
@@ -48,4 +52,4 @@ const outputFilePath = resolve(Deno.cwd(), "sourceMap.json");
 
 await Deno.writeTextFile(outputFilePath, JSON.stringify(sourceMap, null, 2));
 
-console.log(sourceMap);
+// console.log(sourceMap);

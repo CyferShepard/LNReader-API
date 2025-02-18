@@ -1,20 +1,20 @@
-import { CheerioAPI, load } from "npm:cheerio";
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { defaultCover } from "@libs/defaultCover.ts";
-import { NovelStatus } from "@libs/novelStatus.ts";
-import dayjs from "npm:dayjs";
+import { CheerioAPI, load } from 'npm:cheerio';
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { defaultCover } from '@libs/defaultCover.ts';
+import { NovelStatus } from '@libs/novelStatus.ts';
+import dayjs from 'npm:dayjs';
 
 class WuxialnscantradPlugin implements Plugin.PluginBase {
-  id = "wuxialnscantrad";
-  name = "WuxiaLnScantrad";
-  icon = "src/fr/wuxialnscantrad/icon.png";
-  site = "https://wuxialnscantrad.wordpress.com";
-  version = "1.0.0";
+  id = 'wuxialnscantrad';
+  name = 'WuxiaLnScantrad';
+  icon = 'src/fr/wuxialnscantrad/icon.png';
+  site = 'https://wuxialnscantrad.wordpress.com';
+  version = '1.0.0';
 
   async getCheerio(url: string): Promise<CheerioAPI> {
     const r = await fetchApi(url, {
-      headers: { "Accept-Encoding": "deflate" },
+      headers: { 'Accept-Encoding': 'deflate' },
     });
     const body = await r.text();
     const $ = load(body);
@@ -28,15 +28,15 @@ class WuxialnscantradPlugin implements Plugin.PluginBase {
     let novel: Plugin.NovelItem;
     const url = this.site;
     const $ = await this.getCheerio(url);
-    $("#menu-item-2210 ul li").each((i, elem) => {
+    $('#menu-item-2210 ul li').each((i, elem) => {
       const novelName = $(elem).first().text().trim();
-      const novelUrl = $(elem).find("a").attr("href");
+      const novelUrl = $(elem).find('a').attr('href');
 
       if (novelUrl && novelName) {
         novel = {
           name: novelName,
           cover: defaultCover,
-          path: novelUrl.replace(this.site, ""),
+          path: novelUrl.replace(this.site, ''),
         };
         novels.push(novel);
       }
@@ -47,31 +47,35 @@ class WuxialnscantradPlugin implements Plugin.PluginBase {
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: "Sans titre",
+      name: 'Sans titre',
     };
 
     const $ = await this.getCheerio(this.site + novelPath);
 
-    novel.name = $(".entry-title").text().trim();
-    novel.cover = $(".entry-content p strong img").first().attr("src") || $(".entry-content p img").first().attr("src");
+    novel.name = $('.entry-title').text().trim();
+    novel.cover =
+      $('.entry-content p strong img').first().attr('src') ||
+      $('.entry-content p img').first().attr('src');
 
-    const entryContentText = $(".entry-content").text();
+    const entryContentText = $('.entry-content').text();
     novel.author = this.getAuthor(entryContentText);
     novel.genres = this.getGenres(entryContentText);
     novel.artist = this.getArtist(entryContentText);
     novel.summary = this.getSummary(entryContentText);
     novel.status = this.getStatus(entryContentText);
 
-    const pathChapter = $(".entry-content ul").first().children("li");
+    const pathChapter = $('.entry-content ul').first().children('li');
     const chapters: Plugin.ChapterItem[] = [];
     pathChapter.each((i, elem) => {
       const chapterName = $(elem).text().trim();
-      const chapterUrl = $(elem).find("a").attr("href");
+      const chapterUrl = $(elem).find('a').attr('href');
       if (chapterUrl && chapterUrl.includes(this.site) && chapterName) {
-        const pathchapter = chapterUrl.replace(this.site, "");
+        const pathchapter = chapterUrl.replace(this.site, '');
         // we do not take the paths already present
-        if (!chapters.some((chap) => chap.path === pathchapter)) {
-          const releaseDate = dayjs(chapterUrl?.substring(this.site.length + 1, this.site.length + 11)).format("DD MMMM YYYY");
+        if (!chapters.some(chap => chap.path === pathchapter)) {
+          const releaseDate = dayjs(
+            chapterUrl?.substring(this.site.length + 1, this.site.length + 11),
+          ).format('DD MMMM YYYY');
           chapters.push({
             name: chapterName,
             path: pathchapter,
@@ -87,7 +91,7 @@ class WuxialnscantradPlugin implements Plugin.PluginBase {
   getAuthor(text: string) {
     const regex = /Auteur\(s\):\s*(.*)/;
     const match = regex.exec(text);
-    let author = "";
+    let author = '';
     if (match !== null) {
       author = match[1].trim();
     }
@@ -97,7 +101,7 @@ class WuxialnscantradPlugin implements Plugin.PluginBase {
   getGenres(text: string) {
     const regex = /Genres:\s*(.*)/;
     const match = regex.exec(text);
-    let genre = "";
+    let genre = '';
     if (match !== null) {
       genre = match[1].trim();
     }
@@ -107,7 +111,7 @@ class WuxialnscantradPlugin implements Plugin.PluginBase {
   getArtist(text: string) {
     const regex = /Artiste\(s\):\s*(.*)Genres/;
     const match = regex.exec(text);
-    let artist = "";
+    let artist = '';
     if (match !== null) {
       artist = match[1].trim();
     }
@@ -127,22 +131,22 @@ class WuxialnscantradPlugin implements Plugin.PluginBase {
         return match[1].trim();
       }
     }
-    return "";
+    return '';
   }
 
   getStatus(text: string) {
     const regex = /Statut:\s*(.*)/;
     const match = regex.exec(text);
-    let status = "";
+    let status = '';
     if (match !== null) {
       status = match[1].trim();
     }
     switch (status) {
-      case "En cours":
+      case 'En cours':
         return NovelStatus.Ongoing;
-      case "Arrêté":
+      case 'Arrêté':
         return NovelStatus.Cancelled;
-      case "Terminé":
+      case 'Terminé':
         return NovelStatus.Completed;
       default:
         return NovelStatus.Ongoing;
@@ -152,18 +156,18 @@ class WuxialnscantradPlugin implements Plugin.PluginBase {
   async parseChapter(chapterPath: string): Promise<string> {
     const $ = await this.getCheerio(this.site + chapterPath);
 
-    let contenuHtml = "";
-    $(".entry-content")
+    let contenuHtml = '';
+    $('.entry-content')
       .contents()
       .each(function () {
-        if ($(this).html()?.includes("<script")) {
+        if ($(this).html()?.includes('<script')) {
           return false;
         }
         //Removing tags linked to navigation and unnecessary paragraphs.
         if (
           !$(this).html()?.includes('data-attachment-id="480') &&
-          !$.html(this)?.includes("<hr>") &&
-          !$.html(this)?.includes("<p>&nbsp;</p>")
+          !$.html(this)?.includes('<hr>') &&
+          !$.html(this)?.includes('<p>&nbsp;</p>')
         ) {
           contenuHtml += $.html(this);
         }
@@ -171,24 +175,27 @@ class WuxialnscantradPlugin implements Plugin.PluginBase {
     return contenuHtml;
   }
 
-  async searchNovels(searchTerm: string, pageNo: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    pageNo: number,
+  ): Promise<Plugin.NovelItem[]> {
     if (pageNo !== 1) return [];
 
     const popularNovels = this.popularNovels(1);
 
-    const novels = (await popularNovels).filter((novel) =>
+    const novels = (await popularNovels).filter(novel =>
       novel.name
         .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
         .trim()
         .includes(
           searchTerm
             .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .trim()
-        )
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim(),
+        ),
     );
 
     return novels;

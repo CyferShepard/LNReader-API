@@ -5,7 +5,7 @@
     "site": "https://golden.rest/",
     "lang": "arabic",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/arabic/dilartube.ts",
     "iconUrl": "src/ar/dilartube/icon.png",
     "index": 0
   },
@@ -15,7 +15,7 @@
     "site": "https://rewayat.club/",
     "lang": "arabic",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/arabic/rewayatclub.ts",
     "iconUrl": "src/ar/rewayatclub/icon.png",
     "index": 1
   },
@@ -25,7 +25,7 @@
     "site": "https://sunovels.com/",
     "lang": "arabic",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/arabic/sunovels.ts",
     "iconUrl": "src/ar/sunovels/icon.png",
     "index": 2
   },
@@ -35,7 +35,7 @@
     "site": "https://www.69shu.xyz",
     "lang": "chinese",
     "version": "0.2.0",
-    "url": "",
+    "url": "./src/plugins/chinese/69shu.ts",
     "iconUrl": "src/cn/69shu/icon.png",
     "index": 3
   },
@@ -45,7 +45,7 @@
     "site": "https://69shu.biz",
     "lang": "chinese",
     "version": "0.1.2",
-    "url": "",
+    "url": "./src/plugins/chinese/69xinshu.ts",
     "iconUrl": "src/cn/69xinshu/icon.png",
     "index": 4
   },
@@ -55,7 +55,7 @@
     "site": "https://www.bilinovel.com",
     "lang": "chinese",
     "version": "1.1.3",
-    "url": "",
+    "url": "./src/plugins/chinese/linovelib.ts",
     "iconUrl": "src/cn/linovelib/icon.png",
     "index": 5
   },
@@ -65,7 +65,7 @@
     "site": "https://tw.linovelib.com/",
     "lang": "chinese",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/chinese/linovelib_tw.ts",
     "iconUrl": "src/cn/linovelib/icon.png",
     "index": 6
   },
@@ -75,7 +75,7 @@
     "site": "https://allnovelfull.net",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/allnovelfull.ts",
     "iconUrl": "src/en/allnovelfull/icon.png",
     "index": 7
   },
@@ -85,7 +85,7 @@
     "site": "https://archiveofourown.org/",
     "lang": "english",
     "version": "1.0.2",
-    "url": "",
+    "url": "./src/plugins/english/ao3.ts",
     "iconUrl": "src/en/ao3/icon.png",
     "index": 8
   },
@@ -95,7 +95,7 @@
     "site": "https://bestlightnovel.com/",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/bestlightnovel.ts",
     "iconUrl": "src/en/bestlightnovel/icon.png",
     "index": 9
   },
@@ -105,7 +105,7 @@
     "site": "https://www.divinedaolibrary.com/",
     "lang": "english",
     "version": "1.1.0",
-    "url": "",
+    "url": "./src/plugins/english/divinedaolibrary.ts",
     "iconUrl": "src/en/divinedaolibrary/icon.png",
     "index": 10
   },
@@ -115,7 +115,7 @@
     "site": "https://www.dreambigtl.com/",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/dreambigtl.ts",
     "iconUrl": "src/en/dreambigtl/icon.png",
     "index": 11
   },
@@ -125,7 +125,7 @@
     "site": "https://earlynovel.net/",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/earlynovel.ts",
     "iconUrl": "src/en/earlynovel/icon.png",
     "index": 12
   },
@@ -135,7 +135,7 @@
     "site": "https://www.faqwiki.us/",
     "lang": "english",
     "version": "2.0.0",
-    "url": "",
+    "url": "./src/plugins/english/faqwikius.ts",
     "iconUrl": "src/en/faqwikius/icon.png",
     "index": 13
   },
@@ -145,7 +145,7 @@
     "site": "https://www.foxteller.com",
     "lang": "english",
     "version": "1.0.2",
-    "url": "",
+    "url": "./src/plugins/english/foxteller.ts",
     "iconUrl": "src/en/foxteller/icon.png",
     "index": 14
   },
@@ -155,7 +155,7 @@
     "site": "https://freewebnovel.com",
     "lang": "english",
     "version": "1.0.3",
-    "url": "",
+    "url": "./src/plugins/english/freewebnovel.ts",
     "iconUrl": "src/en/freewebnovel/icon.png",
     "index": 15
   },
@@ -165,7 +165,7 @@
     "site": "https://genesistudio.com",
     "lang": "english",
     "version": "1.0.5",
-    "url": "",
+    "url": "./src/plugins/english/genesis.ts",
     "iconUrl": "src/en/genesis/icon.png",
     "index": 16
   },
@@ -175,7 +175,7 @@
     "site": "https://libread.org",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/LibRead.ts",
     "iconUrl": "src/en/libread/icon.png",
     "index": 17
   },
@@ -185,7 +185,7 @@
     "site": "https://www.lightnovelpub.com/",
     "lang": "english",
     "version": "2.1.0",
-    "url": "",
+    "url": "./src/plugins/english/lightnovelpub.ts",
     "iconUrl": "src/en/lightnovelpub/icon.png",
     "index": 18
   },
@@ -195,7 +195,7 @@
     "site": "https://lnmtl.com/",
     "lang": "english",
     "version": "2.0.0",
-    "url": "",
+    "url": "./src/plugins/english/lnmtl.ts",
     "iconUrl": "src/en/lnmtl/icon.png",
     "index": 19
   },
@@ -205,7 +205,7 @@
     "site": "https://mtlreader.com/",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/mtlreader.ts",
     "iconUrl": "src/en/mtlreader/icon.png",
     "index": 20
   },
@@ -215,7 +215,7 @@
     "site": "https://www.mvlempyr.com/",
     "lang": "english",
     "version": "1.0.3",
-    "url": "",
+    "url": "./src/plugins/english/mvlempyr.ts",
     "iconUrl": "src/en/mvlempyr/icon.png",
     "index": 21
   },
@@ -225,7 +225,7 @@
     "site": "https://novelbin.com/",
     "lang": "english",
     "version": "1.1.0",
-    "url": "",
+    "url": "./src/plugins/english/novelbin.ts",
     "iconUrl": "src/en/novelbin/icon.png",
     "index": 22
   },
@@ -235,7 +235,7 @@
     "site": "https://novelbuddy.io/",
     "lang": "english",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/english/novelbuddy.ts",
     "iconUrl": "src/en/novelbuddy/icon.png",
     "index": 23
   },
@@ -245,7 +245,7 @@
     "site": "https://novelfire.net/",
     "lang": "english",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/english/novelfire.ts",
     "iconUrl": "src/en/novelfire/icon.png",
     "index": 24
   },
@@ -255,7 +255,7 @@
     "site": "https://novelfull.com/",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/novelfull.ts",
     "iconUrl": "src/en/novelfull/icon.png",
     "index": 25
   },
@@ -265,7 +265,7 @@
     "site": "https://novelhall.com/",
     "lang": "english",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/english/novelhall.ts",
     "iconUrl": "src/en/novelhall/icon.png",
     "index": 26
   },
@@ -275,7 +275,7 @@
     "site": "https://novelsonline.net",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/NovelOnline.ts",
     "iconUrl": "src/en/novelsonline/icon.png",
     "index": 27
   },
@@ -285,7 +285,7 @@
     "site": "https://www.novelupdates.com/",
     "lang": "english",
     "version": "0.7.11",
-    "url": "",
+    "url": "./src/plugins/english/novelupdates.ts",
     "iconUrl": "src/en/novelupdates/icon.png",
     "index": 28
   },
@@ -295,7 +295,7 @@
     "site": "https://m.pawread.com/",
     "lang": "english",
     "version": "2.0.0",
-    "url": "",
+    "url": "./src/plugins/english/pawread.ts",
     "iconUrl": "src/en/pawread/icon.png",
     "index": 29
   },
@@ -305,7 +305,7 @@
     "site": "https://rainofsnow.com/",
     "lang": "english",
     "version": "1.1.1",
-    "url": "",
+    "url": "./src/plugins/english/rainofsnow.ts",
     "iconUrl": "src/en/rainofsnow/icon.png",
     "index": 30
   },
@@ -315,7 +315,7 @@
     "site": "https://rln.app",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/readlitenovel.ts",
     "iconUrl": "src/en/readlitenovel/icon.png",
     "index": 31
   },
@@ -325,7 +325,7 @@
     "site": "https://re-library.com",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/relibrary.ts",
     "iconUrl": "src/en/relibrary/icon.png",
     "index": 32
   },
@@ -335,7 +335,7 @@
     "site": "https://www.royalroad.com/",
     "lang": "english",
     "version": "2.1.2",
-    "url": "",
+    "url": "./src/plugins/english/royalroad.ts",
     "iconUrl": "src/en/royalroad/icon.png",
     "index": 33
   },
@@ -345,7 +345,7 @@
     "site": "https://www.scribblehub.com/",
     "lang": "english",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/english/scribblehub.ts",
     "iconUrl": "src/en/scribblehub/icon.png",
     "index": 34
   },
@@ -355,7 +355,7 @@
     "site": "https://storyseedling.com/",
     "lang": "english",
     "version": "1.0.2",
-    "url": "",
+    "url": "./src/plugins/english/StorySeedling.ts",
     "iconUrl": "src/en/storyseedling/icon.png",
     "index": 35
   },
@@ -365,7 +365,7 @@
     "site": "https://vynovel.com",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/vynovel.ts",
     "iconUrl": "src/en/vynovel/icon.png",
     "index": 36
   },
@@ -375,7 +375,7 @@
     "site": "https://www.webnovel.com",
     "lang": "english",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/english/webnovel.ts",
     "iconUrl": "src/en/webnovel/icon.png",
     "index": 37
   },
@@ -385,7 +385,7 @@
     "site": "https://wtr-lab.com/",
     "lang": "english",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/english/wtrlab.ts",
     "iconUrl": "src/en/wtrlab/icon.png",
     "index": 38
   },
@@ -395,7 +395,7 @@
     "site": "https://www.wuxiaworld.com/",
     "lang": "english",
     "version": "0.5.0",
-    "url": "",
+    "url": "./src/plugins/english/wuxiaworld.ts",
     "iconUrl": "src/en/wuxiaworld/icon.png",
     "index": 39
   },
@@ -405,7 +405,7 @@
     "site": "https://chireads.com",
     "lang": "french",
     "version": "1.0.2",
-    "url": "",
+    "url": "./src/plugins/french/chireads.ts",
     "iconUrl": "src/fr/chireads/icon.png",
     "index": 40
   },
@@ -415,7 +415,7 @@
     "site": "https://harkeneliwood.wordpress.com",
     "lang": "french",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/french/harkeneliwood.ts",
     "iconUrl": "src/fr/harkeneliwood/icon.png",
     "index": 41
   },
@@ -425,7 +425,7 @@
     "site": "https://kisswood.eu",
     "lang": "french",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/french/kisswood.ts",
     "iconUrl": "src/fr/kisswood/icon.png",
     "index": 42
   },
@@ -435,7 +435,7 @@
     "site": "https://noveldeglace.com/",
     "lang": "french",
     "version": "1.0.3",
-    "url": "",
+    "url": "./src/plugins/french/noveldeglace.ts",
     "iconUrl": "src/fr/noveldeglace/icon.png",
     "index": 43
   },
@@ -445,7 +445,7 @@
     "site": "https://novhell.org",
     "lang": "french",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/french/novhell.ts",
     "iconUrl": "src/fr/novhell/icon.png",
     "index": 44
   },
@@ -455,7 +455,7 @@
     "site": "https://phenixscans.fr",
     "lang": "french",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/french/phenixscans.ts",
     "iconUrl": "src/fr/phenixscans/icon.png",
     "index": 45
   },
@@ -465,7 +465,7 @@
     "site": "https://warriorlegendtrad.fr",
     "lang": "french",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/french/warriorlegendtrad.ts",
     "iconUrl": "src/fr/warriorlegendtrad/icon.png",
     "index": 46
   },
@@ -475,7 +475,7 @@
     "site": "https://wuxialnscantrad.wordpress.com",
     "lang": "french",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/french/wuxialnscantrad.ts",
     "iconUrl": "src/fr/wuxialnscantrad/icon.png",
     "index": 47
   },
@@ -485,7 +485,7 @@
     "site": "https://xiaowaz.fr",
     "lang": "french",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/french/xiaowaz.ts",
     "iconUrl": "src/fr/xiaowaz/icon.png",
     "index": 48
   },
@@ -495,7 +495,7 @@
     "site": "https://indowebnovel.id/",
     "lang": "indonesian",
     "version": "1.2.3",
-    "url": "",
+    "url": "./src/plugins/indonesian/indowebnovel.ts",
     "iconUrl": "src/id/indowebnovel/icon.png",
     "index": 49
   },
@@ -505,7 +505,7 @@
     "site": "https://novelringan.com/",
     "lang": "indonesian",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/indonesian/novelringan.ts",
     "iconUrl": "src/id/novelringan/icon.png",
     "index": 50
   },
@@ -515,7 +515,7 @@
     "site": "https://sakuranovel.id/",
     "lang": "indonesian",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/indonesian/sakuranovel.ts",
     "iconUrl": "src/id/sakuranovel/icon.png",
     "index": 51
   },
@@ -525,7 +525,7 @@
     "site": "https://kakuyomu.jp",
     "lang": "japanese",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/japanese/kakuyomu.ts",
     "iconUrl": "src/jp/kakuyomu/icon.png",
     "index": 52
   },
@@ -535,7 +535,7 @@
     "site": "https://yomou.syosetu.com/",
     "lang": "japanese",
     "version": "1.1.2",
-    "url": "",
+    "url": "./src/plugins/japanese/Syosetu.ts",
     "iconUrl": "src/jp/syosetu/icon.png",
     "index": 53
   },
@@ -545,7 +545,7 @@
     "site": "https://agit664.xyz",
     "lang": "korean",
     "version": "3.1.0",
-    "url": "",
+    "url": "./src/plugins/korean/Agitoon.ts",
     "iconUrl": "src/kr/agitoon/icon.png",
     "index": 54
   },
@@ -554,7 +554,7 @@
     "name": "Komga",
     "lang": "multi",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/multi/komga.ts",
     "iconUrl": "src/multi/komga/icon.png",
     "index": 55
   },
@@ -564,7 +564,7 @@
     "site": "https://novelki.pl",
     "lang": "polish",
     "version": "1.0.3",
-    "url": "",
+    "url": "./src/plugins/polish/novelki.ts",
     "iconUrl": "src/pl/novelki/icon.png",
     "index": 56
   },
@@ -574,7 +574,7 @@
     "site": "https://www.blogdoamonnovels.com",
     "lang": "portuguese",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/portuguese/blogdoamonnovels.ts",
     "iconUrl": "src/pt-br/blogdoamonnovels/icon.png",
     "index": 57
   },
@@ -584,7 +584,7 @@
     "site": "https://novelmania.com.br",
     "lang": "portuguese",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/portuguese/novelmania.ts",
     "iconUrl": "src/pt-br/novelmania/icon.png",
     "index": 58
   },
@@ -594,7 +594,7 @@
     "site": "https://tsundoku.com.br",
     "lang": "portuguese",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/portuguese/tsundoku.ts",
     "iconUrl": "src/pt-br/tsundoku/icon.png",
     "index": 59
   },
@@ -604,7 +604,7 @@
     "site": "https://author.today",
     "lang": "russian",
     "version": "1.1.1",
-    "url": "",
+    "url": "./src/plugins/russian/authortoday.ts",
     "iconUrl": "src/ru/authortoday/icon.png",
     "index": 60
   },
@@ -614,7 +614,7 @@
     "site": "https://bookriver.ru",
     "lang": "russian",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/russian/bookriver.ts",
     "iconUrl": "src/ru/bookriver/icon.png",
     "index": 61
   },
@@ -624,7 +624,7 @@
     "site": "https://ficbook.net",
     "lang": "russian",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/russian/ficbook.ts",
     "iconUrl": "src/ru/ficbook/icon.png",
     "index": 62
   },
@@ -634,7 +634,7 @@
     "site": "https://jaomix.ru",
     "lang": "russian",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/russian/jaomix.ts",
     "iconUrl": "src/ru/jaomix/icon.png",
     "index": 63
   },
@@ -644,7 +644,7 @@
     "site": "https://freedlit.space",
     "lang": "russian",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/russian/LitSpace.ts",
     "iconUrl": "src/ru/freedlit/icon.png",
     "index": 64
   },
@@ -654,7 +654,7 @@
     "site": "https://neobook.org",
     "lang": "russian",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/russian/neobook.ts",
     "iconUrl": "src/ru/neobook/icon.png",
     "index": 65
   },
@@ -664,7 +664,7 @@
     "site": "https://novel.ovh",
     "lang": "russian",
     "version": "1.0.2",
-    "url": "",
+    "url": "./src/plugins/russian/novelOvh.ts",
     "iconUrl": "src/ru/novelovh/icon.png",
     "index": 66
   },
@@ -674,7 +674,7 @@
     "site": "https://novel.tl",
     "lang": "russian",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/russian/novelTL.ts",
     "iconUrl": "src/ru/noveltl/icon.png",
     "index": 67
   },
@@ -684,7 +684,7 @@
     "site": "https://ranobehub.org",
     "lang": "russian",
     "version": "1.0.2",
-    "url": "",
+    "url": "./src/plugins/russian/ranobehub.ts",
     "iconUrl": "src/ru/ranobehub/icon.png",
     "index": 68
   },
@@ -694,7 +694,7 @@
     "site": "https://ranobelib.me",
     "lang": "russian",
     "version": "2.1.2",
-    "url": "",
+    "url": "./src/plugins/russian/ranobelib.ts",
     "iconUrl": "src/ru/ranobelib/icon.png",
     "index": 69
   },
@@ -704,7 +704,7 @@
     "site": "https://ранобэ.рф",
     "lang": "russian",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/russian/ranoberf.ts",
     "iconUrl": "src/ru/ranoberf/icon.png",
     "index": 70
   },
@@ -714,7 +714,7 @@
     "site": "https://renovels.org",
     "lang": "russian",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/russian/renovels.ts",
     "iconUrl": "src/ru/renovels/icon.png",
     "index": 71
   },
@@ -724,7 +724,7 @@
     "site": "https://ruvers.ru/",
     "lang": "russian",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/russian/ruvers.ts",
     "iconUrl": "src/ru/ruvers/icon.png",
     "index": 72
   },
@@ -734,7 +734,7 @@
     "site": "https://topliba.com",
     "lang": "russian",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/russian/topliba.ts",
     "iconUrl": "src/ru/topliba/icon.png",
     "index": 73
   },
@@ -744,7 +744,7 @@
     "site": "https://zelluloza.ru",
     "lang": "russian",
     "version": "1.0.2",
-    "url": "",
+    "url": "./src/plugins/russian/zelluloza.ts",
     "iconUrl": "src/ru/zelluloza/icon.png",
     "index": 74
   },
@@ -754,7 +754,7 @@
     "site": "https://hasutl.wordpress.com/",
     "lang": "spanish",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/spanish/hasutl.ts",
     "iconUrl": "src/es/hasutl/icon.jpg",
     "index": 75
   },
@@ -764,7 +764,7 @@
     "site": "https://novelasligera.com/",
     "lang": "spanish",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/spanish/novelasligera.ts",
     "iconUrl": "src/es/novelasligera/icon.png",
     "index": 76
   },
@@ -774,7 +774,7 @@
     "site": "http://www.reinowuxia.com/",
     "lang": "spanish",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/spanish/novelawuxia.ts",
     "iconUrl": "src/es/reinowuxia/icon.png",
     "index": 77
   },
@@ -784,7 +784,7 @@
     "site": "https://oasistranslations.wordpress.com/",
     "lang": "spanish",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/spanish/oasistranslations.ts",
     "iconUrl": "src/es/oasistranslations/icon.png",
     "index": 78
   },
@@ -794,7 +794,7 @@
     "site": "https://www.skynovels.net/",
     "lang": "spanish",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/spanish/skynovels.ts",
     "iconUrl": "src/es/skynovels/icon.png",
     "index": 79
   },
@@ -804,7 +804,7 @@
     "site": "https://tunovelaligera.com",
     "lang": "spanish",
     "version": "1.1.0",
-    "url": "",
+    "url": "./src/plugins/spanish/tunovelaligera.ts",
     "iconUrl": "src/es/tunovelaligera/icon.png",
     "index": 80
   },
@@ -814,7 +814,7 @@
     "site": "https://yuukitls.com/",
     "lang": "spanish",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/spanish/yukitls.ts",
     "iconUrl": "src/es/yuukitls/icon.png",
     "index": 81
   },
@@ -824,7 +824,7 @@
     "site": "https://www.epiknovel.com/",
     "lang": "turkish",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/turkish/epiknovel.ts",
     "iconUrl": "src/tr/epiknovel/icon.png",
     "index": 82
   },
@@ -834,7 +834,7 @@
     "site": "https://smakolykytl.site/",
     "lang": "ukrainian",
     "version": "1.0.1",
-    "url": "",
+    "url": "./src/plugins/ukrainian/smakolykytl.ts",
     "iconUrl": "src/uk/smakolykytl/icon.png",
     "index": 83
   },
@@ -844,7 +844,7 @@
     "site": "https://lightnovel.vn",
     "lang": "vietnamese",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/vietnamese/lightnovelvn.ts",
     "iconUrl": "src/vi/lightnovelvn/icon.png",
     "index": 84
   },
@@ -854,7 +854,7 @@
     "site": "https://ln.hako.vn",
     "lang": "vietnamese",
     "version": "1.1.0",
-    "url": "",
+    "url": "./src/plugins/vietnamese/LNHako.ts",
     "iconUrl": "src/vi/hakolightnovel/icon.png",
     "index": 85
   },
@@ -864,7 +864,7 @@
     "site": "https://nettruyen.com.vn",
     "lang": "vietnamese",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/vietnamese/nettruyen.ts",
     "iconUrl": "src/vi/nettruyen/icon.png",
     "index": 86
   },
@@ -874,7 +874,7 @@
     "site": "https://truyenchu.vn",
     "lang": "vietnamese",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/vietnamese/truyenchu.ts",
     "iconUrl": "src/vi/truyenchu/icon.png",
     "index": 87
   },
@@ -884,7 +884,7 @@
     "site": "https://truyenconect.com",
     "lang": "vietnamese",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/vietnamese/Truyenconect.ts",
     "iconUrl": "src/vi/truyenconect/icon.png",
     "index": 88
   },
@@ -894,7 +894,7 @@
     "site": "https://truyenfull.vn",
     "lang": "vietnamese",
     "version": "1.0.0",
-    "url": "",
+    "url": "./src/plugins/vietnamese/truyenfull.ts",
     "iconUrl": "src/vi/truyenfull/icon.png",
     "index": 89
   }

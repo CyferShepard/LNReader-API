@@ -1,24 +1,24 @@
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { load as parseHTML } from "npm:cheerio";
-import { defaultCover } from "@libs/defaultCover.ts";
-import { Filters } from "@libs/filterInputs.ts";
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { load as parseHTML } from 'npm:cheerio';
+import { defaultCover } from '@libs/defaultCover.ts';
+import { Filters } from '@libs/filterInputs.ts';
 
 class ReinoWuxia implements Plugin.PluginBase {
-  id = "reinowuxia";
-  name = "ReinoWuxia";
-  icon = "src/es/reinowuxia/icon.png";
+  id = 'reinowuxia';
+  name = 'ReinoWuxia';
+  icon = 'src/es/reinowuxia/icon.png';
   filters?: Filters | undefined;
-  version = "1.0.0";
-  site = "http://www.reinowuxia.com/";
+  version = '1.0.0';
+  site = 'http://www.reinowuxia.com/';
   getNovelName(y: string | undefined) {
-    return y?.replace(/-/g, " ").replace(/(?:^|\s)\S/g, (a) => a.toUpperCase());
+    return y?.replace(/-/g, ' ').replace(/(?:^|\s)\S/g, a => a.toUpperCase());
   }
   async popularNovels(): Promise<Plugin.NovelItem[]> {
-    const url = this.site + "p/todas-las-novelas.html";
+    const url = this.site + 'p/todas-las-novelas.html';
 
     const result = await fetchApi(url, {
-      method: "GET",
+      method: 'GET',
     });
     const body = await result.text();
 
@@ -26,21 +26,25 @@ class ReinoWuxia implements Plugin.PluginBase {
 
     const novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio(".post-body.entry-content")
-      .find("a")
+    loadedCheerio('.post-body.entry-content')
+      .find('a')
       .each((idx, ele) => {
-        let novelName = loadedCheerio(ele).attr("href")?.split("/").pop()?.replace(".html", "");
+        let novelName = loadedCheerio(ele)
+          .attr('href')
+          ?.split('/')
+          .pop()
+          ?.replace('.html', '');
         novelName = this.getNovelName(novelName);
-        const novelCover = loadedCheerio(ele).find("img").attr("src");
+        const novelCover = loadedCheerio(ele).find('img').attr('src');
 
-        const novelUrl = loadedCheerio(ele).attr("href");
+        const novelUrl = loadedCheerio(ele).attr('href');
 
         if (!novelName || !novelUrl) return;
 
         const novel = {
           name: novelName,
           cover: novelCover,
-          path: novelUrl.replace(this.site, ""),
+          path: novelUrl.replace(this.site, ''),
         };
 
         novels.push(novel);
@@ -58,53 +62,69 @@ class ReinoWuxia implements Plugin.PluginBase {
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: loadedCheerio("h1.post-title").text().trim(),
+      name: loadedCheerio('h1.post-title').text().trim(),
     };
 
-    novel.cover = loadedCheerio("div.separator").find("a").attr("href");
+    novel.cover = loadedCheerio('div.separator').find('a').attr('href');
 
-    novel.status = "";
+    novel.status = '';
 
-    loadedCheerio("div > b").each(function () {
+    loadedCheerio('div > b').each(function () {
       const detailName = loadedCheerio(this).text();
       const detail = loadedCheerio(this)[0].nextSibling;
 
       if (detailName && detail) {
         const text = loadedCheerio(detail).text();
 
-        if (detailName.includes("Autor")) {
-          novel.author = text.replace("Autor:", "");
+        if (detailName.includes('Autor')) {
+          novel.author = text.replace('Autor:', '');
         }
 
-        if (detailName.includes("Estatus")) {
-          novel.status = text.replace("Estatus: ", "");
+        if (detailName.includes('Estatus')) {
+          novel.status = text.replace('Estatus: ', '');
         }
-        if (detailName.includes("Géneros:")) {
-          novel.genres = text.replace("Géneros: ", "").replace(/,\s/g, ",");
+        if (detailName.includes('Géneros:')) {
+          novel.genres = text.replace('Géneros: ', '').replace(/,\s/g, ',');
         }
       }
     });
 
     const novelChapters: Plugin.ChapterItem[] = [];
 
-    loadedCheerio("div").each((idx, rootEle) => {
+    loadedCheerio('div').each((idx, rootEle) => {
       const detailName = loadedCheerio(rootEle).text();
-      if (detailName.includes("Sinopsis")) {
+      if (detailName.includes('Sinopsis')) {
         novel.summary =
-          loadedCheerio(rootEle).next().text() !== ""
-            ? loadedCheerio(rootEle).next().text().replace("Sinopsis", "").trim()
-            : loadedCheerio(rootEle).next().next().text().replace("Sinopsis", "").trim();
+          loadedCheerio(rootEle).next().text() !== ''
+            ? loadedCheerio(rootEle)
+                .next()
+                .text()
+                .replace('Sinopsis', '')
+                .trim()
+            : loadedCheerio(rootEle)
+                .next()
+                .next()
+                .text()
+                .replace('Sinopsis', '')
+                .trim();
       }
 
-      if (detailName.includes("Lista de Capítulos")) {
+      if (detailName.includes('Lista de Capítulos')) {
         loadedCheerio(rootEle)
-          .find("a")
+          .find('a')
           .each((idx, ele) => {
             const chapterName = loadedCheerio(ele).text();
-            const chapterPath = loadedCheerio(ele).attr("href")?.replace(this.site, "");
+            const chapterPath = loadedCheerio(ele)
+              .attr('href')
+              ?.replace(this.site, '');
             const releaseDate = null;
 
-            if (chapterName && chapterPath && chapterPath !== "/" && !novelChapters.some((chap) => chap.name === chapterName)) {
+            if (
+              chapterName &&
+              chapterPath &&
+              chapterPath !== '/' &&
+              !novelChapters.some(chap => chap.name === chapterName)
+            ) {
               const chapter = {
                 name: chapterName,
                 releaseTime: releaseDate,
@@ -129,7 +149,7 @@ class ReinoWuxia implements Plugin.PluginBase {
 
     const loadedCheerio = parseHTML(body);
 
-    const chapterText = loadedCheerio(".post-body.entry-content").html() || "";
+    const chapterText = loadedCheerio('.post-body.entry-content').html() || '';
 
     return chapterText;
   }
@@ -143,19 +163,19 @@ class ReinoWuxia implements Plugin.PluginBase {
 
     const novels: Plugin.NovelItem[] = [];
 
-    loadedCheerio(".date-outer").each((idx, ele) => {
+    loadedCheerio('.date-outer').each((idx, ele) => {
       let novelName = loadedCheerio(ele)
-        .find("a")
-        .attr("href")
-        ?.split("/")
+        .find('a')
+        .attr('href')
+        ?.split('/')
         .pop()
-        ?.replace(/-capitulo(.*?).html/, "");
+        ?.replace(/-capitulo(.*?).html/, '');
 
-      const novelUrl = novelName + ".html/";
+      const novelUrl = novelName + '.html/';
 
       novelName = this.getNovelName(novelName);
 
-      const exists = novels.some((novel) => novel.name === novelName);
+      const exists = novels.some(novel => novel.name === novelName);
 
       if (!exists) {
         const novelCover = defaultCover;
@@ -164,7 +184,7 @@ class ReinoWuxia implements Plugin.PluginBase {
         const novel = {
           name: novelName,
           cover: novelCover,
-          path: novelUrl.replace(this.site, ""),
+          path: novelUrl.replace(this.site, ''),
         };
 
         novels.push(novel);

@@ -1,20 +1,20 @@
-import { CheerioAPI, load } from "npm:cheerio";
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { defaultCover } from "@libs/defaultCover.ts";
-import { NovelStatus } from "@libs/novelStatus.ts";
-import dayjs from "npm:dayjs";
+import { CheerioAPI, load } from 'npm:cheerio';
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { defaultCover } from '@libs/defaultCover.ts';
+import { NovelStatus } from '@libs/novelStatus.ts';
+import dayjs from 'npm:dayjs';
 
 class HarkenEliwoodPlugin implements Plugin.PluginBase {
-  id = "harkeneliwood";
-  name = "HarkenEliwood";
-  icon = "src/fr/harkeneliwood/icon.png";
-  site = "https://harkeneliwood.wordpress.com";
-  version = "1.0.0";
+  id = 'harkeneliwood';
+  name = 'HarkenEliwood';
+  icon = 'src/fr/harkeneliwood/icon.png';
+  site = 'https://harkeneliwood.wordpress.com';
+  version = '1.0.0';
 
   async getCheerio(url: string): Promise<CheerioAPI> {
     const r = await fetchApi(url, {
-      headers: { "Accept-Encoding": "deflate" },
+      headers: { 'Accept-Encoding': 'deflate' },
     });
     const body = await r.text();
     const $ = load(body);
@@ -27,18 +27,18 @@ class HarkenEliwoodPlugin implements Plugin.PluginBase {
     const novels: Plugin.NovelItem[] = [];
     let novel: Plugin.NovelItem;
     const url = this.site;
-    const $ = await this.getCheerio(url + "/projets/");
-    $("#content .entry-content [href]")
+    const $ = await this.getCheerio(url + '/projets/');
+    $('#content .entry-content [href]')
       // We don't collect items for Facebook and Twitter.
       .not('[rel="nofollow noopener noreferrer"]')
       .each((i, elem) => {
         const novelName = $(elem).text().trim();
-        const novelUrl = $(elem).attr("href");
+        const novelUrl = $(elem).attr('href');
         if (novelUrl && novelName) {
           novel = {
             name: novelName,
             cover: defaultCover,
-            path: novelUrl.replace(this.site, ""),
+            path: novelUrl.replace(this.site, ''),
           };
           novels.push(novel);
         }
@@ -49,25 +49,28 @@ class HarkenEliwoodPlugin implements Plugin.PluginBase {
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: "Sans titre",
+      name: 'Sans titre',
     };
 
     const $ = await this.getCheerio(this.site + novelPath);
-    novel.name = $("#content h1.entry-title").text().trim();
-    novel.cover = $("#content .entry-content p img").first().attr("src") || defaultCover;
-    novel.summary = this.getSummary($("#content .entry-content").text());
-    novel.author = this.getAuthor($("#content .entry-content").text());
+    novel.name = $('#content h1.entry-title').text().trim();
+    novel.cover =
+      $('#content .entry-content p img').first().attr('src') || defaultCover;
+    novel.summary = this.getSummary($('#content .entry-content').text());
+    novel.author = this.getAuthor($('#content .entry-content').text());
     novel.status = NovelStatus.Ongoing;
     const chapters: Plugin.ChapterItem[] = [];
-    $("#content .entry-content p a").each((i, elem) => {
+    $('#content .entry-content p a').each((i, elem) => {
       const chapterName = $(elem).text().trim();
-      const chapterUrl = $(elem).attr("href");
+      const chapterUrl = $(elem).attr('href');
       // Check if the chapter URL exists and contains the site name.
       if (chapterUrl && chapterUrl.includes(this.site) && chapterName) {
-        const releaseDate = dayjs(chapterUrl?.substring(this.site.length + 1, this.site.length + 11)).format("DD MMMM YYYY");
+        const releaseDate = dayjs(
+          chapterUrl?.substring(this.site.length + 1, this.site.length + 11),
+        ).format('DD MMMM YYYY');
         chapters.push({
           name: chapterName,
-          path: chapterUrl.replace(this.site, ""),
+          path: chapterUrl.replace(this.site, ''),
           releaseTime: releaseDate,
         });
       }
@@ -77,7 +80,7 @@ class HarkenEliwoodPlugin implements Plugin.PluginBase {
   }
 
   getSummary(text: string) {
-    let resume = "";
+    let resume = '';
     const regexResume1 = /Synopsis :([\s\S]*)Traduction anglaise/i;
     const regexResume2 = /Synopsis :([\s\S]*)Raw :/i;
     const regexResume3 = /Synopsis 1 :([\s\S]*)Synopsis 2 :([\s\S]*)Raw :/i;
@@ -119,38 +122,41 @@ class HarkenEliwoodPlugin implements Plugin.PluginBase {
     const regexAuteur = /Auteur\s*:\s*(.*?)\s*(?:\r?\n|$)/i;
     const match = regexAuteur.exec(text);
 
-    if (match !== null && match[1].trim() !== "") {
+    if (match !== null && match[1].trim() !== '') {
       return match[1].trim();
     }
 
-    return "";
+    return '';
   }
 
   async parseChapter(chapterPath: string): Promise<string> {
     const $ = await this.getCheerio(this.site + chapterPath);
-    const title = $("h1.entry-title");
-    const chapter = $("div.entry-content");
-    return (title.html() || "") + (chapter.html() || "");
+    const title = $('h1.entry-title');
+    const chapter = $('div.entry-content');
+    return (title.html() || '') + (chapter.html() || '');
   }
 
-  async searchNovels(searchTerm: string, pageNo: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    pageNo: number,
+  ): Promise<Plugin.NovelItem[]> {
     if (pageNo !== 1) return [];
 
     const popularNovels = this.popularNovels(1);
 
-    const novels = (await popularNovels).filter((novel) =>
+    const novels = (await popularNovels).filter(novel =>
       novel.name
         .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
         .trim()
         .includes(
           searchTerm
             .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .trim()
-        )
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim(),
+        ),
     );
 
     return novels;

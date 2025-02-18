@@ -1,27 +1,31 @@
-import { CheerioAPI, load as parseHTML } from "npm:cheerio";
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { Filters, FilterTypes } from "@libs/filterInputs.ts";
-import { defaultCover } from "@libs/defaultCover.ts";
+import { CheerioAPI, load as parseHTML } from 'npm:cheerio';
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { Filters, FilterTypes } from '@libs/filterInputs.ts';
+import { defaultCover } from '@libs/defaultCover.ts';
 
 class RewayatClub implements Plugin.PagePlugin {
-  id = "rewayatclub";
-  name = "Rewayat Club";
-  version = "1.0.1";
-  icon = "src/ar/rewayatclub/icon.png";
-  site = "https://rewayat.club/";
+  id = 'rewayatclub';
+  name = 'Rewayat Club';
+  version = '1.0.1';
+  icon = 'src/ar/rewayatclub/icon.png';
+  site = 'https://rewayat.club/';
 
   parseNovels(data: NovelData): Plugin.NovelItem[] {
     const novels: Plugin.NovelItem[] = [];
     data.results.map((item: NovelEntry) => {
       novels.push({
-        name: item.arabic || item.novel?.arabic || "novel",
-        path: item.slug ? `novel/${item.slug}` : item.novel ? `novel/${item.novel.slug}` : "novel",
+        name: item.arabic || item.novel?.arabic || 'novel',
+        path: item.slug
+          ? `novel/${item.slug}`
+          : item.novel
+            ? `novel/${item.novel.slug}`
+            : 'novel',
         cover: item.poster_url
           ? `https://api.rewayat.club/${item.poster_url.slice(1)}`
           : item.novel
-          ? `https://api.rewayat.club/${item.novel.poster_url.slice(1)}`
-          : defaultCover,
+            ? `https://api.rewayat.club/${item.novel.poster_url.slice(1)}`
+            : defaultCover,
       });
     });
     return novels;
@@ -29,23 +33,23 @@ class RewayatClub implements Plugin.PagePlugin {
 
   async popularNovels(
     page: number,
-    { showLatestNovels, filters }: Plugin.PopularNovelsOptions<Filters>
+    { showLatestNovels, filters }: Plugin.PopularNovelsOptions<Filters>,
   ): Promise<Plugin.NovelItem[]> {
     let link = `https://api.rewayat.club/api/novels/`;
     let body: NovelData = {
       count: 0,
-      next: "",
-      previous: "",
+      next: '',
+      previous: '',
       results: [],
     };
     if (showLatestNovels) {
       link = `${this.site}api/chapters/weekly/list/?page=${page}`;
-      body = await fetchApi(link).then((r) => r.json());
+      body = await fetchApi(link).then(r => r.json());
     } else if (filters) {
-      if (filters.categories.value !== "") {
+      if (filters.categories.value !== '') {
         link += `?type=${filters.categories.value}`;
       }
-      if (filters.sortOptions.value !== "") {
+      if (filters.sortOptions.value !== '') {
         link += `&ordering=${filters.sortOptions.value}`;
       }
       if (filters.genre.value.length > 0) {
@@ -54,48 +58,60 @@ class RewayatClub implements Plugin.PagePlugin {
         });
       }
       link += `&page=${page}`;
-      body = await fetchApi(link).then((r) => r.json());
+      body = await fetchApi(link).then(r => r.json());
     }
     return this.parseNovels(body);
   }
 
-  async parseNovel(novelUrl: string): Promise<Plugin.SourceNovel & { totalPages: number }> {
+  async parseNovel(
+    novelUrl: string,
+  ): Promise<Plugin.SourceNovel & { totalPages: number }> {
     const result = await fetchApi(new URL(novelUrl, this.site).toString());
     const body = await result.text();
     const loadedCheerio = parseHTML(body);
     const novel: Plugin.SourceNovel & { totalPages: number } = {
       path: novelUrl,
-      name: loadedCheerio("h1.primary--text span").text().trim() || "Untitled",
-      author: loadedCheerio(".novel-author").text().trim(),
-      summary: loadedCheerio("div.text-pre-line span").text().trim(),
+      name: loadedCheerio('h1.primary--text span').text().trim() || 'Untitled',
+      author: loadedCheerio('.novel-author').text().trim(),
+      summary: loadedCheerio('div.text-pre-line span').text().trim(),
       totalPages: 1,
       chapters: [],
     };
-    const statusWords = new Set(["مكتملة", "متوقفة", "مستمرة"]);
-    const mainGenres = Array.from(loadedCheerio(".v-slide-group__content a"))
-      .map((el) => loadedCheerio(el).text().trim())
-      .join(",");
-    const statusGenre = Array.from(loadedCheerio("div.v-slide-group__content span.v-chip__content"))
-      .map((el) => loadedCheerio(el).text().trim())
-      .filter((text) => statusWords.has(text));
+    const statusWords = new Set(['مكتملة', 'متوقفة', 'مستمرة']);
+    const mainGenres = Array.from(loadedCheerio('.v-slide-group__content a'))
+      .map(el => loadedCheerio(el).text().trim())
+      .join(',');
+    const statusGenre = Array.from(
+      loadedCheerio('div.v-slide-group__content span.v-chip__content'),
+    )
+      .map(el => loadedCheerio(el).text().trim())
+      .filter(text => statusWords.has(text));
     novel.genres = `${statusGenre},${mainGenres}`;
-    const statusText = Array.from(loadedCheerio("div.v-slide-group__content span.v-chip__content"))
-      .map((el) => loadedCheerio(el).text().trim())
-      .filter((text) => statusWords.has(text))
+    const statusText = Array.from(
+      loadedCheerio('div.v-slide-group__content span.v-chip__content'),
+    )
+      .map(el => loadedCheerio(el).text().trim())
+      .filter(text => statusWords.has(text))
       .join();
     novel.status =
       {
-        متوقفة: "On Hiatus",
-        مكتملة: "Completed",
-        مستمرة: "Ongoing",
-      }[statusText] || "Unknown";
-    const imageRaw = loadedCheerio('body script:contains("__NUXT__")').first().text();
+        'متوقفة': 'On Hiatus',
+        'مكتملة': 'Completed',
+        'مستمرة': 'Ongoing',
+      }[statusText] || 'Unknown';
+    const imageRaw = loadedCheerio('body script:contains("__NUXT__")')
+      .first()
+      .text();
     const imageUrlRegex = /poster_url:"(\\u002F[^"]+)"/;
     const imageUrlMatch = imageRaw?.match(imageUrlRegex);
-    const ImageUrlShort = imageUrlMatch ? imageUrlMatch[1].replace(/\\u002F/g, "/").replace(/^\/*/, "") : defaultCover;
+    const ImageUrlShort = imageUrlMatch
+      ? imageUrlMatch[1].replace(/\\u002F/g, '/').replace(/^\/*/, '')
+      : defaultCover;
     const imageUrl = `https://api.rewayat.club/${ImageUrlShort}`;
     novel.cover = imageUrl;
-    const chapterNumberStr = loadedCheerio("div.v-tab--active span.mr-1").text().replace(/[^\d]/g, "");
+    const chapterNumberStr = loadedCheerio('div.v-tab--active span.mr-1')
+      .text()
+      .replace(/[^\d]/g, '');
     const chapterNumber = parseInt(chapterNumberStr, 10);
     const pageNumber = Math.ceil(chapterNumber / 24);
     novel.totalPages = pageNumber;
@@ -117,71 +133,74 @@ class RewayatClub implements Plugin.PagePlugin {
   async parsePage(novelPath: string, page: string): Promise<Plugin.SourcePage> {
     const pagePath = novelPath.slice(6);
     const pageUrl = `https://api.rewayat.club/api/chapters/${pagePath}/?ordering=number&page=${page}`;
-    const dataJson = await fetchApi(pageUrl).then((r) => r.json());
+    const dataJson = await fetchApi(pageUrl).then(r => r.json());
     const chapters = this.parseChapters(dataJson, novelPath);
     return {
       chapters,
     };
   }
   async parseChapter(chapterUrl: string): Promise<string> {
-    let link = this.site + "api/chapters/" + chapterUrl.slice(6);
-    const result = await fetchApi(link).then((r) => r.json());
+    let link = this.site + 'api/chapters/' + chapterUrl.slice(6);
+    const result = await fetchApi(link).then(r => r.json());
     let chapterText = result.content
       .flat()
-      .join("")
-      .replace(/<p>\n|\n<p>\n/g, "");
+      .join('')
+      .replace(/<p>\n|\n<p>\n/g, '');
     chapterText = chapterText.trim();
     return chapterText;
   }
 
-  async searchNovels(searchTerm: string, page: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    page: number,
+  ): Promise<Plugin.NovelItem[]> {
     const searchUrl = `https://api.rewayat.club/api/novels/?type=0&ordering=-num_chapters&page=${page}&search=${searchTerm}`;
 
-    const result = await fetchApi(searchUrl).then((r) => r.json());
+    const result = await fetchApi(searchUrl).then(r => r.json());
     return this.parseNovels(result);
   }
 
   filters = {
     genre: {
       value: [],
-      label: "Genres",
+      label: 'Genres',
       options: [
-        { label: "كوميديا", value: "1" }, // Comedy
-        { label: "أكشن", value: "2" }, // Action
-        { label: "دراما", value: "3" }, // Drama
-        { label: "فانتازيا", value: "4" }, // Fantasy
-        { label: "مهارات القتال", value: "5" }, // Combat Skills
-        { label: "مغامرة", value: "6" }, // Adventure
-        { label: "رومانسي", value: "7" }, // Romance
-        { label: "خيال علمي", value: "8" }, // Science Fiction
-        { label: "الحياة المدرسية", value: "9" }, // School Life
-        { label: "قوى خارقة", value: "10" }, // Super Powers
-        { label: "سحر", value: "11" }, // Magic
-        { label: "رياضة", value: "12" }, // Sports
-        { label: "رعب", value: "13" }, // Horror
-        { label: "حريم", value: "14" }, // Harem
+        { label: 'كوميديا', value: '1' }, // Comedy
+        { label: 'أكشن', value: '2' }, // Action
+        { label: 'دراما', value: '3' }, // Drama
+        { label: 'فانتازيا', value: '4' }, // Fantasy
+        { label: 'مهارات القتال', value: '5' }, // Combat Skills
+        { label: 'مغامرة', value: '6' }, // Adventure
+        { label: 'رومانسي', value: '7' }, // Romance
+        { label: 'خيال علمي', value: '8' }, // Science Fiction
+        { label: 'الحياة المدرسية', value: '9' }, // School Life
+        { label: 'قوى خارقة', value: '10' }, // Super Powers
+        { label: 'سحر', value: '11' }, // Magic
+        { label: 'رياضة', value: '12' }, // Sports
+        { label: 'رعب', value: '13' }, // Horror
+        { label: 'حريم', value: '14' }, // Harem
       ],
       type: FilterTypes.CheckboxGroup,
     },
     categories: {
-      value: "0",
-      label: "الفئات",
+      value: '0',
+      label: 'الفئات',
       options: [
-        { label: "جميع الروايات", value: "0" },
-        { label: "مترجمة", value: "1" },
-        { label: "مؤلفة", value: "2" },
-        { label: "مكتملة", value: "3" },
+        { label: 'جميع الروايات', value: '0' },
+        { label: 'مترجمة', value: '1' },
+        { label: 'مؤلفة', value: '2' },
+        { label: 'مكتملة', value: '3' },
       ],
       type: FilterTypes.Picker,
     },
     sortOptions: {
-      value: "-num_chapters",
-      label: "الترتيب",
+      value: '-num_chapters',
+      label: 'الترتيب',
       options: [
-        { label: "عدد الفصول - من أقل ﻷعلى", value: "num_chapters" },
-        { label: "عدد الفصول - من أعلى ﻷقل", value: "-num_chapters" },
-        { label: "الاسم - من أقل ﻷعلى", value: "english" },
-        { label: "الاسم - من أعلى ﻷقل", value: "-english" },
+        { label: 'عدد الفصول - من أقل ﻷعلى', value: 'num_chapters' },
+        { label: 'عدد الفصول - من أعلى ﻷقل', value: '-num_chapters' },
+        { label: 'الاسم - من أقل ﻷعلى', value: 'english' },
+        { label: 'الاسم - من أعلى ﻷقل', value: '-english' },
       ],
       type: FilterTypes.Picker,
     },

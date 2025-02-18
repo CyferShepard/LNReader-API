@@ -1,6 +1,6 @@
-import { fetchApi } from "@libs/fetch.ts";
-import { Filters, FilterTypes } from "@libs/filterInputs.ts";
-import { Plugin } from "@typings/plugin.ts";
+import { fetchApi } from '@libs/fetch.ts';
+import { Filters, FilterTypes } from '@libs/filterInputs.ts';
+import { Plugin } from '@typings/plugin.ts';
 
 /**
  * Example for novel API:
@@ -13,16 +13,16 @@ import { Plugin } from "@typings/plugin.ts";
  */
 
 class Genesis implements Plugin.PluginBase {
-  id = "genesistudio";
-  name = "Genesis";
-  icon = "src/en/genesis/icon.png";
-  customCSS = "src/en/genesis/customCSS.css";
-  site = "https://genesistudio.com";
-  version = "1.0.5";
+  id = 'genesistudio';
+  name = 'Genesis';
+  icon = 'src/en/genesis/icon.png';
+  customCSS = 'src/en/genesis/customCSS.css';
+  site = 'https://genesistudio.com';
+  version = '1.0.7';
 
   imageRequestInit?: Plugin.ImageRequestInit | undefined = {
     headers: {
-      referrer: this.site,
+      'referrer': this.site,
     },
   };
 
@@ -34,18 +34,21 @@ class Genesis implements Plugin.PluginBase {
     }));
   }
 
-  async popularNovels(pageNo: number, { showLatestNovels, filters }: Plugin.PopularNovelsOptions): Promise<Plugin.SourceNovel[]> {
+  async popularNovels(
+    pageNo: number,
+    { showLatestNovels, filters }: Plugin.PopularNovelsOptions,
+  ): Promise<Plugin.SourceNovel[]> {
     if (pageNo !== 1) return [];
     let link = `${this.site}/api/search?`;
     if (showLatestNovels) {
-      link += "sort=Recent";
+      link += 'sort=Recent';
     } else {
       if (filters!.genres.value) {
         link += filters!.genres.value;
       }
       link += `&${filters!.storyStatus.value}&${filters!.sort.value}`;
     }
-    const json = await fetchApi(link).then((r) => r.json());
+    const json = await fetchApi(link).then(r => r.json());
     return this.parseNovels(json);
   }
 
@@ -53,7 +56,7 @@ class Genesis implements Plugin.PluginBase {
     const url = `${this.site}${novelPath}/__data.json?x-sveltekit-invalidated=001`;
 
     // Fetch the novel's data in JSON format
-    const json = await fetchApi(url).then((r) => r.json());
+    const json = await fetchApi(url).then(r => r.json());
     const nodes = json.nodes;
 
     // Extract the main novel data from the nodes
@@ -62,11 +65,11 @@ class Genesis implements Plugin.PluginBase {
     // Initialize the novel object with default values
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: "",
-      cover: "",
-      summary: "",
-      author: "",
-      status: "Unknown",
+      name: '',
+      cover: '',
+      summary: '',
+      author: '',
+      status: 'Unknown',
       chapters: [],
     };
 
@@ -81,7 +84,9 @@ class Genesis implements Plugin.PluginBase {
 
   // Helper function to extract novel data from nodes
   extractNovelData(nodes: any[]): any {
-    return nodes.filter((node: { type: string }) => node.type === "data").map((node: { data: any }) => node.data)[0];
+    return nodes
+      .filter((node: { type: string }) => node.type === 'data')
+      .map((node: { data: any }) => node.data)[0];
   }
 
   // Helper function to populate novel metadata
@@ -89,13 +94,20 @@ class Genesis implements Plugin.PluginBase {
     for (const key in data) {
       const value = data[key];
 
-      if (typeof value === "object" && value !== null && "novel_title" in value) {
-        novel.name = data[value.novel_title] || "Unknown Title";
-        novel.cover = data[value.cover] || "";
-        novel.summary = data[value.synopsis] || "";
-        novel.author = data[value.author] || "Unknown Author";
-        novel.genres = (data[value.genres] as number[]).map((genreId: number) => data[genreId]).join(", ") || "Unknown Genre";
-        novel.status = value.release_days ? "Ongoing" : "Completed";
+      if (
+        typeof value === 'object' &&
+        value !== null &&
+        'novel_title' in value
+      ) {
+        novel.name = data[value.novel_title] || 'Unknown Title';
+        novel.cover = data[value.cover] || '';
+        novel.summary = data[value.synopsis] || '';
+        novel.author = data[value.author] || 'Unknown Author';
+        novel.genres =
+          (data[value.genres] as number[])
+            .map((genreId: number) => data[genreId])
+            .join(', ') || 'Unknown Genre';
+        novel.status = value.release_days ? 'Ongoing' : 'Completed';
         break; // Break the loop once metadata is found
       }
     }
@@ -107,8 +119,8 @@ class Genesis implements Plugin.PluginBase {
       const value = data[key];
 
       // Change string here if the chapters are stored under a different key
-      const chapterKey = "chapters";
-      if (typeof value === "object" && value !== null && chapterKey in value) {
+      const chapterKey = 'chapters';
+      if (typeof value === 'object' && value !== null && chapterKey in value) {
         const chapterData = this.decodeData(data[value[chapterKey]]);
 
         // Object.values will give us an array of arrays (any[][])
@@ -118,7 +130,9 @@ class Genesis implements Plugin.PluginBase {
         return chapterArrays.flatMap((chapters: any[]) => {
           return chapters
             .map((chapter: any) => this.formatChapter(chapter))
-            .filter((chapter): chapter is Plugin.ChapterItem => chapter !== null);
+            .filter(
+              (chapter): chapter is Plugin.ChapterItem => chapter !== null,
+            );
         });
       }
     }
@@ -128,10 +142,17 @@ class Genesis implements Plugin.PluginBase {
 
   // Helper function to format an individual chapter
   formatChapter(chapter: any): Plugin.ChapterItem | null {
-    const { id, chapter_title, chapter_number, required_tier, date_created } = chapter;
+    const { id, chapter_title, chapter_number, required_tier, date_created } =
+      chapter;
 
     // Ensure required fields are present and valid
-    if (id && chapter_title && chapter_number && required_tier !== null && date_created) {
+    if (
+      id &&
+      chapter_title &&
+      chapter_number >= 0 &&
+      required_tier !== null &&
+      date_created
+    ) {
       const number = parseInt(chapter_number, 10) || 0;
       const requiredTier = parseInt(required_tier, 10) || 0;
 
@@ -183,7 +204,8 @@ class Genesis implements Plugin.PluginBase {
    */
   getStringsArrayRaw(code: string) {
     // @ts-ignore
-    let json = /function \w+\(\){var \w+=(?<array>\['.+']);/.exec(code).groups.array;
+    let json = /function \w+\(\){var \w+=(?<array>\['.+']);/.exec(code).groups
+      .array;
 
     //replace string single quotes with double quotes and add escaped chars
     json = json.replace(/'(.+?)'([,\]])/g, (match, p1, p2) => {
@@ -201,8 +223,9 @@ class Genesis implements Plugin.PluginBase {
    */
   getDecodeParams(code: string) {
     // @ts-ignore
-    const jsDecodeInt = /while\(!!\[]\){try{var \w+=(?<code>.+?);/.exec(code).groups.code;
-    const decodeSections = jsDecodeInt.split("+");
+    const jsDecodeInt = /while\(!!\[]\){try{var \w+=(?<code>.+?);/.exec(code)
+      .groups.code;
+    const decodeSections = jsDecodeInt.split('+');
     const params = [];
     for (const section of decodeSections) {
       params.push(this.decodeParamSection(section));
@@ -215,16 +238,19 @@ class Genesis implements Plugin.PluginBase {
    * @returns {{offset: number, divider: number, negated: boolean}[]}
    */
   decodeParamSection(section: string) {
-    const sections = section.split("*");
+    const sections = section.split('*');
     const params = [];
     for (const section of sections) {
       // @ts-ignore
-      const offsetStr = /parseInt\(\w+\(0x(?<offset>[0-9a-f]+)\)\)/.exec(section).groups.offset;
+      const offsetStr = /parseInt\(\w+\(0x(?<offset>[0-9a-f]+)\)\)/.exec(
+        section,
+      ).groups.offset;
       const offset = parseInt(offsetStr, 16);
       // @ts-ignore
-      const dividerStr = /\/0x(?<divider>[0-9a-f]+)/.exec(section).groups.divider;
+      const dividerStr = /\/0x(?<divider>[0-9a-f]+)/.exec(section).groups
+        .divider;
       const divider = parseInt(dividerStr, 16);
-      const negated = section.includes("-");
+      const negated = section.includes('-');
       params.push({ offset, divider, negated });
     }
     return params;
@@ -232,14 +258,19 @@ class Genesis implements Plugin.PluginBase {
 
   getConstant(code: string) {
     // @ts-ignore
-    const constantStr = /}}}\(\w+,0x(?<constant>[0-9a-f]+)\),/.exec(code).groups.constant;
+    const constantStr = /}}}\(\w+,0x(?<constant>[0-9a-f]+)\),/.exec(code).groups
+      .constant;
     return parseInt(constantStr, 16);
   }
 
-  getChapterData(code: string, getDataAt: { (x: number): any; (arg0: number): any }) {
+  getChapterData(
+    code: string,
+    getDataAt: { (x: number): any; (arg0: number): any },
+  ) {
     let chapterDataStr =
       // @ts-ignore
-      /\),\(function\(\){var \w+=\w+;return(?<data>{.+?});/.exec(code).groups.data;
+      /\),\(function\(\){var \w+=\w+;return(?<data>{.+?});/.exec(code).groups
+        .data;
 
     //replace hex with decimal
     chapterDataStr = chapterDataStr.replace(/:0x([0-9a-f]+)/g, (match, p1) => {
@@ -248,15 +279,20 @@ class Genesis implements Plugin.PluginBase {
     });
 
     //replace ![] with false and !![] with true
-    chapterDataStr = chapterDataStr.replace(/:!!\[]/g, ":true").replace(/:!\[]/g, ":false");
+    chapterDataStr = chapterDataStr
+      .replace(/:!!\[]/g, ':true')
+      .replace(/:!\[]/g, ':false');
 
     //replace string single quotes with double quotes and add escaped chars
-    chapterDataStr = chapterDataStr.replace(/'(.+?)'([,\]}:])/g, (match, p1, p2) => {
-      return `"${p1.replace(/\\x([0-9a-z]{2})/g, (match: any, p1: string) => {
-        //hexadecimal unicode escape chars
-        return String.fromCharCode(parseInt(p1, 16));
-      })}"${p2}`;
-    });
+    chapterDataStr = chapterDataStr.replace(
+      /'(.+?)'([,\]}:])/g,
+      (match, p1, p2) => {
+        return `"${p1.replace(/\\x([0-9a-z]{2})/g, (match: any, p1: string) => {
+          //hexadecimal unicode escape chars
+          return String.fromCharCode(parseInt(p1, 16));
+        })}"${p2}`;
+      },
+    );
 
     //parse the data getting methods
     chapterDataStr = chapterDataStr.replace(
@@ -265,7 +301,7 @@ class Genesis implements Plugin.PluginBase {
       (match, p1) => {
         const offset = parseInt(p1, 16);
         return `:${JSON.stringify(getDataAt(offset))}`;
-      }
+      },
     );
 
     return JSON.parse(chapterDataStr);
@@ -277,7 +313,7 @@ class Genesis implements Plugin.PluginBase {
    */
   applyDecodeParams(
     params: { offset: number; divider: number; negated: boolean }[][],
-    getDataAt: { (x: number): any; (arg0: any): string }
+    getDataAt: { (x: number): any; (arg0: any): string },
   ) {
     let res = 0;
     for (const paramAdd of params) {
@@ -293,58 +329,66 @@ class Genesis implements Plugin.PluginBase {
 
   async parseChapter(chapterPath: string): Promise<string> {
     const url = `${this.site}${chapterPath}/__data.json?x-sveltekit-invalidated=001`;
-    const json = await fetchApi(url).then((r) => r.json());
+    const json = await fetchApi(url).then(r => r.json());
     const nodes = json.nodes;
-    const data = nodes.filter((node: { type: string }) => node.type === "data").map((node: { data: any }) => node.data)[0];
+    const data = nodes
+      .filter((node: { type: string }) => node.type === 'data')
+      .map((node: { data: any }) => node.data)[0];
     const content = data[data[0].gs] ?? data[19];
+    const notes = data[data[0].notes];
     const footnotes = data[data[0].footnotes];
-    return content + (footnotes ?? "");
+    return (
+      content + (notes ? `<h2>Notes</h2>${notes}` : '') + (footnotes ?? '')
+    );
   }
 
-  async searchNovels(searchTerm: string, pageNo: number): Promise<Plugin.SourceNovel[]> {
+  async searchNovels(
+    searchTerm: string,
+    pageNo: number,
+  ): Promise<Plugin.SourceNovel[]> {
     if (pageNo !== 1) return [];
     const url = `${this.site}/api/search?serialization=All&sort=Popular&title=${searchTerm}`;
-    const json = await fetchApi(url).then((r) => r.json());
+    const json = await fetchApi(url).then(r => r.json());
     return this.parseNovels(json);
   }
 
   filters = {
     sort: {
-      label: "Sort Results By",
-      value: "sort=Popular",
+      label: 'Sort Results By',
+      value: 'sort=Popular',
       options: [
-        { label: "Popular", value: "sort=Popular" },
-        { label: "Recent", value: "sort=Recent" },
-        { label: "Views", value: "sort=Views" },
+        { label: 'Popular', value: 'sort=Popular' },
+        { label: 'Recent', value: 'sort=Recent' },
+        { label: 'Views', value: 'sort=Views' },
       ],
       type: FilterTypes.Picker,
     },
     storyStatus: {
-      label: "Status",
-      value: "serialization=All",
+      label: 'Status',
+      value: 'serialization=All',
       options: [
-        { label: "All", value: "serialization=All" },
-        { label: "Ongoing", value: "serialization=Ongoing" },
-        { label: "Completed", value: "serialization=Completed" },
+        { label: 'All', value: 'serialization=All' },
+        { label: 'Ongoing', value: 'serialization=Ongoing' },
+        { label: 'Completed', value: 'serialization=Completed' },
       ],
       type: FilterTypes.Picker,
     },
     genres: {
-      label: "Genres",
+      label: 'Genres',
       value: [],
       options: [
-        { label: "Action", value: "genres=Action" },
-        { label: "Comedy", value: "genres=Comedy" },
-        { label: "Drama", value: "genres=Drama" },
-        { label: "Fantasy", value: "genres=Fantasy" },
-        { label: "Harem", value: "genres=Harem" },
-        { label: "Martial Arts", value: "genres=Martial+Arts" },
-        { label: "Modern", value: "genres=Modern" },
-        { label: "Mystery", value: "genres=Mystery" },
-        { label: "Psychological", value: "genres=Psychological" },
-        { label: "Romance", value: "genres=Romance" },
-        { label: "Slice of life", value: "genres=Slice+of+Life" },
-        { label: "Tragedy", value: "genres=Tragedy" },
+        { label: 'Action', value: 'genres=Action' },
+        { label: 'Comedy', value: 'genres=Comedy' },
+        { label: 'Drama', value: 'genres=Drama' },
+        { label: 'Fantasy', value: 'genres=Fantasy' },
+        { label: 'Harem', value: 'genres=Harem' },
+        { label: 'Martial Arts', value: 'genres=Martial+Arts' },
+        { label: 'Modern', value: 'genres=Modern' },
+        { label: 'Mystery', value: 'genres=Mystery' },
+        { label: 'Psychological', value: 'genres=Psychological' },
+        { label: 'Romance', value: 'genres=Romance' },
+        { label: 'Slice of life', value: 'genres=Slice+of+Life' },
+        { label: 'Tragedy', value: 'genres=Tragedy' },
       ],
       type: FilterTypes.CheckboxGroup,
     },

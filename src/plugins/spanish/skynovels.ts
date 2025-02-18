@@ -1,26 +1,26 @@
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
 
 class SkyNovels implements Plugin.PluginBase {
-  id = "skynovels";
-  name = "SkyNovels";
-  site = "https://www.skynovels.net/";
-  apiSite = "https://api.skynovels.net/api/";
-  version = "1.0.0";
-  icon = "src/es/skynovels/icon.png";
+  id = 'skynovels';
+  name = 'SkyNovels';
+  site = 'https://www.skynovels.net/';
+  apiSite = 'https://api.skynovels.net/api/';
+  version = '1.0.0';
+  icon = 'src/es/skynovels/icon.png';
 
   async popularNovels(): Promise<Plugin.NovelItem[]> {
-    const url = this.apiSite + "novels?&q";
+    const url = this.apiSite + 'novels?&q';
 
     const result = await fetchApi(url);
     const body = (await result.json()) as response;
 
     const novels: Plugin.NovelItem[] = [];
 
-    body.novels?.forEach((res) => {
+    body.novels?.forEach(res => {
       const name = res.nvl_title;
-      const cover = this.apiSite + "get-image/" + res.image + "/novels/false";
-      const path = "novelas/" + res.id + "/" + res.nvl_name + "/";
+      const cover = this.apiSite + 'get-image/' + res.image + '/novels/false';
+      const path = 'novelas/' + res.id + '/' + res.nvl_name + '/';
 
       novels.push({ name, cover, path });
     });
@@ -28,8 +28,8 @@ class SkyNovels implements Plugin.PluginBase {
     return novels;
   }
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
-    const novelId = novelPath.split("/")[1];
-    const url = this.apiSite + "novel/" + novelId + "/reading?&q";
+    const novelId = novelPath.split('/')[1];
+    const url = this.apiSite + 'novel/' + novelId + '/reading?&q';
 
     const result = await fetchApi(url);
     const body = (await result.json()) as responseBook;
@@ -38,25 +38,25 @@ class SkyNovels implements Plugin.PluginBase {
 
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: item?.nvl_title || "Untitled",
+      name: item?.nvl_title || 'Untitled',
     };
 
-    novel.cover = this.apiSite + "get-image/" + item?.image + "/novels/false";
+    novel.cover = this.apiSite + 'get-image/' + item?.image + '/novels/false';
 
     const genres: string[] = [];
-    item?.genres?.forEach((genre) => genres.push(genre.genre_name));
-    novel.genres = genres.join(",");
+    item?.genres?.forEach(genre => genres.push(genre.genre_name));
+    novel.genres = genres.join(',');
     novel.author = item?.nvl_writer;
     novel.summary = item?.nvl_content;
     novel.status = item?.nvl_status;
 
     const novelChapters: Plugin.ChapterItem[] = [];
 
-    item?.volumes?.forEach((volume) => {
-      volume?.chapters?.forEach((chapter) => {
+    item?.volumes?.forEach(volume => {
+      volume?.chapters?.forEach(chapter => {
         const chapterName = chapter.chp_index_title;
         const releaseDate = new Date(chapter.createdAt).toDateString();
-        const chapterPath = novelPath + chapter.id + "/" + chapter.chp_name;
+        const chapterPath = novelPath + chapter.id + '/' + chapter.chp_name;
 
         novelChapters.push({
           name: chapterName,
@@ -71,7 +71,7 @@ class SkyNovels implements Plugin.PluginBase {
     return novel;
   }
   async parseChapter(chapterPath: string): Promise<string> {
-    const chapterId: string = chapterPath.split("/")[3];
+    const chapterId: string = chapterPath.split('/')[3];
     const url = `${this.apiSite}novel-chapter/${chapterId}`;
 
     const result = await fetchApi(url);
@@ -79,26 +79,28 @@ class SkyNovels implements Plugin.PluginBase {
 
     const item = body?.chapter?.[0];
 
-    const chapterText = item?.chp_content || "404";
+    const chapterText = item?.chp_content || '404';
 
     return chapterText;
   }
 
   async searchNovels(searchTerm: string): Promise<Plugin.NovelItem[]> {
     searchTerm = searchTerm.toLowerCase();
-    const url = this.apiSite + "novels?&q";
+    const url = this.apiSite + 'novels?&q';
 
     const result = await fetchApi(url);
     const body = (await result.json()) as response;
 
-    const results = body?.novels?.filter((novel) => novel.nvl_title.toLowerCase().includes(searchTerm));
+    const results = body?.novels?.filter(novel =>
+      novel.nvl_title.toLowerCase().includes(searchTerm),
+    );
 
     const novels: Plugin.NovelItem[] = [];
 
-    results?.forEach((res) => {
+    results?.forEach(res => {
       const name = res.nvl_title;
-      const cover = this.apiSite + "get-image/" + res.image + "/novels/false";
-      const path = "novelas/" + res.id + "/" + res.nvl_name + "/";
+      const cover = this.apiSite + 'get-image/' + res.image + '/novels/false';
+      const path = 'novelas/' + res.id + '/' + res.nvl_name + '/';
 
       novels.push({ name, cover, path });
     });

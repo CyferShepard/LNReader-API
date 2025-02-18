@@ -1,16 +1,16 @@
-import { CheerioAPI, load } from "npm:cheerio";
-import { fetchApi } from "@libs/fetch.ts";
-import { Plugin } from "@typings/plugin.ts";
-import { defaultCover } from "@libs/defaultCover.ts";
-import { NovelStatus } from "@libs/novelStatus.ts";
-import dayjs from "npm:dayjs";
+import { CheerioAPI, load } from 'npm:cheerio';
+import { fetchApi } from '@libs/fetch.ts';
+import { Plugin } from '@typings/plugin.ts';
+import { defaultCover } from '@libs/defaultCover.ts';
+import { NovelStatus } from '@libs/novelStatus.ts';
+import dayjs from 'npm:dayjs';
 
 class WarriorLegendTradPlugin implements Plugin.PluginBase {
-  id = "warriorlegendtrad";
-  name = "Warrior Legend Trad";
-  icon = "src/fr/warriorlegendtrad/icon.png";
-  site = "https://warriorlegendtrad.fr";
-  version = "1.0.0";
+  id = 'warriorlegendtrad';
+  name = 'Warrior Legend Trad';
+  icon = 'src/fr/warriorlegendtrad/icon.png';
+  site = 'https://warriorlegendtrad.wordpress.com';
+  version = '1.0.1';
 
   regexAuthors = [/Auteur\u00A0:([^\n]*)/];
 
@@ -33,24 +33,25 @@ class WarriorLegendTradPlugin implements Plugin.PluginBase {
     let url;
     // light novel
     if (pageNo === 1) {
-      url = this.site + "/light-novel";
+      url = this.site + '/light-novel';
     }
     // Original creation
     else {
-      url = this.site + "/crea";
+      url = this.site + '/crea';
     }
 
     const $ = await this.getCheerio(url);
-    $("div div div article").each((i, elem) => {
-      const novelName = $(elem).find(".entry-wrapper h2").first().text().trim();
-      const novelUrl = $(elem).find(".entry-wrapper h2 a").attr("href");
-      const novelCover = $(elem).find("figure a img").attr("src") || defaultCover;
+    $('div div div article').each((i, elem) => {
+      const novelName = $(elem).find('.entry-wrapper h2').first().text().trim();
+      const novelUrl = $(elem).find('.entry-wrapper h2 a').attr('href');
+      const novelCover =
+        $(elem).find('figure a img').attr('src') || defaultCover;
 
       if (novelUrl && novelName) {
         novel = {
           name: novelName,
           cover: novelCover,
-          path: novelUrl.replace(this.site, ""),
+          path: novelUrl.replace(this.site, ''),
         };
         novels.push(novel);
       }
@@ -61,30 +62,33 @@ class WarriorLegendTradPlugin implements Plugin.PluginBase {
   async parseNovel(novelPath: string): Promise<Plugin.SourceNovel> {
     const novel: Plugin.SourceNovel = {
       path: novelPath,
-      name: "Sans titre",
+      name: 'Sans titre',
     };
 
     const $ = await this.getCheerio(this.site + novelPath);
 
-    novel.name = $(".site-main article header h1").text().trim();
-    novel.cover = $(".site-main article figure img").first().attr("src") || defaultCover;
-    const entryContentText = $(".entry-content").text();
+    novel.name = $('.site-main article header h1').text().trim();
+    novel.cover =
+      $('.site-main article figure img').first().attr('src') || defaultCover;
+    const entryContentText = $('.entry-content').text();
     novel.author = this.extractInfo(entryContentText, this.regexAuthors);
     novel.genres = this.extractInfo(entryContentText, this.regexGenres);
     novel.summary = this.extractInfo(entryContentText, this.regexSummary);
     novel.status = this.getStatus(entryContentText);
 
     const chapters: Plugin.ChapterItem[] = [];
-    $("div div article div")
-      .find("h2 a, h3 a")
+    $('div div article div')
+      .find('h2 a, h3 a')
       .each((i, elem) => {
         const chapterName = $(elem).text().trim();
-        const chapterUrl = $(elem).attr("href");
-        const releaseDate = dayjs(chapterUrl?.substring(this.site.length + 1, this.site.length + 11)).format("DD MMMM YYYY");
+        const chapterUrl = $(elem).attr('href');
+        const releaseDate = dayjs(
+          chapterUrl?.substring(this.site.length + 1, this.site.length + 11),
+        ).format('DD MMMM YYYY');
         if (chapterUrl && chapterUrl.includes(this.site) && chapterName) {
           chapters.push({
             name: chapterName,
-            path: chapterUrl.replace(this.site, ""),
+            path: chapterUrl.replace(this.site, ''),
             releaseTime: releaseDate,
           });
         }
@@ -113,20 +117,23 @@ class WarriorLegendTradPlugin implements Plugin.PluginBase {
         return match[1].trim();
       }
     }
-    return "";
+    return '';
   }
 
   getStatus(text: string) {
-    const regexSummary = [/État sur le site :([^\n]*)/i, /état sur le site:([^\n]*)/i];
+    const regexSummary = [
+      /État sur le site :([^\n]*)/i,
+      /état sur le site:([^\n]*)/i,
+    ];
 
     const status = this.extractInfo(text, regexSummary);
-    if (status.includes("en cours")) {
+    if (status.includes('en cours')) {
       return NovelStatus.Ongoing;
-    } else if (status.includes("en pause")) {
+    } else if (status.includes('en pause')) {
       return NovelStatus.OnHiatus;
-    } else if (status.includes("terminé")) {
+    } else if (status.includes('terminé')) {
       return NovelStatus.Completed;
-    } else if (status.includes("abandonné")) {
+    } else if (status.includes('abandonné')) {
       return NovelStatus.Cancelled;
     }
 
@@ -135,35 +142,42 @@ class WarriorLegendTradPlugin implements Plugin.PluginBase {
 
   async parseChapter(chapterPath: string): Promise<string> {
     const $ = await this.getCheerio(this.site + chapterPath);
-    let contenuHtml = "";
-    $(".entry-content")
+    let contenuHtml = '';
+    $('.entry-content')
       .contents()
       .each(function () {
-        if (!$.html(this)?.startsWith("<div") && !$.html(this)?.startsWith("<hr") && !$.html(this)?.includes("<script")) {
+        if (
+          !$.html(this)?.startsWith('<div') &&
+          !$.html(this)?.startsWith('<hr') &&
+          !$.html(this)?.includes('<script')
+        ) {
           contenuHtml += $.html(this);
         }
       });
     return contenuHtml;
   }
 
-  async searchNovels(searchTerm: string, pageNo: number): Promise<Plugin.NovelItem[]> {
+  async searchNovels(
+    searchTerm: string,
+    pageNo: number,
+  ): Promise<Plugin.NovelItem[]> {
     if (pageNo !== 1) return [];
 
     const popularNovels = this.popularNovels(1);
 
-    const novels = (await popularNovels).filter((novel) =>
+    const novels = (await popularNovels).filter(novel =>
       novel.name
         .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
         .trim()
         .includes(
           searchTerm
             .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .trim()
-        )
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .trim(),
+        ),
     );
 
     return novels;
