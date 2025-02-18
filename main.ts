@@ -26,9 +26,11 @@ const app = new Application();
 const router = new Router();
 
 function getSource(source: string) {
-  return PLUGINS.find((p) => {
+  const plugin = PLUGINS.find((p) => {
     p.id == source;
   });
+
+  return plugin ?? selectedPlugin;
 }
 
 // Middleware to check for authorization
@@ -175,6 +177,7 @@ router.get("/setSource", authMiddleware, async (context) => {
     if (source != null) {
       var _selectedPlugin = PLUGINS.find((p) => p.id == source);
       if (_selectedPlugin == undefined) {
+        context.response.status = 404;
         context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
         return;
       }
@@ -190,12 +193,14 @@ router.post("/searchNovel", authMiddleware, async (context) => {
   const { source, searchTerm, page = 1 } = await context.request.body.json();
 
   if (!searchTerm) {
-    context.response.body = { error: "Search Term are required" };
+    context.response.status = 400;
+    context.response.body = { error: "Search Term is required" };
     return;
   }
 
-  const sourcePlugin = selectedPlugin ?? getSource(source);
+  const sourcePlugin = getSource(source);
   if (!sourcePlugin) {
+    context.response.status = 404;
     context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
     return;
   }
@@ -207,17 +212,11 @@ router.post("/searchNovel", authMiddleware, async (context) => {
 router.post("/getPopular", authMiddleware, async (context) => {
   const { source, page = 1, showLatestNovels = true } = await context.request.body.json();
 
-  if (!source) {
-    context.response.body = { error: "Source is required" };
-    context.response.status = 400;
-    return;
-  }
-
-  const sourcePlugin = selectedPlugin ?? getSource(source);
+  const sourcePlugin = getSource(source);
 
   if (!sourcePlugin) {
     context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
-    context.response.status = 400;
+    context.response.status = 404;
     return;
   }
 
@@ -231,21 +230,17 @@ router.post("/novel", authMiddleware, async (context) => {
 
   console.log("/novel", source, path);
 
-  if (!source || !path) {
-    context.response.body = { error: "Source and Path are required" };
+  if (!path) {
+    context.response.body = { error: "Novel Path is required" };
     context.response.status = 400;
     return;
   }
 
-  const sourcePlugin = selectedPlugin ?? getSource(source);
+  const sourcePlugin = getSource(source);
 
   if (!sourcePlugin) {
+    context.response.status = 404;
     context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
-    return;
-  }
-
-  if (!path) {
-    context.response.body = { error: "Path is required" };
     return;
   }
 
@@ -271,15 +266,17 @@ function stripHtmlTags(html: string): string {
 router.post("/chapter", authMiddleware, async (context) => {
   const { source, path, cleanText = true } = await context.request.body.json();
 
-  const sourcePlugin = selectedPlugin ?? getSource(source);
-
-  if (!sourcePlugin) {
-    context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
+  if (!path) {
+    context.response.body = { error: "Chapter Path is required" };
+    context.response.status = 404;
     return;
   }
 
-  if (!path) {
-    context.response.body = { error: "Path is required" };
+  const sourcePlugin = getSource(source);
+
+  if (!sourcePlugin) {
+    context.response.status = 404;
+    context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
     return;
   }
 
