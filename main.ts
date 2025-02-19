@@ -5,7 +5,7 @@ import PLUGINS from "./src/plugins/index.ts";
 import { resolve } from "https://deno.land/std@0.224.0/path/mod.ts";
 // import { dbHandler } from "./src/classes/db.ts";
 import { dbSqLiteHandler } from "./src/classes/db-sqlite.ts";
-import { create, verify, getNumericDate } from "https://deno.land/x/djwt/mod.ts";
+import { create, verify, getNumericDate, decode } from "https://deno.land/x/djwt/mod.ts";
 import { User } from "./src/schemas/users.ts";
 import { History } from "./src/schemas/history.ts";
 import { Favourite } from "./src/schemas/favourites.ts";
@@ -34,6 +34,17 @@ function getSource(source: string) {
 }
 
 // Middleware to check for authorization
+
+async function decodeAndVerifyToken(token: string): Promise<any> {
+  try {
+    const payload = await verify(token, SECRET_KEY);
+    return payload;
+  } catch (error) {
+    console.error("Failed to verify token:", error);
+    throw error;
+  }
+}
+
 async function authMiddleware(context: Context, next: () => Promise<unknown>) {
   const authHeader = context.request.headers.get("Authorization");
   if (!authHeader || authHeader.split(" ").length < 2) {
@@ -44,7 +55,14 @@ async function authMiddleware(context: Context, next: () => Promise<unknown>) {
 
   const token = authHeader.split(" ")[1];
 
-  const user = await dbSqLiteHandler.getUserByToken(token);
+  const user = await (async () => {
+    try {
+      return await decodeAndVerifyToken(token);
+    } catch (e) {
+      console.error("Failed to decode token:", e);
+      return null;
+    }
+  })();
 
   if (!user) {
     context.response.status = 401;
@@ -57,8 +75,10 @@ async function authMiddleware(context: Context, next: () => Promise<unknown>) {
 }
 
 async function generateToken(user: User): Promise<string> {
+  delete user.password;
   const payload = {
     username: user.username,
+    user: user,
     exp: getNumericDate(60 * 60), // Token expires in 1 hour
   };
   const token = await create({ alg: "HS256", typ: "JWT" }, payload, SECRET_KEY);
@@ -138,7 +158,7 @@ router.post("/getToken", async (context) => {
   }
 
   const token = await generateToken(user);
-  await dbSqLiteHandler.insertToken(token, user);
+  // await dbSqLiteHandler.insertToken(token, user);
   context.response.body = token;
 });
 
