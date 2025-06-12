@@ -2,9 +2,7 @@
   "tasks": {
     "dev": "deno run --watch main.ts",
     "start": "deno run build-index && deno run  --allow-net --allow-env --allow-read --allow-ffi --allow-write --unstable-kv main.ts",
-    "debug": " deno run --inspect  --allow-net --allow-env --allow-read --allow-ffi --allow-write --unstable-kv main.ts",
-    "build-runner": " deno run  --allow-net --allow-env --allow-read --allow-ffi --allow-write",
-    "build-index": " deno run  --allow-net --allow-env --allow-read --allow-ffi --allow-write"
+    "debug": " deno run --inspect  --allow-net --allow-env --allow-read --allow-ffi --allow-write --unstable-kv main.ts"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
