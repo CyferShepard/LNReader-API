@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Book Reader</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;color: #E0E0E0;}
+        .material-icons {
+            font-size: 24px;
+            color: #E0E0E0;
+        }
+        .sidebar {
+            background-color: #1E1E1E;border-right: 1px solid #333333;
+        }
+        .chapter-title {
+            color: #FFFFFF;}
+        .tag {
+            background-color: #333333;
+            color: #BB86FC;border-radius: 12px;
+            padding: 4px 12px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        .tag-sci-fi { background-color: #6200EE; color: #FFFFFF; }
+        .tag-action { background-color: #03DAC6; color: #000000; }
+        .tag-adventure { background-color: #BB86FC; color: #000000; }
+        .active-chapter {
+            background-color: #373737;
+            color: #BB86FC;
+            border-left: 3px solid #BB86FC;
+        }
+        .chapter-link:hover {
+            background-color: #2A2A2A;
+        }
+        .icon-button:hover {
+            background-color: #333333;
+            border-radius: 50%;
+        }
+        .fab {
+            background-color: #BB86FC;color: #000000;}
+        .fab:hover {
+            background-color: #A065F7;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1E1E1E;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4A4A4A;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5A5A5A;
+        }
+    </style>
+</head>
+<body class="flex flex-col h-screen">
+<header class="bg-gray-900 text-gray-100 p-4 flex justify-between items-center shadow-md sticky top-0 z-50">
+<button class="p-2 rounded-full hover:bg-gray-700 transition-colors">
+<span class="material-icons">menu</span>
+</button>
+<div class="flex items-center space-x-3">
+<button class="p-2 rounded-full hover:bg-gray-700 transition-colors icon-button">
+<span class="material-icons">arrow_back</span>
+</button>
+<button class="p-2 rounded-full hover:bg-gray-700 transition-colors icon-button">
+<span class="material-icons">arrow_forward</span>
+</button>
+<button class="p-2 rounded-full hover:bg-gray-700 transition-colors icon-button">
+<span class="material-icons">settings</span>
+</button>
+<button class="p-2 rounded-full hover:bg-gray-700 transition-colors icon-button">
+<span class="material-icons">account_circle</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<aside class="sidebar w-80 p-6 space-y-6 overflow-y-auto flex-shrink-0">
+<div>
+<img alt="Minimalist futuristic robot illustration" class="rounded-lg shadow-lg mb-4 w-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYOKRUXfzLOqMuB6AVXG7YujYTGnm_oKcCD2OS0CrauYgIFi1CNLWnO4BDNwDT8UmESj_N4oBWk3T8Bi1Ho6LuSdWOJVlIFrtNrbfe-yJ03A4nlLle3jF9_qMNwApLL0anMPAxr5ZdwFR9t2t6Rp1smrEARq-RyZQVNqYDrJgzPqLqQrZiWdA6KX503OrBQLAlSDjBNQTw2AFp2LbNfxAJLIrdhLZMqRjGAhG4gM84eqkbR3_J-J3Kdk1LiB8_L4UAJW8izbgNmwU"/>
+<div class="flex space-x-2 mb-3">
+<span class="tag tag-sci-fi">Sci-Fi</span>
+<span class="tag tag-action">Action</span>
+<span class="tag tag-adventure">Adventure</span>
+</div>
+<p class="text-sm text-gray-400 leading-relaxed">
+                    In the far future humanity is threatened by monstrous beings called Kaiju now humans have expanded across the galaxy with the development of new techniques and fleets of mechs. Alto a young boy with dreams of becoming a great mech pilot is fated to be a mech designer. He finds a strange technology that opens his eyes to the vast secrets of the galaxy, now with a new purpose Alto must become something the world has never seen before. A/N: Just wanna do a good sci-fi book
+                </p>
+</div>
+<div>
+<h2 class="text-xl font-semibold mb-3 text-gray-200">Chapters (133)</h2>
+<nav class="space-y-1">
+<a class="block p-3 rounded-md text-sm chapter-link active-chapter" href="#">
+                        Chapter 1: Battle Of Collosal Giants
+                    </a>
+<a class="block p-3 rounded-md text-sm text-gray-400 chapter-link" href="#">
+                        Chapter 2: The Legacy of Mecha Pilots
+                    </a>
+<a class="block p-3 rounded-md text-sm text-gray-400 chapter-link" href="#">
+                        Chapter 3: Whispers of the Void
+                    </a>
+<a class="block p-3 rounded-md text-sm text-gray-400 chapter-link" href="#">
+                        Chapter 4: Stellar Cartography
+                    </a>
+</nav>
+</div>
+</aside>
+<main class="flex-1 p-8 md:p-12 overflow-y-auto">
+<article class="max-w-3xl mx-auto">
+<h1 class="text-3xl md:text-4xl font-bold mb-8 chapter-title">Chapter 1: Battle Of Collosal Giants</h1>
+<div class="space-y-6 text-gray-300 leading-loose text-base md:text-lg">
+<p>
+                        The waves roared as the Colossal Kaiju emerged from the ocean, its massive, glowing carapace dripping with seawater. A tsunami wall was created in its wake, smashing into the nearby hills and taken down one of the few lighthouses that stood nearby. The creature that appeared from the depths of the ocean towered at 500 meters, the beast—dubbed "Tidescourge"—released an ear-splitting bellow that exploded with a powerful shockwave that cleared the sky of any clouds. Its six crab-like legs crushed the remains of a seaside city, each step causing tremors that sent cracks splintering across the ground.
+                    </p>
+<p>
+                        From the distance a loud siren blared causing the Colossal Kaiju to turn it's head slightly in the direction of the noise. It's six compound eyes like black rubies reflected no emotion within them as they peered even further.
+                    </p>
+<p>
+                        “Eclipse-7, on standby!” The pilot’s voice crackled over the comms, sharp with adrenaline. Over the cacophony of chaos a colossal size mech appeared darting out of the hillside— It was a sleek, jet-black titan bristling with railguns and plasma blades— unlike the colossal Kaiju it would soon come to face it was considerably smaller at 350 meters making it one of the biggest mechs in the entirety of mech history. It's top speed was slowed down by its massive form, as it approached it took a defensive stance on the cliffside.
+                    </p>
+<p>
+                        “Keep it at range,” the Commander barked over the comm system. “That thing’s armored. Aim for the joints.”
+                    </p>
+<p>
+                        The Kaiju turned its glowing, compound eyes toward the mech. Its maw opened, revealing rows of jagged teeth and strings of thick saliva as it unleashed a concentrated blast of boiling seawater.
+                    </p>
+<p>
+                        One of the pilots screamed in a controlled tone to his copilot. “Incoming!” His copilot gave a much calmer response and nodded.
+                    </p>
+<p>
+                        Eclipse-7’s thrusters roared to life, propelling it sideways just as the torrent slammed into the cliffside. Steam hissed like smoke from molten magma and obscured the battlefield, but the pilots activated the thermal sensors option in their cockpit. Through the haze of red coloured mist they could see the huge form of the Kaiju making a move. Tidescourge, unfazed, charged forward, its immense weight shaking the very ground.
+                    </p>
+</div>
+</article>
+</main>
+</div>
+<button class="fab fixed bottom-8 right-8 w-14 h-14 rounded-full flex items-center justify-center shadow-xl transform transition-transform hover:scale-105">
+<span class="material-icons" style="color: #000000;">favorite</span>
+</button>
+
+</body></html>

@@ -1,0 +1,52 @@
+{
+  "url": "https://freewebnovel.com/search",
+  "type": "POST",
+  "body": "searchkey=searchterm",
+  "bodyType": "FORM_DATA",
+  "waitForPageLoad": false,
+  "query": [
+    {
+      "label": "results",
+      "element": ".con",
+      "getContent": true,
+      "withHref": false,
+      "subQuery": [
+        {
+          "label": "url",
+          "element": ".tit>a",
+          "getContent": false,
+          "withHref": true
+        },
+        {
+          "label": "title",
+          "element": ".tit>a",
+          "getContent": true,
+          "withHref": false,
+          "dataProp": "title"
+        },
+        {
+          "label": "summary",
+          "getContent": true,
+          "withHref": false
+        },
+        {
+          "label": "cover",
+          "element": ".pic>a>img",
+          "getContent": false,
+          "withHref": true,
+          "transformProcess": "(value)=>{\n            if (value.startsWith(\"/files\")) {\n              return \"https://freewebnovel.com\" + value;\n            } else {\n              return value;\n            }\n          }"
+        },
+        {
+          "label": "genres",
+          "element": ".txt>.desc>.item>.right>a",
+          "getContent": true,
+          "withHref": false,
+          "selectItemsAtIndex": [
+            0,
+            1
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "url": "https://novelbuddy.io/api/manga/${BookId}/chapters?source=detail",
+  "type": "GET",
+  "bodyType": "JSON",
+  "waitForPageLoad": false,
+  "waitDuration": 5000,
+  "query": [
+    {
+      "label": "chapters",
+      "element": "li",
+      "getContent": true,
+      "withHref": false,
+      "subQuery": [
+        {
+          "label": "url",
+          "element": "a",
+          "getContent": true,
+          "withHref": true
+        },
+        {
+          "label": "index",
+          "element": ".chapter-title",
+          "getContent": true,
+          "withHref": false,
+          "regex": {
+            "regex": "C\\.+(\\d+)",
+            "process": "(match)=>match && match.length >= 2 ? parseInt(match[1]) : null"
+          }
+        },
+        {
+          "label": "title",
+          "element": ".chapter-title",
+          "getContent": true,
+          "withHref": false
+        },
+        {
+          "label": "date",
+          "element": ".chapter-update",
+          "getContent": true,
+          "withHref": false
+        }
+      ]
+    },
+    {
+      "label": "curentPage",
+      "getContent": true,
+      "withHref": false
+    },
+    {
+      "label": "lastPage",
+      "getContent": true,
+      "withHref": false
+    }
+  ]
+}

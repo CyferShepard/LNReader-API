@@ -1,0 +1,55 @@
+{
+  "url": "https://freewebnovel.com${0}",
+  "type": "GET",
+  "bodyType": "JSON",
+  "waitForPageLoad": false,
+  "waitDuration": 5000,
+  "query": [
+    {
+      "label": "novelTitle",
+      "element": ".tit>a",
+      "getContent": true,
+      "withHref": false,
+      "dataProp": "title"
+    },
+    {
+      "label": "novelUrl",
+      "element": ".tit>a",
+      "getContent": true,
+      "withHref": true
+    },
+    {
+      "label": "title",
+      "element": ".chapter",
+      "getContent": true,
+      "withHref": false
+    },
+    {
+      "label": "content",
+      "element": "#article>p",
+      "getContent": true,
+      "withHref": false
+    },
+    {
+      "label": "previousPage",
+      "element": "#prev_url",
+      "getContent": true,
+      "withHref": true,
+      "transformProcess": "(value)=>value.split(\"/\").length - 1 > 2 ? value : \"\""
+    },
+    {
+      "label": "nextPage",
+      "element": "#next_url",
+      "getContent": true,
+      "withHref": true,
+      "transformProcess": "(value)=>value.split(\"/\").length - 1 > 2 ? value : \"\""
+    },
+    {
+      "label": "url",
+      "element": ".cur>.wp>a",
+      "getContent": false,
+      "withHref": true,
+      "selectItemsAtIndex": [2]
+    }
+  ]
+}

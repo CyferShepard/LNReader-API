@@ -1,16 +1,16 @@
-import { Chapter } from "./chapters.ts";
+import { Chapter } from "./chapter.ts";
 
 export class ChapterWithContent extends Chapter {
   content: string;
 
-  constructor(name: string, path: string, content: string) {
-    super(name, path);
+  constructor(index: number, title: string, url: string, content: string) {
+    super(index, title, url);
     this.content = content;
   }
 
   static override fromResult(data: any): ChapterWithContent {
     const baseChapter = Chapter.fromResult(data);
-    return new ChapterWithContent(baseChapter.name, baseChapter.path, data.content);
+    return new ChapterWithContent(baseChapter.index, baseChapter.title, baseChapter.url, data.content);
   }
 
   override toJSON(): object {

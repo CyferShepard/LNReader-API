@@ -1,0 +1,55 @@
+{
+  "url": "https://freewebnovel.com${0}",
+  "type": "GET",
+  "bodyType": "JSON",
+  "waitForPageLoad": false,
+  "waitDuration": 5000,
+  "query": [
+    {
+      "label": "chapters",
+      "element": "#idData>li",
+      "getContent": true,
+      "withHref": false,
+      "subQuery": [
+        {
+          "label": "url",
+          "element": "a",
+          "getContent": true,
+          "withHref": true
+        },
+        {
+          "label": "index",
+          "element": "a",
+          "getContent": false,
+          "withHref": true,
+          "regex": {
+            "regex": "chapter-(\\d+)",
+            "process": "(match)=>match && match.length >= 2 ? parseInt(match[1]) : null"
+          }
+        },
+        {
+          "label": "title",
+          "element": "a",
+          "getContent": true,
+          "withHref": false,
+          "dataProp": "title"
+        },
+        {
+          "label": "date",
+          "getContent": true,
+          "withHref": false
+        }
+      ]
+    },
+    {
+      "label": "curentPage",
+      "getContent": true,
+      "withHref": false
+    },
+    {
+      "label": "lastPage",
+      "getContent": true,
+      "withHref": false
+    }
+  ]
+}

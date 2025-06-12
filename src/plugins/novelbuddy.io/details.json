@@ -1,0 +1,109 @@
+{
+  "url": "https://novelbuddy.io${0}",
+  "type": "GET",
+  "bodyType": "JSON",
+  "waitForPageLoad": true,
+  "waitDuration": 100,
+  "query": [
+    {
+      "label": "url",
+      "getContent": true,
+      "withHref": false
+    },
+    {
+      "label": "cover",
+      "element": ".cover>.img-cover>img",
+      "getContent": true,
+      "withHref": true,
+      "transformProcess": "(value)=>{\n            if (value.startsWith(\"//\")) {\n              return \"https:\"+ value;\n            } else {\n              return value;\n            }\n          }"
+    },
+    {
+      "label": "title",
+      "element": ".detail>.name.box>h1",
+      "getContent": true,
+      "withHref": false
+    },
+    {
+      "label": "summary",
+      "element": ".summary>p",
+      "getContent": true,
+      "withHref": false
+    },
+    {
+      "label": "tags",
+      "element": ".tags>a",
+      "getContent": true,
+      "withHref": false
+    },
+    {
+      "label": "author",
+      "element": ".detail>.meta.box>p>a>span",
+      "getContent": true,
+      "withHref": false,
+      "selectItemsAtIndex": [
+        0
+      ]
+    },
+    {
+      "label": "status",
+      "element": ".detail>.meta.box>p>a>span",
+      "getContent": true,
+      "withHref": false,
+      "selectItemsAtIndex": [
+        1
+      ]
+    },
+    {
+      "label": "genres",
+      "element": ".detail>.meta.box>p",
+      "getContent": true,
+      "withHref": false,
+      "selectItemsAtIndex": [
+        2
+      ],
+      "regex": {
+        "regex": "^Genres :\\s*",
+        "process": "(match)=>match?.input?.replace(match[0], \"\") ?? \"\""
+      }
+    },
+    {
+      "label": "chapters",
+      "element": ".detail>.meta.box>p>span",
+      "getContent": true,
+      "withHref": false,
+      "selectItemsAtIndex": [
+        0
+      ]
+    },
+    {
+      "label": "lastUpdate",
+      "element": ".detail>.meta.box>p>span",
+      "getContent": true,
+      "withHref": false,
+      "selectItemsAtIndex": [
+        1
+      ]
+    },
+    {
+      "label": "additionalProps",
+      "element": ".layout",
+      "getContent": true,
+      "withHref": false,
+      "subQuery": [
+        {
+          "label": "BookId",
+          "element": "script",
+          "getContent": true,
+          "withHref": false,
+          "selectItemsAtIndex": [
+            0
+          ],
+          "regex": {
+            "regex": "var bookId = (\\d+);",
+            "process": "(match)=>match ? match[1] : null"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,25 +1,25 @@
 export class Favourite {
   username: string;
   source: string;
-  path: string;
+  url: string;
   date_added: Date;
 
-  constructor(username: string, source: string, path: string, date_added: Date) {
+  constructor(username: string, source: string, url: string, date_added: Date) {
     this.username = username;
     this.source = source;
-    this.path = path;
+    this.url = url;
     this.date_added = date_added;
   }
 
   static fromResult(data: any): Favourite {
-    return new Favourite(data.username, data.source, data.path, new Date(data.date_added));
+    return new Favourite(data.username, data.source, data.url, new Date(data.date_added));
   }
 
   toJSON(): object {
     return {
       username: this.username,
       source: this.source,
-      path: this.path,
+      url: this.url,
       date_added: this.date_added,
     };
   }

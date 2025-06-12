@@ -1,0 +1,52 @@
+{
+  "url": "https://novelbuddy.io/search?q=${0}",
+  "type": "GET",
+  "bodyType": "JSON",
+  "waitForPageLoad": true,
+  "waitDuration": 100,
+  "query": [
+    {
+      "label": "results",
+      "element": ".book-item",
+      "getContent": true,
+      "withHref": false,
+      "subQuery": [
+        {
+          "label": "url",
+          "element": ".meta>.title>h3>a",
+          "getContent": true,
+          "withHref": true
+        },
+        {
+          "label": "title",
+          "element": ".meta>.title>h3>a",
+          "getContent": true,
+          "withHref": false
+        },
+        {
+          "label": "summary",
+          "element": ".meta>.summary>p",
+          "getContent": true,
+          "withHref": false
+        },
+        {
+          "label": "cover",
+          "element": ".thumb>a>img",
+          "getContent": false,
+          "withHref": true,
+          "dataProp": "data-source",
+          "regex": {
+            "process": ""
+          },
+          "transformProcess": "(value)=>{\n            if (value.startsWith(\"//\")) {\n              return \"https:\"+ value;\n            } else {\n              return value;\n            }\n          }"
+        },
+        {
+          "label": "genres",
+          "element": ".meta>.genres>span",
+          "getContent": true,
+          "withHref": false
+        }
+      ]
+    }
+  ]
+}
