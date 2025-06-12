@@ -89,7 +89,7 @@ class DBSqLiteHandler {
 
     const users = await this.getAllUser();
     if (users.length === 0) {
-      const user = new User("admin", "admin", 0);
+      const user = new User("admin", "$2a$10$ZG7ZuVE.MfN9HTPj1GLluegeA.wsVYn75dkv6R5ItVMBwSxnZS7WG", 0);
       await this.insertUser(user);
     }
   }
