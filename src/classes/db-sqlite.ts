@@ -12,7 +12,7 @@ class DBSqLiteHandler {
   private db: Database | undefined;
 
   private async initialize() {
-    this.db = await new Database("ln-api.db");
+    this.db = await new Database("./data/ln-api.db");
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS users (
