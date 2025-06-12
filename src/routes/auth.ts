@@ -39,7 +39,7 @@ authRouter.post("/login", async (context) => {
   const user = await dbSqLiteHandler.getUser(username);
 
   if (!user) {
-    context.response.status = 404;
+    context.response.status = 401;
     context.response.body = { error: "User not found" };
     return;
   }
