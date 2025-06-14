@@ -133,12 +133,22 @@ apiRouter.post("/novel", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/chapters", authMiddleware, async (context) => {
-  const { source, url, additionalProps } = await context.request.body.json();
+  const { source, url, additionalProps, cacheData = true, clearCache = false } = await context.request.body.json();
 
-  if (!url) {
-    context.response.body = { error: "Novel Path is required" };
+  if (!url || !source) {
+    context.response.body = { error: "Novel Url and Source are required" };
     context.response.status = 404;
     return;
+  }
+
+  if (clearCache == false && cacheData == true) {
+    // Check if chapters are already cached
+    const cachedChapters = await dbSqLiteHandler.getCachedChapters(url, source);
+    if (cachedChapters && cachedChapters.length > 0) {
+      console.log("Returning cached chapters for source:", source, "and url:", url);
+      context.response.body = cachedChapters;
+      return;
+    }
   }
 
   const payload: ScraperPayload | null = await getPayload("chapters", source);
@@ -199,10 +209,18 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     }
   }
 
-  // console.log("Has page param:", hasPageParam);
-
-  // console.log("response: " + results);
-  context.response.body = results || [];
+  if (clearCache && results.length > 0) {
+    // Clear the cache for this source and url
+    console.log("Clearing cache for source:", source, "and url:", url);
+    await dbSqLiteHandler.clearChaptersCache(url, source);
+  }
+  if (cacheData == true && results.length > 0) {
+    const novelMeta = new NovelMeta(source, url, "", "", "", "", "", []);
+    const novelChapters: Chapter[] = results.map((chapter) => Chapter.fromJSON(chapter));
+    console.log("Caching chapters for novel:", novelMeta.title);
+    await dbSqLiteHandler.insertChapterMetaBulk(novelChapters, novelMeta);
+  }
+  context.response.body = results;
 });
 
 apiRouter.post("/chapter", authMiddleware, async (context) => {

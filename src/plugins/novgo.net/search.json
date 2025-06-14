@@ -39,6 +39,11 @@
           "label": "genres",
           "getContent": true,
           "withHref": false
+        },
+        {
+          "label": "chapterCount",
+          "getContent": true,
+          "withHref": false
         }
       ]
     }

@@ -45,6 +45,16 @@
             0,
             1
           ]
+        },
+        {
+          "label": "chapterCount",
+          "element": ".s1",
+          "getContent": true,
+          "withHref": false,
+          "regex": {
+            "regex": "^(\\d+)",
+            "process": "(match)=>match && match.length >= 2 ? parseInt(match[1]) : null"
+          }
         }
       ]
     }

@@ -17,7 +17,7 @@ async function generateToken(user: User): Promise<string> {
   const payload = {
     username: user.username,
     user: user,
-    exp: getNumericDate(60 * 60), // Token expires in 1 hour
+    exp: getNumericDate(60 * 60 * 24), // Token expires in 1 day
   };
 
   const token = await create({ alg: "HS256", typ: "JWT" }, payload, SECRET_KEY);

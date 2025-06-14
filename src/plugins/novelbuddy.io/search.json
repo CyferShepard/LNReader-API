@@ -3,7 +3,6 @@
   "type": "GET",
   "bodyType": "JSON",
   "waitForPageLoad": true,
-  "waitDuration": 100,
   "query": [
     {
       "label": "results",
@@ -43,6 +42,11 @@
         {
           "label": "genres",
           "element": ".meta>.genres>span",
+          "getContent": true,
+          "withHref": false
+        },
+        {
+          "label": "chapterCount",
           "getContent": true,
           "withHref": false
         }
