@@ -18,6 +18,15 @@ WORKDIR /app
 # Copy the project files to the working directory
 COPY . .
 
+# Create a new user and set permissions
+RUN useradd -ms /bin/bash appuser
+WORKDIR /app
+COPY . .
+RUN chown -R appuser:appuser /app
+
+# Switch to the new user
+USER appuser
+
 
 
 # Regenerate the lockfile
