@@ -17,6 +17,9 @@ RUN apt-get update && apt-get install -y wget gnupg && wget -q -O - https://dl-s
 RUN useradd -ms /bin/bash appuser
 WORKDIR /app
 COPY . .
+
+# Regenerate the lockfile
+RUN deno cache --reload --allow-scripts main.ts
 RUN chown -R appuser:appuser /app
 
 # Switch to the new user
@@ -24,8 +27,7 @@ USER appuser
 
 
 
-# Regenerate the lockfile
-RUN deno cache --reload --allow-scripts main.ts
+
 
 
 
