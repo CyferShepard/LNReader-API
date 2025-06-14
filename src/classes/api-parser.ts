@@ -7,6 +7,6 @@ import {
   HTTPMethod,
   BodyType,
   configureAstralBrowser,
-} from "https://deno.land/x/web_scraper_api@v1.0.1/mod.ts";
+} from "https://deno.land/x/web_scraper_api@v1.0.2/mod.ts";
 
 export { ScraperPayload, ScraperResponse, ScraperQuery, ScraperRegex, parseQuery, HTTPMethod, BodyType, configureAstralBrowser };
