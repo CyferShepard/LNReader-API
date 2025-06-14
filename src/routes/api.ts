@@ -3,8 +3,7 @@ import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import authMiddleware from "../utils/auth_middleware.ts";
 import { Chapter } from "../schemas/chapter.ts";
-import { History } from "../schemas/history.ts";
-import { parseQuery, ScraperPayload, ScraperResponse } from "../classes/api-parser.ts";
+import { parseQuery, ScraperPayload, ScraperResponse, configureAstralBrowser } from "../classes/api-parser.ts";
 import { getPayload, getPlugins, getSource, PLUGINS } from "../classes/payload-helper.ts";
 import { downloadGithubFolder } from "../utils/configUpdater.ts";
 import { allowRegistration, setAllowRegistration } from "../utils/config.ts";
@@ -12,6 +11,14 @@ import { allowRegistration, setAllowRegistration } from "../utils/config.ts";
 const apiRouter = new Router({ prefix: "/api" });
 
 //METHODS
+
+function configureBrowser() {
+  const browserlessUrl = Deno.env.get("BROWSERLESS_URL");
+  const browserlessToken = Deno.env.get("BROWSERLESS_TOKEN");
+  if (browserlessToken && browserlessUrl) {
+    configureAstralBrowser(browserlessUrl, browserlessToken);
+  }
+}
 function replaceKeys(template: string, values: Record<string, unknown>): string {
   return template.replace(/\$\{(\w+)\}/g, (_, key) => (values[key] !== undefined ? String(values[key]) : ""));
 }
@@ -22,6 +29,10 @@ async function getChapter(context: Context, url: string, source: string): Promis
     context.response.status = 404;
     context.response.body = { error: "Payload not found for details", "available payloads": PLUGINS };
     return null;
+  }
+
+  if (payload.waitForPageLoad) {
+    configureBrowser();
   }
 
   payload.url = payload.url.replace("${0}", url);
@@ -37,6 +48,9 @@ async function getNovel(context: Context, url: string, source: string): Promise<
     context.response.status = 404;
     context.response.body = { error: "Payload not found for details", "available payloads": PLUGINS };
     return null;
+  }
+  if (payload.waitForPageLoad) {
+    configureBrowser();
   }
 
   payload.url = payload.url.replace("${0}", url);
@@ -92,6 +106,9 @@ apiRouter.post("/search", authMiddleware, async (context) => {
     context.response.status = 404;
     context.response.body = { error: "Payload not found for search", "available payloads": PLUGINS };
     return;
+  }
+  if (payload.waitForPageLoad) {
+    configureBrowser();
   }
 
   if (payload.type === "POST") {
@@ -156,6 +173,9 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     context.response.status = 404;
     context.response.body = { error: "Payload not found for chapters", "available payloads": PLUGINS };
     return;
+  }
+  if (payload.waitForPageLoad) {
+    configureBrowser();
   }
 
   payload.url = payload.url.replace("${0}", url);
