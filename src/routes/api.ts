@@ -257,7 +257,7 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     await dbSqLiteHandler.clearChaptersCache(url, source);
   }
   if (cacheData == true && results.length > 0) {
-    const novelMeta = new NovelMeta(source, url, "", "", "", "", "", []);
+    const novelMeta = new NovelMeta(source, url, "", "", "", "", "", [], "");
     const novelChapters: Chapter[] = results.map((chapter) => Chapter.fromJSON(chapter));
     console.log("Caching chapters for novel:", novelMeta.title);
     await dbSqLiteHandler.insertChapterMetaBulk(novelChapters, novelMeta);

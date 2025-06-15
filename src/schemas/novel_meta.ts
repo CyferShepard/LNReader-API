@@ -7,6 +7,7 @@ export class NovelMeta {
   author: string;
   status: string;
   genres: string[];
+  lastUpdate: string;
 
   constructor(
     source: string,
@@ -16,7 +17,8 @@ export class NovelMeta {
     summary: string,
     author: string,
     status: string,
-    genres: string[]
+    genres: string[],
+    lastUpdate: string
   ) {
     this.source = source;
     this.url = url;
@@ -26,10 +28,21 @@ export class NovelMeta {
     this.author = author;
     this.status = status;
     this.genres = genres;
+    this.lastUpdate = lastUpdate || "Unknown";
   }
 
   static fromResult(data: any): NovelMeta {
-    return new NovelMeta(data.source, data.url, data.cover, data.title, data.summary, data.author, data.status, data.genres);
+    return new NovelMeta(
+      data.source,
+      data.url,
+      data.cover,
+      data.title,
+      data.summary,
+      data.author,
+      data.status,
+      data.genres,
+      data.lastUpdate
+    );
   }
 
   static fromJSON(data: any): NovelMeta {
@@ -41,7 +54,8 @@ export class NovelMeta {
       data["summary"],
       data["author"],
       data["status"],
-      data["genres"] || []
+      data["genres"] || [],
+      data["lastUpdate"] || "Unknown"
     );
   }
 
@@ -52,9 +66,10 @@ export class NovelMeta {
       cover: this.cover,
       title: this.title,
       summary: this.summary,
-      arguments: this.author,
+      author: this.author,
       status: this.status,
       genres: this.genres,
+      lastUpdate: this.lastUpdate,
     };
   }
 }

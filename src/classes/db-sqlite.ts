@@ -22,12 +22,12 @@ class DBSqLiteHandler {
       )
     `);
 
-    await this.db.exec(`
-      CREATE TABLE IF NOT EXISTS tokens (
-        token TEXT UNIQUE PRIMARY KEY ,
-        user TEXT
-      )
-    `);
+    // await this.db.exec(`
+    //   CREATE TABLE IF NOT EXISTS tokens (
+    //     token TEXT UNIQUE PRIMARY KEY ,
+    //     user TEXT
+    //   )
+    // `);
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS history (
@@ -61,6 +61,7 @@ class DBSqLiteHandler {
         author TEXT,
         status TEXT,
         genres TEXT,
+        lastUpdate TEXT,
         PRIMARY KEY (source, url)
       )
     `);
@@ -102,7 +103,7 @@ class DBSqLiteHandler {
     }
 
     const stmt = this.db!.prepare(
-      "INSERT OR REPLACE INTO novel_meta VALUES (:source,:url,:title,:cover,:summary, :author, :status, :genres)"
+      "INSERT OR REPLACE INTO novel_meta VALUES (:source,:url,:title,:cover,:summary, :author, :status, :genres, :last_updated)"
     );
     stmt.run({
       source: novel.source,
@@ -113,6 +114,7 @@ class DBSqLiteHandler {
       author: novel.author,
       status: novel.status,
       genres: novel.genres.join(","),
+      last_updated: novel.lastUpdate,
     });
   }
 
@@ -206,30 +208,30 @@ class DBSqLiteHandler {
     });
   }
 
-  public async insertToken(token: string, user: User) {
-    if (!this.db) {
-      await this.initialize();
-    }
+  // public async insertToken(token: string, user: User) {
+  //   if (!this.db) {
+  //     await this.initialize();
+  //   }
 
-    const stmt = this.db!.prepare("INSERT OR REPLACE INTO tokens VALUES (:token,:user)");
-    stmt.run({ token: token, user: JSON.stringify(user.toJSON()) });
-  }
+  //   const stmt = this.db!.prepare("INSERT OR REPLACE INTO tokens VALUES (:token,:user)");
+  //   stmt.run({ token: token, user: JSON.stringify(user.toJSON()) });
+  // }
 
   //select
 
-  public async getUserByToken(token: string): Promise<User | null> {
-    if (!this.db) {
-      await this.initialize();
-    }
+  // public async getUserByToken(token: string): Promise<User | null> {
+  //   if (!this.db) {
+  //     await this.initialize();
+  //   }
 
-    const stmt = this.db!.prepare("SELECT * FROM tokens WHERE token=:token");
-    const result = stmt.get({ token: token });
+  //   const stmt = this.db!.prepare("SELECT * FROM tokens WHERE token=:token");
+  //   const result = stmt.get({ token: token });
 
-    if (result) {
-      return User.fromResult(JSON.parse(result.user as string));
-    }
-    return null;
-  }
+  //   if (result) {
+  //     return User.fromResult(JSON.parse(result.user as string));
+  //   }
+  //   return null;
+  // }
 
   public async getAllUser(): Promise<User[]> {
     if (!this.db) {
@@ -264,70 +266,70 @@ class DBSqLiteHandler {
     stmt.run({ username: username, password: newPassword });
   }
 
-  public async getNovelByUrl(url: string) {
-    if (!this.db) {
-      await this.initialize();
-    }
+  // public async getNovelByUrl(url: string) {
+  //   if (!this.db) {
+  //     await this.initialize();
+  //   }
 
-    const stmt = this.db!
-      .prepare(`SELECT n.* , (SELECT json_group_array(json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelurl', c.novelurl))
-        FROM chapter_meta c 
-        WHERE c.novelUrl = n.url) AS chapters FROM novel_meta n WHERE n.url=:url`);
-    const result: any = stmt.get({ url: url });
+  //   const stmt = this.db!
+  //     .prepare(`SELECT n.* , (SELECT json_group_array(json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelurl', c.novelurl))
+  //       FROM chapter_meta c
+  //       WHERE c.novelUrl = n.url) AS chapters FROM novel_meta n WHERE n.url=:url`);
+  //   const result: any = stmt.get({ url: url });
 
-    if (result) {
-      return NovelMetaWithChapters.fromResult(result);
-    }
-  }
-  public async getNovelsByUrl(urls: string[]) {
-    if (!this.db) {
-      await this.initialize();
-    }
+  //   if (result) {
+  //     return NovelMetaWithChapters.fromResult(result);
+  //   }
+  // }
+  // public async getNovelsByUrl(urls: string[]) {
+  //   if (!this.db) {
+  //     await this.initialize();
+  //   }
 
-    const placeholders = urls.map(() => "?").join(",");
-    const stmt = this.db!
-      .prepare(`SELECT n.* , (SELECT json_group_array(json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl))
-        FROM chapter_meta c 
-        WHERE c.novelUrl = n.url) AS chapters FROM novel_meta n WHERE n.url in (${placeholders})`);
-    const result: any = stmt.all(...urls);
+  //   const placeholders = urls.map(() => "?").join(",");
+  //   const stmt = this.db!
+  //     .prepare(`SELECT n.* , (SELECT json_group_array(json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl))
+  //       FROM chapter_meta c
+  //       WHERE c.novelUrl = n.url) AS chapters FROM novel_meta n WHERE n.url in (${placeholders})`);
+  //   const result: any = stmt.all(...urls);
 
-    if (result && result.length > 0) {
-      return result.map((r: any) => NovelMetaWithChapters.fromResult(r));
-    }
-  }
+  //   if (result && result.length > 0) {
+  //     return result.map((r: any) => NovelMetaWithChapters.fromResult(r));
+  //   }
+  // }
 
-  public async getChaptersForNovel(url: string) {
-    if (!this.db) {
-      await this.initialize();
-    }
+  // public async getChaptersForNovel(url: string) {
+  //   if (!this.db) {
+  //     await this.initialize();
+  //   }
 
-    const stmt = this.db!.prepare("SELECT * FROM chapters WHERE url=:url");
-    const result = stmt.get({ url: url });
+  //   const stmt = this.db!.prepare("SELECT * FROM chapters WHERE url=:url");
+  //   const result = stmt.get({ url: url });
 
-    // if (result) {
-    //   const novelResult: NovelMeta = Novel.fromResult(result);
+  //   // if (result) {
+  //   //   const novelResult: NovelMeta = Novel.fromResult(result);
 
-    //   const placeholders = novelResult.chapters.map(() => "?").join(",");
+  //   //   const placeholders = novelResult.chapters.map(() => "?").join(",");
 
-    //   const stmt = this.db!.prepare(`SELECT * FROM chapters WHERE url in (${placeholders})`);
-    //   const results = stmt.all(...novelResult.chapters.map((chapter) => chapter.url));
+  //   //   const stmt = this.db!.prepare(`SELECT * FROM chapters WHERE url in (${placeholders})`);
+  //   //   const results = stmt.all(...novelResult.chapters.map((chapter) => chapter.url));
 
-    //   return results.map((result: any) => Chapter.fromResult(result));
-    // }
-  }
+  //   //   return results.map((result: any) => Chapter.fromResult(result));
+  //   // }
+  // }
 
-  public async getChapterByUrl(url: string) {
-    if (!this.db) {
-      await this.initialize();
-    }
+  // public async getChapterByUrl(url: string) {
+  //   if (!this.db) {
+  //     await this.initialize();
+  //   }
 
-    const stmt = this.db!.prepare("SELECT * FROM chapters WHERE url=:url");
-    const result: any = stmt.get({ url: url });
+  //   const stmt = this.db!.prepare("SELECT * FROM chapters WHERE url=:url");
+  //   const result: any = stmt.get({ url: url });
 
-    if (result) {
-      return Chapter.fromResult(result);
-    }
-  }
+  //   if (result) {
+  //     return Chapter.fromResult(result);
+  //   }
+  // }
 
   public async getCachedChapters(url: string, source: string) {
     if (!this.db) {
@@ -368,7 +370,7 @@ class DBSqLiteHandler {
        (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl)
         FROM chapter_meta c 
         WHERE c.url=:url) AS chapter,
-       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary)
+       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author', n.author, 'status', n.status, 'genres', n.genres, 'lastUpdate', n.lastUpdate)
         FROM novel_meta n 
         join  chapter_meta c  on n.url=c.novelUrl
         WHERE c.url=:url) AS novel
@@ -392,7 +394,7 @@ ORDER BY lh.last_read DESC
        (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl)
         FROM chapter_meta c 
         WHERE c.novelUrl=:url and c.url=lh.url) AS chapter,
-       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary)
+       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author', n.author, 'status', n.status, 'genres', n.genres, 'lastUpdate', n.lastUpdate)
         FROM novel_meta n 
         join  chapter_meta c  on n.url=c.novelUrl
         WHERE c.novelUrl=:url) AS novel
@@ -428,7 +430,7 @@ SELECT lh.*,
        (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl, 'chapterIndex',c.chapterIndex)
         FROM chapter_meta c 
         WHERE c.url = lh.url) AS chapter,
-       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary)
+       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author',n.author, 'status', n.status, 'genres', n.genres, 'lastUpdate', n.lastUpdate)
         FROM novel_meta n 
         WHERE n.url = lh.novelUrl) AS novel
 FROM latest_history lh
@@ -484,14 +486,14 @@ ORDER BY lh.last_read DESC`);
     stmt.run({ username: username, url: chapter.url, source: novel.source, novelUrl: novel.url });
   }
 
-  public async deleteAllTokens() {
-    if (!this.db) {
-      await this.initialize();
-    }
+  // public async deleteAllTokens() {
+  //   if (!this.db) {
+  //     await this.initialize();
+  //   }
 
-    const stmt = this.db!.prepare("DELETE FROM tokens");
-    stmt.run();
-  }
+  //   const stmt = this.db!.prepare("DELETE FROM tokens");
+  //   stmt.run();
+  // }
 
   public async deleteFavourite(url: string, source: string, username: string) {
     if (!this.db) {
@@ -502,6 +504,7 @@ ORDER BY lh.last_read DESC`);
     stmt.run({ url: url, source: source, username: username });
   }
 
+  //below actualy only clears the cache thats not in history
   public async clearChaptersCache(url: string, source: string) {
     if (!this.db) {
       await this.initialize();
