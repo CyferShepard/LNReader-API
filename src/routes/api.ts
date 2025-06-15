@@ -130,19 +130,41 @@ apiRouter.post("/search", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/novel", authMiddleware, async (context) => {
-  const { source, url } = await context.request.body.json();
+  const { source, url, cacheData = true, clearCache = false } = await context.request.body.json();
 
   console.log("/novel", source, url);
 
-  if (!url) {
-    context.response.body = { error: "Novel Path is required" };
+  if (!url || !source) {
+    context.response.body = { error: "Novel Url and Source is required" };
     context.response.status = 400;
     return;
+  }
+
+  if (clearCache == false && cacheData == true) {
+    // Check if chapters are already cached
+    const cahchedNovel = await dbSqLiteHandler.getCachedNovel(url, source);
+    if (cahchedNovel != null) {
+      console.log("Returning cached novel for source:", source, "and url:", url);
+      context.response.body = cahchedNovel;
+      return;
+    }
   }
 
   const results: Record<string, unknown> | null = await getNovel(context, url, source);
   if (!results) {
     return;
+  }
+
+  if (clearCache && results != null) {
+    // Clear the cache for this source and url
+    console.log("Clearing cache for source:", source, "and url:", url);
+    await dbSqLiteHandler.clearChaptersCache(url, source);
+  }
+  if (cacheData == true && results != null) {
+    const novelMeta = NovelMeta.fromJSON(results);
+    novelMeta.source = source;
+
+    await dbSqLiteHandler.insertNovelMeta(novelMeta);
   }
 
   console.log("response: " + results);

@@ -296,19 +296,6 @@ class DBSqLiteHandler {
     }
   }
 
-  public async checkIfCacheforChapters(source: string, url: string) {
-    if (!this.db) {
-      await this.initialize();
-    }
-
-    const stmt = this.db!.prepare(
-      "SELECT * FROM chapter_meta WHERE novelUrl=:url AND source=:source order by chapterIndex desc LIMIT 1"
-    );
-    const result: any = stmt.get({ url: url, source: source });
-
-    return result ? true : false;
-  }
-
   public async getChaptersForNovel(url: string) {
     if (!this.db) {
       await this.initialize();
@@ -354,6 +341,20 @@ class DBSqLiteHandler {
       return results.map((result: any) => Chapter.fromResult(result));
     }
     return [];
+  }
+
+  public async getCachedNovel(url: string, source: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("SELECT * FROM novel_meta WHERE source=:source AND url=:url limit 1");
+    const results: any = stmt.all({ source: source, url: url });
+
+    if (results && results.length > 0) {
+      return NovelMeta.fromResult(results[0]);
+    }
+    return null;
   }
 
   public async getHistory(username: string, url: string | null, novelUrl: string | null) {
