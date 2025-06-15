@@ -57,9 +57,19 @@ authRouter.post("/login", async (context) => {
   context.response.body = { token };
 });
 
-authRouter.post("/update", authMiddleware, async (context) => {
-  const { password } = await context.request.body.json();
-  const username = context.state.user.username;
+authRouter.post("/resetPassword", authMiddleware, async (context) => {
+  const { username, password } = await context.request.body.json();
+
+  if (username) {
+    const userLevel = context.state.user.user.userlevel;
+
+    if (userLevel != 0 && context.state.user.username !== username) {
+      context.response.status = 403;
+      context.response.body = { error: "You do not have permission to change this users password" };
+      return;
+    }
+  }
+  const auth_username = username ?? context.state.user.username;
 
   if (!password || password.trim() === "") {
     context.response.status = 400;
@@ -70,10 +80,10 @@ authRouter.post("/update", authMiddleware, async (context) => {
   const hash = await bcrypt.hash(password);
 
   await dbSqLiteHandler
-    .updateUserPassword(username, hash)
+    .updateUserPassword(auth_username, hash)
     .then(async () => {
-      const user = await dbSqLiteHandler.getUser(username);
-      const token = await generateToken(user!);
+      const user = username ? null : await dbSqLiteHandler.getUser(auth_username);
+      const token = username ? "" : await generateToken(user!);
       context.response.body = { token };
     })
     .catch((error) => {

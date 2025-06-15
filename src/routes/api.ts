@@ -281,4 +281,17 @@ apiRouter.get("/updatePlugins", authMiddleware, async (context) => {
   return;
 });
 
+apiRouter.get("/users", authMiddleware, async (context) => {
+  const userLevel = context.state.user.user.userlevel;
+
+  if (userLevel != 0) {
+    context.response.status = 403;
+    context.response.body = { error: "You do not have permission to view users" };
+    return;
+  }
+
+  const users = await dbSqLiteHandler.getAllUser();
+  context.response.body = users;
+});
+
 export default apiRouter;

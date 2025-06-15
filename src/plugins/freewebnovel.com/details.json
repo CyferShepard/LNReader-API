@@ -43,11 +43,12 @@
     },
     {
       "label": "author",
-      "element": ".m-imgtxt>.txt>.item>.right",
+      "element": ".m-imgtxt>.txt>.item>.right>.a1",
       "getContent": true,
       "withHref": false,
+      "dataProp": "",
       "selectItemsAtIndex": [
-        1
+        0
       ]
     },
     {
@@ -58,13 +59,9 @@
     },
     {
       "label": "genres",
-      "element": ".m-imgtxt>.txt>.item>.right",
-      "getContent": true,
-      "withHref": false,
-      "selectItemsAtIndex": [
-        2
-      ],
-      "transformProcess": "(value)=>value.split(\",\")"
+      "element": ".m-imgtxt>.txt>.item>.right>.a1",
+      "getContent": false,
+      "withHref": false
     },
     {
       "label": "chapters",
@@ -73,8 +70,13 @@
     },
     {
       "label": "lastUpdate",
+      "element": ".lastupdate",
       "getContent": true,
-      "withHref": false
+      "withHref": false,
+      "regex": {
+        "regex": "Updated\\s+([^\\]]+)",
+        "process": "(match)=>match && match.length >= 2 ? match[1] : null"
+      }
     }
   ]
 }

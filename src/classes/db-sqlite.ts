@@ -236,7 +236,7 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("SELECT * FROM users");
+    const stmt = this.db!.prepare("SELECT username,userlevel FROM users");
     const results = stmt.all();
 
     return results.map((result: any) => User.fromResult(result));
