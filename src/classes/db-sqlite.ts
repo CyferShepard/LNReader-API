@@ -113,7 +113,7 @@ class DBSqLiteHandler {
       summary: novel.summary,
       author: novel.author,
       status: novel.status,
-      genres: novel.genres.join(","),
+      genres: novel.genres && Array.isArray(novel.genres) ? novel.genres.join(",") : "",
       last_updated: novel.lastUpdate,
     });
   }
