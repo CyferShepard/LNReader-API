@@ -63,7 +63,7 @@ historyRouter.post("/insert", authMiddleware, async (context) => {
     );
 
     await dbSqLiteHandler.insertHistory(history);
-    await dbSqLiteHandler.deleteHistoryExceptLatest(chapterData, novelMeta, context.state.user.username);
+    // await dbSqLiteHandler.deleteHistoryExceptLatest(chapterData, novelMeta, context.state.user.username);
 
     context.response.status = 200;
     context.response.body = history;
