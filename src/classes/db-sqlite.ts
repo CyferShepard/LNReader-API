@@ -367,7 +367,7 @@ class DBSqLiteHandler {
     if (url) {
       const stmt = this.db!.prepare(`
         SELECT lh.*, 
-       (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl)
+        (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl, 'chapterIndex',c.chapterIndex)
         FROM chapter_meta c 
         WHERE c.url=:url) AS chapter,
        (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author', n.author, 'status', n.status, 'genres', n.genres, 'lastUpdate', n.lastUpdate)
@@ -391,7 +391,7 @@ ORDER BY lh.last_read DESC
     if (novelUrl) {
       const stmt = this.db!.prepare(`
         SELECT lh.*, 
-       (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl)
+         (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl, 'chapterIndex',c.chapterIndex)
         FROM chapter_meta c 
         WHERE c.novelUrl=:url and c.url=lh.url) AS chapter,
        (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author', n.author, 'status', n.status, 'genres', n.genres, 'lastUpdate', n.lastUpdate)
