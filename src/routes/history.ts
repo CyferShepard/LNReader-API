@@ -40,6 +40,11 @@ historyRouter.post("/insert", authMiddleware, async (context) => {
     return;
   }
 
+  if ((await dbSqLiteHandler.getFavourites(context.state.user.username, novel.url, novel.source)).length == 0) {
+    console.error("Novel not found in favourites for insertion into history: ", novel.url);
+    return;
+  }
+
   const novelMeta: NovelMeta = NovelMeta.fromJSON(novel);
   const chapterData: Chapter = Chapter.fromJSON(chapter);
   try {

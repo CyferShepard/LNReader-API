@@ -42,7 +42,8 @@ favouritesRouter.post("/insert", authMiddleware, async (context) => {
     novelMeta.summary,
     novelMeta.author,
     novelMeta.status,
-    novelMeta.genres
+    novelMeta.genres,
+    novelMeta.lastUpdate ?? "Unknown"
   );
   await dbSqLiteHandler.insertNovelMeta(novelData);
 

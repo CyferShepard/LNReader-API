@@ -12,9 +12,10 @@ export class FavouriteWithNovelMeta extends NovelMeta {
     summary: string,
     author: string,
     status: string,
-    genres: string[]
+    genres: string[],
+    lastUpdate: string | null
   ) {
-    super(source, url, cover, title, summary, author, status, genres);
+    super(source, url, cover, title, summary, author, status, genres, lastUpdate ?? "Unknown");
     this.date_added = date_added;
   }
 
@@ -28,7 +29,8 @@ export class FavouriteWithNovelMeta extends NovelMeta {
       data.summary,
       data.author,
       data.status,
-      data.genres
+      data.genres,
+      data.lastUpdate
     );
   }
 
@@ -40,6 +42,10 @@ export class FavouriteWithNovelMeta extends NovelMeta {
       cover: this.cover,
       title: this.title,
       summary: this.summary,
+      author: this.author,
+      status: this.status,
+      genres: this.genres,
+      lastUpdate: this.lastUpdate,
     };
   }
 }

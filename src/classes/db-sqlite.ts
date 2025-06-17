@@ -453,6 +453,7 @@ ORDER BY lh.last_read DESC`);
       statement += " AND f.url=:url AND f.source=:source";
       params = { username: params.username, url: url, source: source };
     }
+    console.log("getFavourites statement: ", statement, params);
 
     const stmt = this.db!.prepare(statement);
 
