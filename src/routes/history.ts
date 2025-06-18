@@ -40,11 +40,6 @@ historyRouter.post("/insert", authMiddleware, async (context) => {
     return;
   }
 
-  // if ((await dbSqLiteHandler.getFavourites(context.state.user.username, novel.url, novel.source)).length == 0) {
-  //   console.error("Novel not found in favourites for insertion into history: ", novel.url);
-  //   return;
-  // }
-
   const novelMeta: NovelMeta = NovelMeta.fromJSON(novel);
   const chapterData: Chapter = Chapter.fromJSON(chapter);
   try {
@@ -63,6 +58,36 @@ historyRouter.post("/insert", authMiddleware, async (context) => {
     );
 
     await dbSqLiteHandler.insertHistory(history);
+    // await dbSqLiteHandler.deleteHistoryExceptLatest(chapterData, novelMeta, context.state.user.username);
+
+    context.response.status = 200;
+    context.response.body = history;
+  } catch (e) {
+    console.error("Error inserting history:", e);
+    context.response.status = 500;
+    context.response.body = { error: "Failed to insert history" };
+  }
+});
+
+historyRouter.post("/insertBulk", authMiddleware, async (context) => {
+  const { novel, chapters, page, position } = await context.request.body.json();
+
+  if (novel == null || page == null || position == null || chapters == null) {
+    context.response.body = { error: "All Fields are required" };
+    return;
+  }
+
+  const novelMeta: NovelMeta = NovelMeta.fromJSON(novel);
+  const chapterData: Chapter[] = Chapter.fromJSONList(chapters);
+  try {
+    await dbSqLiteHandler.insertNovelMeta(novelMeta);
+    await dbSqLiteHandler.insertChapterMetaBulk(chapterData, novelMeta);
+
+    const history: History[] = chapterData.map(
+      (chapter) =>
+        new History(context.state.user.username, novelMeta.source, chapter.url, new Date(), page, position, chapter, novelMeta)
+    );
+    await dbSqLiteHandler.insertHistoryBulk(history);
     // await dbSqLiteHandler.deleteHistoryExceptLatest(chapterData, novelMeta, context.state.user.username);
 
     context.response.status = 200;

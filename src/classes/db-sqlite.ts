@@ -208,6 +208,37 @@ class DBSqLiteHandler {
     });
   }
 
+  public async insertHistoryBulk(histories: History[]) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const values = histories.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
+    const stmt = this.db!.prepare(
+      `INSERT OR REPLACE INTO history (username, source, url, last_read, page, position) VALUES ${values}`
+    );
+
+    const params = histories.flatMap((history) => [
+      history.username,
+      history.source,
+      history.url,
+      history.last_read,
+      history.page,
+      history.position,
+    ]);
+
+    try {
+      this.db!.exec("BEGIN TRANSACTION");
+      stmt.run(...params);
+      this.db!.exec("COMMIT");
+    } catch (error) {
+      this.db!.exec("ROLLBACK");
+      throw error;
+    } finally {
+      stmt.finalize();
+    }
+  }
+
   // public async insertToken(token: string, user: User) {
   //   if (!this.db) {
   //     await this.initialize();

@@ -17,6 +17,10 @@ export class Chapter {
     return new Chapter(data["chapterIndex"] ?? data["index"], data["title"], data["url"]);
   }
 
+  static fromJSONList(data: any[]): Chapter[] {
+    return data.map((item) => Chapter.fromJSON(item));
+  }
+
   toJSON(): object {
     return {
       index: this.index,
