@@ -99,4 +99,24 @@ historyRouter.post("/insertBulk", authMiddleware, async (context) => {
   }
 });
 
+historyRouter.delete("/delete", authMiddleware, async (context) => {
+  const { url, source } = await context.request.body.json();
+
+  if (url == undefined || source == undefined) {
+    context.response.status = 400;
+    context.response.body = { error: "URL and Source are required" };
+    return;
+  }
+
+  const deleted = await dbSqLiteHandler.deleteHistory(url, source, context.state.user.username);
+
+  if (deleted) {
+    context.response.status = 200;
+    context.response.body = { message: "History deleted successfully" };
+  } else {
+    context.response.status = 500;
+    context.response.body = { error: "Failed to delete history" };
+  }
+});
+
 export default historyRouter;

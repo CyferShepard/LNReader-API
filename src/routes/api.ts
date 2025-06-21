@@ -92,6 +92,44 @@ apiRouter.get("/sources", authMiddleware, async (context) => {
   context.response.body = PLUGINS;
 });
 
+apiRouter.get("/latest", authMiddleware, async (context) => {
+  let source: string | null | undefined = null;
+  let page: number | null | undefined = null;
+
+  try {
+    source = context.request.url.searchParams.get("source");
+    page = parseInt(context.request.url.searchParams.get("page") || "1");
+  } catch (e) {
+    console.log(e);
+  }
+
+  if (source == undefined) {
+    context.response.body = { error: "Source is required" };
+    context.response.status = 400;
+    return;
+  }
+
+  const payload: ScraperPayload | null = await getPayload("latest", source);
+  if (!payload) {
+    context.response.status = 404;
+    context.response.body = { error: "Payload not found for search", "available payloads": PLUGINS };
+    return;
+  }
+  if (payload.waitForPageLoad) {
+    configureBrowser();
+  }
+
+  payload.url = payload.url.replace("${0}", page!.toString());
+
+  const jsonpayload = JSON.stringify(payload.toJson());
+  console.log(jsonpayload);
+
+  const response: ScraperResponse | null = await parseQuery(payload);
+  const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
+
+  context.response.body = results || { results: [] };
+});
+
 apiRouter.post("/search", authMiddleware, async (context) => {
   const { source, searchTerm, page = 1 } = await context.request.body.json();
 

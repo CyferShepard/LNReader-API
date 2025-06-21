@@ -547,6 +547,20 @@ ORDER BY lh.last_read DESC`);
     );
     stmt.run({ url: url, source: source });
   }
+
+  public async deleteHistory(url: string, source: string, username: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+    try {
+      const stmt = this.db!.prepare("DELETE FROM history WHERE url=:url AND source=:source AND username=:username");
+      stmt.run({ url: url, source: source, username: username });
+      return true;
+    } catch (error) {
+      console.error("Error deleting history:", error);
+      return false;
+    }
+  }
 }
 
 export const dbSqLiteHandler = new DBSqLiteHandler();

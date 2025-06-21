@@ -1,9 +1,10 @@
 {
-  "url": "https://freewebnovel.com/search",
-  "type": "POST",
+  "url": "https://freewebnovel.com/sort/latest-novel/${0}",
+  "type": "GET",
   "body": "searchkey=searchterm",
   "bodyType": "FORM_DATA",
   "waitForPageLoad": false,
+  "waitDuration": 5000,
   "query": [
     {
       "label": "results",
@@ -41,7 +42,10 @@
           "element": ".txt>.desc>.item>.right>a",
           "getContent": true,
           "withHref": false,
-          "selectItemsAtIndex": [0, 1]
+          "selectItemsAtIndex": [
+            0,
+            1
+          ]
         },
         {
           "label": "chapterCount",
