@@ -8,6 +8,7 @@ export class NovelMeta {
   status: string;
   genres: string[];
   lastUpdate: string;
+  additionalProps: Record<string, unknown> = {};
 
   constructor(
     source: string,
@@ -18,7 +19,8 @@ export class NovelMeta {
     author: string,
     status: string,
     genres: string[],
-    lastUpdate: string
+    lastUpdate: string,
+    additionalProps: Record<string, unknown> = {}
   ) {
     this.source = source;
     this.url = url;
@@ -29,6 +31,7 @@ export class NovelMeta {
     this.status = status;
     this.genres = genres;
     this.lastUpdate = lastUpdate || "Unknown";
+    this.additionalProps = additionalProps;
   }
 
   static fromResult(data: any): NovelMeta {
@@ -37,11 +40,12 @@ export class NovelMeta {
       data.url,
       data.cover,
       data.title,
-      data.summary,
-      data.author,
-      data.status,
-      data.genres,
-      data.lastUpdate
+      data.summary ?? "No summary available",
+      data.author ?? "Unknown",
+      data.status ?? "Unknown",
+      data.genres || [],
+      data.lastUpdate || "Unknown",
+      JSON.parse(data.additionalProps) || {}
     );
   }
 
@@ -51,11 +55,12 @@ export class NovelMeta {
       data["url"],
       data["cover"],
       data["title"],
-      data["summary"],
-      data["author"],
-      data["status"],
+      data["summary"] || "No summary available",
+      data["author"] || "Unknown",
+      data["status"] || "Unknown",
       data["genres"] || [],
-      data["lastUpdate"] || "Unknown"
+      data["lastUpdate"] || "Unknown",
+      JSON.parse(data["additionalProps"]) || {}
     );
   }
 
@@ -70,6 +75,7 @@ export class NovelMeta {
       status: this.status,
       genres: this.genres,
       lastUpdate: this.lastUpdate,
+      additionalProps: this.additionalProps,
     };
   }
 }

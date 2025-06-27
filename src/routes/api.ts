@@ -17,11 +17,12 @@ function configureBrowser() {
   const browserlessToken = Deno.env.get("BROWSERLESS_TOKEN");
   if (browserlessToken && browserlessUrl) {
     configureAstralBrowser(browserlessUrl, browserlessToken);
+    console.log(`Configured browser with URL: ${browserlessUrl} and token: ${browserlessToken}`);
   }
 }
-function replaceKeys(template: string, values: Record<string, unknown>): string {
-  return template.replace(/\$\{(\w+)\}/g, (_, key) => (values[key] !== undefined ? String(values[key]) : ""));
-}
+// function replaceKeys(template: string, values: Record<string, unknown>): string {
+//   return template.replace(/\$\{(\w+)\}/g, (_, key) => (values[key] !== undefined ? String(values[key]) : ""));
+// }
 
 async function getChapter(context: Context, url: string, source: string): Promise<Record<string, unknown> | null> {
   const payload: ScraperPayload | null = await getPayload("chapter", source);
@@ -201,6 +202,7 @@ apiRouter.post("/novel", authMiddleware, async (context) => {
   if (cacheData == true && results != null) {
     const novelMeta = NovelMeta.fromJSON(results);
     novelMeta.source = source;
+    novelMeta.url = novelMeta.url ?? url;
 
     await dbSqLiteHandler.insertNovelMeta(novelMeta);
   }
@@ -241,7 +243,7 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
   payload.url = payload.url.replace("${0}", url);
 
   if (additionalProps && typeof additionalProps === "object" && Object.keys(additionalProps).length > 0) {
-    payload.url = replaceKeys(payload.url, additionalProps);
+    payload.url = payload.url.replaceKeys(additionalProps);
   }
 
   let hasPageParam = false;

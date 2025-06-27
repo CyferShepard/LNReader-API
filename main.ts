@@ -8,6 +8,7 @@ import favouritesRouter from "./src/routes/favourites.ts";
 import historyRouter from "./src/routes/history.ts";
 import apiRouter from "./src/routes/api.ts";
 import proxyRouter from "./src/routes/proxy.ts";
+import { FavouritesUpdateChecker } from "./src/services/favourites_update_checker.ts";
 
 const app = new Application();
 const router = new Router();
@@ -31,6 +32,8 @@ app.use(apiRouter.routes(), apiRouter.allowedMethods());
 app.use(proxyRouter.routes(), proxyRouter.allowedMethods());
 app.use(favouritesRouter.routes(), favouritesRouter.allowedMethods());
 app.use(historyRouter.routes(), historyRouter.allowedMethods());
+const checker = new FavouritesUpdateChecker(30 * 60 * 1000); // 30 minutes
+checker.start();
 
 const port = 8000;
 console.log(`Server is running on http://localhost:${port}`);

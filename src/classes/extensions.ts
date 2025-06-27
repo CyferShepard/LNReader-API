@@ -6,6 +6,9 @@ declare global {
     findOrDefault(predicate: (value: T) => boolean, defaultValue: T): T;
     findOrNull(predicate: (value: T) => boolean): T | null;
   }
+  interface String {
+    replaceKeys(values: Record<string, unknown>): string;
+  }
 }
 
 // Implementation of firstOrDefault
@@ -34,4 +37,8 @@ Array.prototype.findOrNull = function <T>(predicate: (value: T) => boolean): T |
     }
   }
   return null;
+};
+
+String.prototype.replaceKeys = function (values: Record<string, unknown>): string {
+  return this.replace(/\$\{(\w+)\}/g, (_, key) => (values[key] !== undefined ? String(values[key]) : ""));
 };
