@@ -35,6 +35,15 @@ export class NovelMeta {
   }
 
   static fromResult(data: any): NovelMeta {
+    const additionalProps = data.additionalProps || "{}";
+    if (typeof additionalProps === "string") {
+      try {
+        data.additionalProps = JSON.parse(additionalProps);
+      } catch (e) {
+        console.warn("Failed to parse additionalProps as JSON:", e);
+        data.additionalProps = {};
+      }
+    }
     return new NovelMeta(
       data.source,
       data.url,
@@ -45,11 +54,21 @@ export class NovelMeta {
       data.status ?? "Unknown",
       data.genres || [],
       data.lastUpdate || "Unknown",
-      JSON.parse(data.additionalProps) || {}
+      data.additionalProps || {}
     );
   }
 
   static fromJSON(data: any): NovelMeta {
+    const additionalProps = data["additionalProps"] || "{}";
+    if (typeof additionalProps === "string") {
+      try {
+        data["additionalProps"] = JSON.parse(additionalProps);
+      } catch (e) {
+        console.warn("Failed to parse additionalProps as JSON:", e);
+        data["additionalProps"] = {};
+      }
+    }
+
     return new NovelMeta(
       data["source"],
       data["url"],
@@ -60,7 +79,7 @@ export class NovelMeta {
       data["status"] || "Unknown",
       data["genres"] || [],
       data["lastUpdate"] || "Unknown",
-      JSON.parse(data["additionalProps"]) || {}
+      data["additionalProps"]
     );
   }
 

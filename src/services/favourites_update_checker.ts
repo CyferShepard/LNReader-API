@@ -48,6 +48,7 @@ export class FavouritesUpdateChecker {
             continue;
           }
           novel.source = novel.source ?? fav.source; // Ensure source is set correctly
+          novel.url = novel.url ?? fav.url; // Ensure url is set correctly
           await dbSqLiteHandler.insertNovelMeta(novel);
           const payload = await getPayload("chapters", novel.source);
           if (!payload) {
