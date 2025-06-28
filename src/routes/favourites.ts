@@ -65,6 +65,16 @@ favouritesRouter.delete("/delete", authMiddleware, async (context) => {
 
   await dbSqLiteHandler.deleteFavourite(url, source, context.state.user.username);
 
+  const getAllUniqueFavourites = await dbSqLiteHandler.getAllUniqueFavourites();
+
+  if (getAllUniqueFavourites.length === 0) {
+    await dbSqLiteHandler.deleteHistoryForNovel(url, source);
+    await dbSqLiteHandler.deleteChapterMetaForNovel(url, source);
+    await dbSqLiteHandler.deleteNovelMeta(url, source);
+  } else {
+    await dbSqLiteHandler.deleteHistoryForNovelByUser(url, source, context.state.user.username);
+  }
+
   context.response.status = 200;
 });
 

@@ -50,24 +50,69 @@ export class FavouritesUpdateChecker {
           novel.source = novel.source ?? fav.source; // Ensure source is set correctly
           novel.url = novel.url ?? fav.url; // Ensure url is set correctly
           await dbSqLiteHandler.insertNovelMeta(novel);
+
+          ///////////Chapter stuff
           const payload = await getPayload("chapters", novel.source);
           if (!payload) {
             console.warn(`[FavouritesUpdateChecker] No payload for source: ${novel.source}`);
             continue;
           }
+          let hasPageParam = false;
+          try {
+            // Use a dummy base if payload.url is relative
+            const urlObj = new URL(payload.url);
+            hasPageParam = urlObj.searchParams.has("page");
+          } catch (e) {
+            // If payload.url is not a valid URL, fallback to string check
+            hasPageParam = /[?&]page=/.test(payload.url);
+          }
+
           payload.url = payload.url.replace("${0}", novel.url);
+
           if (novel.additionalProps && Object.keys(novel.additionalProps).length > 0) {
             payload.url = payload.url.replaceKeys(novel.additionalProps);
           }
 
-          const response = await parseQuery(payload);
-          const chapters: Array<Record<string, unknown>> =
-            response?.results && response?.results.length > 0
-              ? (response.results[0]["chapters"] as Array<Record<string, unknown>>)
-              : [];
+          let results: Array<Record<string, unknown>> = [];
+
+          if (hasPageParam) {
+            let page: number = 0;
+            let maxPage: number = 1;
+            const originalUrl = payload.url; // Save the template with "${1}"
+
+            while (page < maxPage) {
+              page++;
+              payload.url = originalUrl.replace("${1}", `${page}`); // Replace page number in URL
+              const response = await parseQuery(payload);
+              const _results: Array<Record<string, unknown>> | null =
+                response?.results && response?.results.length > 0
+                  ? (response.results[0]["chapters"] as Array<Record<string, unknown>>)
+                  : null;
+              if (maxPage == 1) {
+                maxPage = response?.results && response?.results.length > 0 ? (response.results[0]["lastPage"] as number) : 1; // Use maxPage from response or default to 1
+              }
+              if (_results && _results.length > 0) {
+                results = results.concat(_results);
+
+                console.log("Page:", page, "Max Page:", maxPage, "Results Count:", results.length);
+              }
+            }
+          } else {
+            const response = await parseQuery(payload);
+            const _results: Array<Record<string, unknown>> | null =
+              response?.results && response?.results.length > 0
+                ? (response.results[0]["chapters"] as Array<Record<string, unknown>>)
+                : null;
+            if (_results) {
+              results = results.concat(_results);
+            }
+          }
+
+          const chapters: Chapter[] = results.map((chapter) => Chapter.fromJSON(chapter));
+
           if (chapters.length > 0) {
             const novelChapters: Chapter[] = chapters.map((chapter) => Chapter.fromJSON(chapter));
-            //   await dbSqLiteHandler.insertChapterMetaBulk(novelChapters, novel);
+            await dbSqLiteHandler.insertChapterMetaBulk(novelChapters, novel);
             console.log(`[FavouritesUpdateChecker] Updated ${novelChapters.length} chapters for: ${novel.title}`);
           } else {
             console.log(`[FavouritesUpdateChecker] No chapters found for: ${novel.title}`);

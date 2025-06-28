@@ -473,15 +473,6 @@ ORDER BY lh.last_read DESC`);
     stmt.run({ username: username, url: chapter.url, source: novel.source, novelUrl: novel.url });
   }
 
-  // public async deleteAllTokens() {
-  //   if (!this.db) {
-  //     await this.initialize();
-  //   }
-
-  //   const stmt = this.db!.prepare("DELETE FROM tokens");
-  //   stmt.run();
-  // }
-
   public async deleteFavourite(url: string, source: string, username: string) {
     if (!this.db) {
       await this.initialize();
@@ -489,6 +480,32 @@ ORDER BY lh.last_read DESC`);
 
     const stmt = this.db!.prepare("DELETE FROM favourites WHERE url=:url AND source=:source AND username=:username");
     stmt.run({ url: url, source: source, username: username });
+  }
+
+  public async deleteNovelMeta(url: string, source: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("DELETE FROM novel_meta WHERE url=:url AND source=:source");
+    stmt.run({ url: url, source: source });
+  }
+
+  public async deleteChapterMeta(url: string, source: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("DELETE FROM chapter_meta WHERE url=:url AND source=:source");
+    stmt.run({ url: url, source: source });
+  }
+  public async deleteChapterMetaForNovel(url: string, source: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("DELETE FROM chapter_meta WHERE novelUrl=:url AND source=:source");
+    stmt.run({ url: url, source: source });
   }
 
   //below actualy only clears the cache thats not in history
@@ -514,6 +531,61 @@ ORDER BY lh.last_read DESC`);
     } catch (error) {
       console.error("Error deleting history:", error);
       return false;
+    }
+  }
+
+  public async deleteHistoryForNovelByUser(url: string, source: string, username: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const selectStmt = this.db!.prepare(`
+        SELECT c.*
+        FROM chapter_meta c
+        join  history lh  on lh.url=c.url
+        and c.novelUrl=:url
+          and c.source=:source
+        and lh.username=:username 
+        ORDER BY lh.last_read DESC
+        `);
+
+    const results: any = selectStmt.all({ username: username, url: url, source: source });
+    const chapterMeta = results.map((result: any) => Chapter.fromResult(result));
+
+    if (chapterMeta.length > 0) {
+      const urls = chapterMeta.map((chapter: Chapter) => chapter.url);
+      // Prepare placeholders for the IN clause
+      const placeholders = urls.map(() => "?").join(", ");
+      const deleteStmt = this.db!.prepare(
+        `DELETE FROM history WHERE url IN (${placeholders}) AND source=:source AND username=:username`
+      );
+      deleteStmt.run(...urls, { source: source, username: username });
+    }
+  }
+
+  public async deleteHistoryForNovel(url: string, source: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const selectStmt = this.db!.prepare(`
+        SELECT c.*
+        FROM chapter_meta c
+        join  history lh  on lh.url=c.url
+        and c.novelUrl=:url
+        and c.source=:source
+        ORDER BY lh.last_read DESC
+        `);
+
+    const results: any = selectStmt.all({ url: url, source: source });
+    const chapterMeta = results.map((result: any) => Chapter.fromResult(result));
+
+    if (chapterMeta.length > 0) {
+      const urls = chapterMeta.map((chapter: Chapter) => chapter.url);
+      // Prepare placeholders for the IN clause
+      const placeholders = urls.map(() => "?").join(", ");
+      const deleteStmt = this.db!.prepare(`DELETE FROM history WHERE url IN (${placeholders}) AND source=:source`);
+      deleteStmt.run(...urls, { source: source });
     }
   }
 }
