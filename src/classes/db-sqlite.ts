@@ -74,6 +74,7 @@ class DBSqLiteHandler {
         url TEXT ,
         title TEXT,
         novelUrl TEXT,
+        date_added TEXT DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (source, url)
       )
     `);
@@ -315,6 +316,37 @@ class DBSqLiteHandler {
     return [];
   }
 
+  //TODO: add perUser filter
+  public async getLastUpdatedChapters() {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare(`
+SELECT cm.*
+FROM chapter_meta cm
+INNER JOIN (
+  SELECT novelUrl, MAX(date_added) AS maxDate
+  FROM chapter_meta
+  GROUP BY novelUrl
+) latest
+  ON cm.novelUrl = latest.novelUrl AND cm.date_added = latest.maxDate
+INNER JOIN (
+  SELECT novelUrl, date_added, MAX(chapterIndex) AS maxIndex
+  FROM chapter_meta
+  GROUP BY novelUrl, date_added
+) idx
+  ON cm.novelUrl = idx.novelUrl AND cm.date_added = idx.date_added AND cm.chapterIndex = idx.maxIndex
+  order by date_added desc
+    `);
+    const results: any = stmt.all();
+
+    if (results && results.length > 0) {
+      return results.map((result: any) => Chapter.fromResult(result));
+    }
+    return [];
+  }
+
   public async getCachedNovel(url: string, source: string) {
     if (!this.db) {
       await this.initialize();
@@ -416,8 +448,18 @@ ORDER BY lh.last_read DESC`);
       await this.initialize();
     }
 
-    let statement: string =
-      "SELECT f.date_added, nm.*  FROM favourites f JOIN novel_meta nm on nm.source=f.source and nm.url=f.url WHERE username=:username";
+    let statement: string = `
+    SELECT f.date_added, nm.*,  
+    (SELECT COUNT(*) FROM chapter_meta cm WHERE cm.novelUrl = f.url AND cm.source = f.source) AS chapterCount,
+    (SELECT COUNT(*) FROM history h
+     JOIN chapter_meta cm ON h.url = cm.url AND h.source = cm.source
+     WHERE h.username = :username AND cm.novelUrl = f.url AND cm.source = f.source
+    ) AS readCount  
+     
+    FROM favourites f 
+    JOIN novel_meta nm 
+      on nm.source=f.source and nm.url=f.url 
+    WHERE f.username=:username`;
     let params: any = { username: username };
     if (url && source) {
       statement += " AND f.url=:url AND f.source=:source";

@@ -291,16 +291,25 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     }
   }
 
-  if (clearCache && results.length > 0) {
-    // Clear the cache for this source and url
-    console.log("Clearing cache for source:", source, "and url:", url);
-    await dbSqLiteHandler.clearChaptersCache(url, source);
-  }
+  // if (clearCache && results.length > 0) {
+  //   // Clear the cache for this source and url
+  //   console.log("Clearing cache for source:", source, "and url:", url);
+  //   await dbSqLiteHandler.clearChaptersCache(url, source);
+  // }
   if (cacheData == true && results.length > 0) {
+    const existingChapters = await dbSqLiteHandler.getCachedChapters(url, source);
     const novelMeta = new NovelMeta(source, url, "", "", "", "", "", [], "");
     const novelChapters: Chapter[] = results.map((chapter) => Chapter.fromJSON(chapter));
+    const newChapters: Chapter[] = novelChapters.filter(
+      (chapter) => !existingChapters.some((c: Chapter) => c.url === chapter.url)
+    );
     console.log("Caching chapters for novel:", novelMeta.title);
-    await dbSqLiteHandler.insertChapterMetaBulk(novelChapters, novelMeta);
+    if (newChapters.length === 0) {
+      console.log("No new chapters to cache for novel:", novelMeta.title);
+      context.response.body = results;
+      return;
+    }
+    await dbSqLiteHandler.insertChapterMetaBulk(newChapters, novelMeta);
   }
   context.response.body = results;
 });

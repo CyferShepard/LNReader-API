@@ -32,8 +32,8 @@ app.use(apiRouter.routes(), apiRouter.allowedMethods());
 app.use(proxyRouter.routes(), proxyRouter.allowedMethods());
 app.use(favouritesRouter.routes(), favouritesRouter.allowedMethods());
 app.use(historyRouter.routes(), historyRouter.allowedMethods());
-const checker = new FavouritesUpdateChecker(30 * 60 * 1000); // 30 minutes
-checker.start();
+// const checker = new FavouritesUpdateChecker(30 * 60 * 1000); // 30 minutes
+// checker.start();
 
 const port = 8000;
 console.log(`Server is running on http://localhost:${port}`);
