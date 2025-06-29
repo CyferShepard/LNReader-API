@@ -3,6 +3,7 @@ import type { ChapterWithContent } from "../schemas/chaptersWithContent.ts";
 import { Favourite } from "../schemas/favourites.ts";
 import { FavouriteWithNovelMeta } from "../schemas/favouritesWithNovelMeta.ts";
 import { History } from "../schemas/history.ts";
+import { ImageCache } from "../schemas/imageCache.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import { NovelMetaWithChapters } from "../schemas/novel_metaWithChapters.ts";
 import { User } from "../schemas/users.ts";
@@ -76,6 +77,15 @@ class DBSqLiteHandler {
         novelUrl TEXT,
         date_added TEXT DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (source, url)
+      )
+    `);
+
+    await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS images (
+        url TEXT,
+        contentType TEXT DEFAULT 'image/jpeg',
+        data BLOB,
+        PRIMARY KEY (url)
       )
     `);
 
@@ -316,6 +326,20 @@ class DBSqLiteHandler {
     return [];
   }
 
+  public async getCachedImage(url: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("SELECT * FROM images WHERE url=:url LIMIT 1");
+    const result: any = stmt.get({ url: url });
+
+    if (result) {
+      return ImageCache.fromResult(result);
+    }
+    return null;
+  }
+
   //TODO: add perUser filter
   public async getLastUpdatedChapters() {
     if (!this.db) {
@@ -465,7 +489,7 @@ ORDER BY lh.last_read DESC`);
       statement += " AND f.url=:url AND f.source=:source";
       params = { username: params.username, url: url, source: source };
     }
-    console.log("getFavourites statement: ", statement, params);
+    // console.log("getFavourites statement: ", statement, params);
 
     const stmt = this.db!.prepare(statement);
 
@@ -494,6 +518,16 @@ ORDER BY lh.last_read DESC`);
     return refavourites;
   }
   //delete
+
+  insertImageCache(imageCache: ImageCache) {
+    if (!this.db) {
+      this.initialize();
+    }
+
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO images (url,contentType, data) VALUES (:url, :contentType, :data)");
+    stmt.run({ url: imageCache.url, contentType: imageCache.contentType, data: imageCache.data });
+    console.log(`Caching image for URL: ${imageCache.url}`);
+  }
 
   public async deleteHistoryExceptLatest(chapter: Chapter, novel: NovelMeta, username: string) {
     if (!this.db) {
@@ -629,6 +663,15 @@ ORDER BY lh.last_read DESC`);
       const deleteStmt = this.db!.prepare(`DELETE FROM history WHERE url IN (${placeholders}) AND source=:source`);
       deleteStmt.run(...urls, { source: source });
     }
+  }
+
+  public async deleteImageCache(url: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("DELETE FROM images WHERE url=:url");
+    stmt.run({ url: url });
   }
 }
 

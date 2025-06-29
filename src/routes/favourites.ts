@@ -70,6 +70,10 @@ favouritesRouter.delete("/delete", authMiddleware, async (context) => {
   if (getAllUniqueFavourites.length === 0) {
     await dbSqLiteHandler.deleteHistoryForNovel(url, source);
     await dbSqLiteHandler.deleteChapterMetaForNovel(url, source);
+    const novelMeta = await dbSqLiteHandler.getCachedNovel(url, source);
+    if (novelMeta) {
+      await dbSqLiteHandler.deleteImageCache(novelMeta.cover);
+    }
     await dbSqLiteHandler.deleteNovelMeta(url, source);
   } else {
     await dbSqLiteHandler.deleteHistoryForNovelByUser(url, source, context.state.user.username);

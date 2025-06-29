@@ -1,4 +1,6 @@
 import { Router, send } from "https://deno.land/x/oak@v17.1.3/mod.ts";
+import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
+import { ImageCache } from "../schemas/imageCache.ts";
 
 const proxyRouter = new Router({ prefix: "/proxy" });
 
@@ -53,12 +55,22 @@ proxyRouter.get("/icon", async (context) => {
 
 proxyRouter.get("/imageProxy", async (context) => {
   const imageUrl = context.request.url.searchParams.get("imageUrl");
+  const cacheImage = (context.request.url.searchParams.get("cacheImage") ?? "true") === "true";
 
   if (!imageUrl) {
     context.response.body = { error: "imageUrl is required" };
     return;
   }
   try {
+    if (cacheImage == true) {
+      const cachedImage = await dbSqLiteHandler.getCachedImage(imageUrl);
+      if (cachedImage) {
+        context.response.headers.set("Content-Type", cachedImage.contentType);
+        context.response.body = cachedImage.data;
+        console.log(`Serving cached image for URL: ${imageUrl}`);
+        return;
+      }
+    }
     const response = await fetch(imageUrl);
     if (!response.ok) {
       context.response.status = response.status;
@@ -75,7 +87,12 @@ proxyRouter.get("/imageProxy", async (context) => {
 
     const imageBuffer = await response.arrayBuffer();
     context.response.headers.set("Content-Type", contentType);
-    context.response.body = new Uint8Array(imageBuffer);
+    const imageArray = new Uint8Array(imageBuffer);
+    context.response.body = imageArray;
+    console.log(`Serving non-cached image for URL: ${imageUrl}`);
+    if (cacheImage == true) {
+      await dbSqLiteHandler.insertImageCache(new ImageCache(imageUrl, contentType, imageArray));
+    }
   } catch (error) {
     console.error(error);
     context.response.status = 500;
