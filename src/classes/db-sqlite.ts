@@ -120,12 +120,13 @@ class DBSqLiteHandler {
     );
 
     const genres = Array.isArray(novel.genres) ? novel.genres.join(",") : novel.genres || "";
+    const summary = Array.isArray(novel.summary) ? novel.summary.join("\n") : novel.summary || "";
     stmt.run({
       source: novel.source,
       url: novel.url,
       title: novel.title,
       cover: novel.cover,
-      summary: novel.summary,
+      summary: summary,
       author: novel.author,
       status: novel.status,
       genres: genres,
