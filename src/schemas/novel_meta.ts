@@ -1,6 +1,7 @@
 export class NovelMeta {
   source: string;
   url: string;
+  fullUrl?: string; // Added to store the full URL
   cover: string;
   title: string;
   summary: string;
@@ -20,10 +21,12 @@ export class NovelMeta {
     status: string,
     genres: string[],
     lastUpdate: string,
-    additionalProps: Record<string, unknown> = {}
+    additionalProps: Record<string, unknown> = {},
+    fullUrl?: string
   ) {
     this.source = source;
     this.url = url;
+    this.fullUrl = fullUrl; // Initialize fullUrl
     this.cover = cover;
     this.title = title;
     this.summary = summary;
@@ -87,6 +90,7 @@ export class NovelMeta {
     return {
       source: this.source,
       url: this.url,
+      fullUrl: this.fullUrl, // Include fullUrl in JSON output
       cover: this.cover,
       title: this.title,
       summary: this.summary,

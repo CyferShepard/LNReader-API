@@ -1,6 +1,7 @@
 import { Chapter } from "../schemas/chapter.ts";
 import type { ChapterWithContent } from "../schemas/chaptersWithContent.ts";
 import { Favourite } from "../schemas/favourites.ts";
+import { FavouriteWitChapterMeta } from "../schemas/favouritesWithChapterMeta.ts";
 import { FavouriteWithNovelMeta } from "../schemas/favouritesWithNovelMeta.ts";
 import { History } from "../schemas/history.ts";
 import { ImageCache } from "../schemas/imageCache.ts";
@@ -138,7 +139,9 @@ class DBSqLiteHandler {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT OR REPLACE INTO chapter_meta VALUES (:source,:chapterIndex,:url,:title,:novelUrl)");
+    const stmt = this.db!.prepare(
+      "INSERT OR REPLACE INTO chapter_meta (source,chapterIndex,url, title, novelUrl) VALUES (:source,:chapterIndex,:url,:title,:novelUrl)"
+    );
     stmt.run({
       source: novel.source,
       chapterIndex: chapter.index,
@@ -172,20 +175,20 @@ class DBSqLiteHandler {
     }
   }
 
-  public async insertChapter(chapter: ChapterWithContent, source: string) {
-    if (!this.db) {
-      await this.initialize();
-    }
+  // public async insertChapter(chapter: ChapterWithContent, source: string) {
+  //   if (!this.db) {
+  //     await this.initialize();
+  //   }
 
-    const stmt = this.db!.prepare("INSERT INTO chapters VALUES (:chapterIndex,:title,:url,:source,:content)");
-    stmt.run({
-      chapterIndex: chapter.index,
-      title: chapter.title,
-      url: chapter.url,
-      source: source,
-      content: chapter.content,
-    });
-  }
+  //   const stmt = this.db!.prepare("INSERT INTO chapters VALUES (:chapterIndex,:title,:url,:source,:content)");
+  //   stmt.run({
+  //     chapterIndex: chapter.index,
+  //     title: chapter.title,
+  //     url: chapter.url,
+  //     source: source,
+  //     content: chapter.content,
+  //   });
+  // }
 
   public async insertUser(user: User) {
     if (!this.db) {
@@ -254,30 +257,15 @@ class DBSqLiteHandler {
     }
   }
 
-  // public async insertToken(token: string, user: User) {
-  //   if (!this.db) {
-  //     await this.initialize();
-  //   }
+  insertImageCache(imageCache: ImageCache) {
+    if (!this.db) {
+      this.initialize();
+    }
 
-  //   const stmt = this.db!.prepare("INSERT OR REPLACE INTO tokens VALUES (:token,:user)");
-  //   stmt.run({ token: token, user: JSON.stringify(user.toJSON()) });
-  // }
-
-  //select
-
-  // public async getUserByToken(token: string): Promise<User | null> {
-  //   if (!this.db) {
-  //     await this.initialize();
-  //   }
-
-  //   const stmt = this.db!.prepare("SELECT * FROM tokens WHERE token=:token");
-  //   const result = stmt.get({ token: token });
-
-  //   if (result) {
-  //     return User.fromResult(JSON.parse(result.user as string));
-  //   }
-  //   return null;
-  // }
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO images (url,contentType, data) VALUES (:url, :contentType, :data)");
+    stmt.run({ url: imageCache.url, contentType: imageCache.contentType, data: imageCache.data });
+    console.log(`Caching image for URL: ${imageCache.url}`);
+  }
 
   public async getAllUser(): Promise<User[]> {
     if (!this.db) {
@@ -341,14 +329,23 @@ class DBSqLiteHandler {
   }
 
   //TODO: add perUser filter
-  public async getLastUpdatedChapters() {
+  public async getLastUpdatedChapters(username: string) {
     if (!this.db) {
       await this.initialize();
     }
 
     const stmt = this.db!.prepare(`
-SELECT cm.*
-FROM chapter_meta cm
+SELECT 
+nm.*,
+json_object('source',cm.source, 'url', cm.url, 'title', cm.title, 'novelUrl', cm.novelUrl, 'chapterIndex',cm.chapterIndex, 'date_added', cm.date_added) chapter
+
+FROM favourites f
+join novel_meta nm
+on nm.source =f .source and nm.url=f.url
+JOIN chapter_meta cm
+on cm.novelUrl=f.url
+and cm.source=f.source
+and f.username=:username
 INNER JOIN (
   SELECT novelUrl, MAX(date_added) AS maxDate
   FROM chapter_meta
@@ -361,12 +358,12 @@ INNER JOIN (
   GROUP BY novelUrl, date_added
 ) idx
   ON cm.novelUrl = idx.novelUrl AND cm.date_added = idx.date_added AND cm.chapterIndex = idx.maxIndex
-  order by date_added desc
+  order by cm.date_added desc
     `);
-    const results: any = stmt.all();
+    const results: any = stmt.all({ username: username });
 
     if (results && results.length > 0) {
-      return results.map((result: any) => Chapter.fromResult(result));
+      return results.map((result: any) => FavouriteWitChapterMeta.fromResult(result));
     }
     return [];
   }
@@ -518,16 +515,6 @@ ORDER BY lh.last_read DESC`);
     return refavourites;
   }
   //delete
-
-  insertImageCache(imageCache: ImageCache) {
-    if (!this.db) {
-      this.initialize();
-    }
-
-    const stmt = this.db!.prepare("INSERT OR REPLACE INTO images (url,contentType, data) VALUES (:url, :contentType, :data)");
-    stmt.run({ url: imageCache.url, contentType: imageCache.contentType, data: imageCache.data });
-    console.log(`Caching image for URL: ${imageCache.url}`);
-  }
 
   public async deleteHistoryExceptLatest(chapter: Chapter, novel: NovelMeta, username: string) {
     if (!this.db) {

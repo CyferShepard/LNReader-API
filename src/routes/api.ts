@@ -40,6 +40,9 @@ async function getChapter(context: Context, url: string, source: string): Promis
 
   const response: ScraperResponse | null = await parseQuery(payload);
   const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
+  if (results) {
+    results.fullUrl = payload.url; // Ensure fullUrl is set to the provided URL
+  }
   return results;
 }
 
@@ -58,6 +61,9 @@ async function getNovel(context: Context, url: string, source: string): Promise<
 
   const response: ScraperResponse | null = await parseQuery(payload);
   const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
+  if (results) {
+    results.fullUrl = payload.url; // Ensure fullUrl is set to the provided URL
+  }
   return results;
 }
 
@@ -181,10 +187,16 @@ apiRouter.post("/novel", authMiddleware, async (context) => {
 
   if (clearCache == false && cacheData == true) {
     // Check if chapters are already cached
-    const cahchedNovel = await dbSqLiteHandler.getCachedNovel(url, source);
-    if (cahchedNovel != null) {
+    const cachedNovel = await dbSqLiteHandler.getCachedNovel(url, source);
+    if (cachedNovel != null) {
       console.log("Returning cached novel for source:", source, "and url:", url);
-      context.response.body = cahchedNovel;
+      const payload: ScraperPayload | null = await getPayload("details", source);
+      if (payload != null) {
+        payload.url = payload.url.replace("${0}", url);
+        cachedNovel.fullUrl = payload.url; // Ensure fullUrl is set to the provided URL
+      }
+
+      context.response.body = cachedNovel;
       return;
     }
   }
@@ -363,6 +375,11 @@ apiRouter.get("/users", authMiddleware, async (context) => {
 
   const users = await dbSqLiteHandler.getAllUser();
   context.response.body = users;
+});
+
+apiRouter.get("/updates", authMiddleware, async (context) => {
+  const updates = await dbSqLiteHandler.getLastUpdatedChapters(context.state.user.username);
+  context.response.body = updates;
 });
 
 export default apiRouter;
