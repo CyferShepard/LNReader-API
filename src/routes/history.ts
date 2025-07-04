@@ -43,8 +43,13 @@ historyRouter.post("/insert", authMiddleware, async (context) => {
   const novelMeta: NovelMeta = NovelMeta.fromJSON(novel);
   const chapterData: Chapter = Chapter.fromJSON(chapter);
   try {
-    await dbSqLiteHandler.insertNovelMeta(novelMeta);
-    await dbSqLiteHandler.insertChapterMeta(chapterData, novelMeta);
+    if ((await dbSqLiteHandler.getCachedNovel(novelMeta.url, novelMeta.source)) == null) {
+      await dbSqLiteHandler.insertNovelMeta(novelMeta);
+    }
+
+    if ((await dbSqLiteHandler.getChapterMeta(chapterData.url, novelMeta.source)) == null) {
+      await dbSqLiteHandler.insertChapterMeta(chapterData, novelMeta);
+    }
 
     const history: History = new History(
       context.state.user.username,

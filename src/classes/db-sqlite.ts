@@ -315,6 +315,20 @@ class DBSqLiteHandler {
     return [];
   }
 
+  public async getChapterMeta(url: string, source: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("SELECT * FROM chapter_meta WHERE source=:source AND url=:url LIMIT 1");
+    const result: any = stmt.get({ source: source, url: url });
+
+    if (result) {
+      return Chapter.fromResult(result);
+    }
+    return null;
+  }
+
   public async getCachedImage(url: string) {
     if (!this.db) {
       await this.initialize();
@@ -347,19 +361,8 @@ JOIN chapter_meta cm
 on cm.novelUrl=f.url
 and cm.source=f.source
 and f.username=:username
-INNER JOIN (
-  SELECT novelUrl, MAX(date_added) AS maxDate
-  FROM chapter_meta
-  GROUP BY novelUrl
-) latest
-  ON cm.novelUrl = latest.novelUrl AND cm.date_added = latest.maxDate
-INNER JOIN (
-  SELECT novelUrl, date_added, MAX(chapterIndex) AS maxIndex
-  FROM chapter_meta
-  GROUP BY novelUrl, date_added
-) idx
-  ON cm.novelUrl = idx.novelUrl AND cm.date_added = idx.date_added AND cm.chapterIndex = idx.maxIndex
-  order by cm.date_added desc
+
+  order by cm.date_added desc, cm.chapterIndex desc
     `);
     const results: any = stmt.all({ username: username });
 

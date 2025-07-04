@@ -36,3 +36,5 @@ deno.lock
 
 # Windows system files
 Thumbs.db
+
+/src/plugins

@@ -1,8 +1,8 @@
 {
-  "url": "https://novelbuddy.io/search?q=${0}&page=${1}",
+  "url": "https://novelbuddy.io/search?page=${1}",
   "type": "GET",
   "bodyType": "JSON",
-  "waitForPageLoad": true,
+  "waitForPageLoad": false,
   "waitDuration": 5000,
   "query": [
     {
@@ -31,10 +31,10 @@
         },
         {
           "label": "cover",
-          "element": ".thumb>a>img",
-          "getContent": false,
-          "withHref": true,
-          "dataProp": "data-source",
+          "element": ".thumb>a>.lazy",
+          "getContent": true,
+          "withHref": false,
+          "dataProp": "data-src",
           "regex": {
             "process": ""
           },
@@ -64,8 +64,7 @@
       "label": "lastPage",
       "element": ".paginator>a",
       "getContent": true,
-      "withHref": false,
-      "finalTransformProcess": "(value) => {\n  if (value) {\n    try {\n      return parseInt(value[value.length - 1]);\n    } catch (e) {\n      return null;\n    }\n  }\n  return null;\n}"
+      "withHref": false
     }
   ]
 }

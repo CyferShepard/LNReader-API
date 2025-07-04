@@ -1,3 +1,5 @@
+import { Source } from "../schemas/source.ts";
+import { FieldOptions, FilterType, SourceFilterField } from "../schemas/source_filter.ts";
 import { ScraperPayload } from "./api-parser.ts";
 
 let PLUGINS: any[] = []; // This will hold the loaded plugins
@@ -105,7 +107,26 @@ async function getPlugins() {
       //   entries.push(entry.name);
       // }
       if (entry.isDirectory) {
-        entries.push(entry.name);
+        // const sourceField: SourceFilterField = new SourceFilterField("text", true, "name", "name", false);
+        const filterPath = `${configsDir}/${entry.name}/filters.json`;
+
+        try {
+          const filterStat = await Deno.stat(filterPath);
+          if (filterStat.isFile) {
+            const filterContent = await Deno.readTextFile(filterPath);
+            const filterJson = JSON.parse(filterContent);
+            const source = Source.fromJSON ? Source.fromJSON(filterJson) : new Source(entry.name, filterJson); // fallback if no fromJSON
+            entries.push(source);
+            continue;
+          }
+        } catch (e) {
+          // filter.json does not exist, skip
+          // console.log(e);
+        }
+        // console.log(JSON.stringify(new Source(entry.name, f).toJSON()));
+        const source = new Source(entry.name);
+
+        entries.push(source);
       }
     }
 
@@ -114,5 +135,134 @@ async function getPlugins() {
     console.error(e);
   }
 }
+
+const f: SourceFilterField[] = [
+  new SourceFilterField({ type: FilterType.Main(), fieldName: "Keyword", fieldVar: "keyword" }),
+  new SourceFilterField({ type: FilterType.Text(), fieldName: "Title", fieldVar: "title" }),
+  new SourceFilterField({ type: FilterType.Text(), fieldName: "Author", fieldVar: "author" }),
+  new SourceFilterField({
+    type: FilterType.MultiSelect([
+      new FieldOptions("Action", "action"),
+      new FieldOptions("Adventure", "adventure"),
+      new FieldOptions("Comedy", "comedy"),
+      new FieldOptions("Contemporary", "contemporary"),
+      new FieldOptions("Drama", "drama"),
+      new FieldOptions("Fantasy", "fantasy"),
+      new FieldOptions("Historical", "historical"),
+      new FieldOptions("Horror", "horror"),
+      new FieldOptions("Mystery", "mystery"),
+      new FieldOptions("Psychological", "psychological"),
+      new FieldOptions("Romance", "romance"),
+      new FieldOptions("Satire", "satire"),
+      new FieldOptions("Sci Fi", "sci_fi"),
+      new FieldOptions("One Shot", "one_shot"),
+      new FieldOptions("Tragedy", "tragedy"),
+    ]),
+    fieldName: "Genres",
+    fieldVar: "tagsAdd",
+    isMultiVar: true,
+  }),
+  new SourceFilterField({
+    type: FilterType.MultiSelect([
+      new FieldOptions("Action", "action"),
+      new FieldOptions("Adventure", "adventure"),
+      new FieldOptions("Comedy", "comedy"),
+      new FieldOptions("Contemporary", "contemporary"),
+      new FieldOptions("Drama", "drama"),
+      new FieldOptions("Fantasy", "fantasy"),
+      new FieldOptions("Historical", "historical"),
+      new FieldOptions("Horror", "horror"),
+      new FieldOptions("Mystery", "mystery"),
+      new FieldOptions("Psychological", "psychological"),
+      new FieldOptions("Romance", "romance"),
+      new FieldOptions("Satire", "satire"),
+      new FieldOptions("Sci Fi", "sci_fi"),
+      new FieldOptions("One Shot", "one_shot"),
+      new FieldOptions("Tragedy", "tragedy"),
+    ]),
+    fieldName: "Exclude Genres",
+    fieldVar: "tagsRemove",
+    isMultiVar: true,
+  }),
+  new SourceFilterField({
+    type: FilterType.MultiSelect([
+      new FieldOptions("AI-Assisted Content", "ai_assisted"),
+      new FieldOptions("AI-Generated Content", "ai_generated"),
+      new FieldOptions("Graphic Violence", "graphic_violence"),
+      new FieldOptions("Profanity", "profanity"),
+      new FieldOptions("Sensitive Content", "sensitive"),
+      new FieldOptions("Sexual Content", "sexuality"),
+    ]),
+    fieldName: "Content Warnings",
+    fieldVar: "tagsAdd",
+    isMultiVar: true,
+  }),
+  new SourceFilterField({
+    type: FilterType.MultiSelect([
+      new FieldOptions("AI-Assisted Content", "ai_assisted"),
+      new FieldOptions("AI-Generated Content", "ai_generated"),
+      new FieldOptions("Graphic Violence", "graphic_violence"),
+      new FieldOptions("Profanity", "profanity"),
+      new FieldOptions("Sensitive Content", "sensitive"),
+      new FieldOptions("Sexual Content", "sexuality"),
+    ]),
+    fieldName: "Exclude Content Warnings",
+    fieldVar: "tagsRemove",
+    isMultiVar: true,
+  }),
+  new SourceFilterField({
+    type: FilterType.Numeric(),
+    fieldName: "Pages (Min)",
+    fieldVar: "minPages",
+  }),
+  new SourceFilterField({
+    type: FilterType.Numeric(),
+    fieldName: "Pages (Max)",
+    fieldVar: "maxPages",
+  }),
+  new SourceFilterField({
+    type: FilterType.Dropdown([
+      new FieldOptions("ALL", "ALL"),
+      new FieldOptions("COMPLETED", "COMPLETED"),
+      new FieldOptions("DROPPED", "DROPPED"),
+      new FieldOptions("ONGOING", "ONGOING"),
+      new FieldOptions("HIATUS", "HIATUS"),
+      new FieldOptions("STUB", "STUB"),
+    ]),
+    fieldName: "Status",
+    fieldVar: "status",
+  }),
+  new SourceFilterField({
+    type: FilterType.Dropdown([
+      new FieldOptions("Relevance", "relevance"),
+      new FieldOptions("Popularity", "popularity"),
+      new FieldOptions("Average Rating", "rating"),
+      new FieldOptions("Last Update", "last_update"),
+      new FieldOptions("Release Date", "release_date"),
+      new FieldOptions("Followers", "followers"),
+      new FieldOptions("Number of Pages", "length"),
+      new FieldOptions("Views", "views"),
+      new FieldOptions("Title", "title"),
+      new FieldOptions("Author", "author"),
+    ]),
+    fieldName: "Order By",
+    fieldVar: "orderBy",
+  }),
+  new SourceFilterField({
+    type: FilterType.Dropdown([new FieldOptions("Ascending", "asc"), new FieldOptions("Descending", "desc")]),
+    fieldName: "Dir",
+    fieldVar: "dir",
+  }),
+  new SourceFilterField({
+    type: FilterType.Dropdown([
+      new FieldOptions("All", "ALL"),
+      new FieldOptions("Fan Fiction", "fanfiction"),
+      new FieldOptions("Original", "original"),
+    ]),
+    fieldName: "Type",
+    fieldVar: "type",
+  }),
+];
+// console.log(new Source(entry.name, f).toJSON());
 
 export { getSource, getProjectConfigs, getPayload, getPlugins, PLUGINS };

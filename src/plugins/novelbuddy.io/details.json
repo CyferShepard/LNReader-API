@@ -2,7 +2,7 @@
   "url": "https://novelbuddy.io${0}",
   "type": "GET",
   "bodyType": "JSON",
-  "waitForPageLoad": true,
+  "waitForPageLoad": false,
   "waitDuration": 100,
   "query": [
     {
@@ -14,7 +14,8 @@
       "label": "cover",
       "element": ".cover>.img-cover>img",
       "getContent": true,
-      "withHref": true,
+      "withHref": false,
+      "dataProp": "data-src",
       "transformProcess": "(value)=>{\n            if (value.startsWith(\"//\")) {\n              return \"https:\"+ value;\n            } else {\n              return value;\n            }\n          }"
     },
     {

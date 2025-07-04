@@ -89,7 +89,7 @@ proxyRouter.get("/imageProxy", async (context) => {
     context.response.headers.set("Content-Type", contentType);
     const imageArray = new Uint8Array(imageBuffer);
     context.response.body = imageArray;
-    console.log(`Serving non-cached image for URL: ${imageUrl}`);
+    // console.log(`Serving non-cached image for URL: ${imageUrl}`);
     if (cacheImage == true) {
       await dbSqLiteHandler.insertImageCache(new ImageCache(imageUrl, contentType, imageArray));
     }

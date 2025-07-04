@@ -33,7 +33,7 @@ export class FavouriteWitChapterMeta extends NovelMeta {
       data.status,
       data.genres,
       data.lastUpdate,
-      data.additionalProps,
+      JSON.parse(data.additionalProps),
 
       ChapterMeta.fromJSON(JSON.parse(data.chapter))
     );

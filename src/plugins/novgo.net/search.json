@@ -1,5 +1,5 @@
 {
-  "url": "https://novgo.net/search?keyword=${0}&page=${1}",
+  "url": "https://novgo.net/search?page=${1}",
   "type": "GET",
   "bodyType": "JSON",
   "waitForPageLoad": false,

@@ -1,7 +1,6 @@
 {
   "url": "https://freewebnovel.com/search",
   "type": "POST",
-  "body": "searchkey=searchterm",
   "bodyType": "FORM_DATA",
   "waitForPageLoad": false,
   "query": [

@@ -3,7 +3,7 @@ import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import authMiddleware from "../utils/auth_middleware.ts";
 import { Chapter } from "../schemas/chapter.ts";
-import { parseQuery, ScraperPayload, ScraperResponse, configureAstralBrowser } from "../classes/api-parser.ts";
+import { parseQuery, ScraperPayload, ScraperResponse, configureAstralBrowser, BodyType } from "../classes/api-parser.ts";
 import { getPayload, getPlugins, getSource, PLUGINS } from "../classes/payload-helper.ts";
 import { downloadGithubFolder } from "../utils/configUpdater.ts";
 import { allowRegistration, setAllowRegistration } from "../utils/config.ts";
@@ -138,13 +138,13 @@ apiRouter.get("/latest", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/search", authMiddleware, async (context) => {
-  const { source, searchTerm, page = 1 } = await context.request.body.json();
+  const { source, page = 1, searchParams } = await context.request.body.json();
 
-  if (!searchTerm) {
-    context.response.status = 400;
-    context.response.body = { error: "Search Term is required" };
-    return;
-  }
+  // if (!searchTerm) {
+  //   context.response.status = 400;
+  //   context.response.body = { error: "Search Term is required" };
+  //   return;
+  // }
 
   const payload: ScraperPayload | null = await getPayload("search", source);
   if (!payload) {
@@ -157,21 +157,40 @@ apiRouter.post("/search", authMiddleware, async (context) => {
   }
 
   if (payload.type === "POST") {
-    if (payload.body instanceof FormData) {
-      payload.body.set("searchkey", searchTerm);
-    } else if (payload.body && typeof payload.body === "object") {
-      (payload.body as Record<string, unknown>)["searchkey"] = searchTerm;
+    if (payload.bodyType === BodyType.FORM_DATA) {
+      payload.body = new FormData();
+
+      if (typeof searchParams === "string") {
+        const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
+        for (const [key, value] of params.entries()) {
+          payload.body.set(key, value);
+        }
+      }
+    } else if (payload.bodyType === BodyType.JSON) {
+      if (typeof searchParams === "string") {
+        const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
+        for (const [key, value] of params.entries()) {
+          (payload.body as Record<string, unknown>)[key] = value;
+        }
+      }
+    }
+  } else {
+    if (searchParams != null) {
+      payload.url = payload.url + searchParams;
     }
   }
-  payload.url = payload.url.replace("${0}", encodeURIComponent(searchTerm));
+  payload.url = payload.url.replace("${1}", page!.toString());
 
   const jsonpayload = JSON.stringify(payload.toJson());
   console.log(jsonpayload);
 
   const response: ScraperResponse | null = await parseQuery(payload);
-  const results = response?.results && response?.results.length > 0 ? response.results[0]["results"] : null;
-  console.log("response: " + results);
-  context.response.body = !Array.isArray(results) ? [results] : results || [];
+  // const results = response?.results && response?.results.length > 0 ? response.results[0]["results"] : null;
+  const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
+
+  context.response.body = results || { results: [] };
+
+  // context.response.body = !Array.isArray(results) && results != undefined ? [results] : results || [];
 });
 
 apiRouter.post("/novel", authMiddleware, async (context) => {
