@@ -1,3 +1,4 @@
+import { Categorties } from "../schemas/categories.ts";
 import { Chapter } from "../schemas/chapter.ts";
 import type { ChapterWithContent } from "../schemas/chaptersWithContent.ts";
 import { Favourite } from "../schemas/favourites.ts";
@@ -54,6 +55,16 @@ class DBSqLiteHandler {
     `);
 
     await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS favouritesCategories (
+        username TEXT,
+        source TEXT,
+        url TEXT,
+        category TEXT,
+        PRIMARY KEY (username, source,  url, category)
+      )
+    `);
+
+    await this.db.exec(`
       CREATE TABLE IF NOT EXISTS novel_meta (
         source TEXT,
         url TEXT ,
@@ -91,6 +102,15 @@ class DBSqLiteHandler {
     `);
 
     await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS categories (
+        name TEXT,
+        username TEXT,
+        position INTEGER DEFAULT 0,
+        PRIMARY KEY (name,username)
+      )
+    `);
+
+    await this.db.exec(`
       CREATE TABLE IF NOT EXISTS chapters (
         chapterIndex INTEGER,
         title TEXT,
@@ -104,7 +124,9 @@ class DBSqLiteHandler {
     const users = await this.getAllUser();
     if (users.length === 0) {
       const user = new User("admin", "$2a$10$ZG7ZuVE.MfN9HTPj1GLluegeA.wsVYn75dkv6R5ItVMBwSxnZS7WG", 0);
+      const categories = new Categorties("Favourites", "admin", 0);
       await this.insertUser(user);
+      await this.insertCategories(categories);
     }
   }
 
@@ -176,21 +198,6 @@ class DBSqLiteHandler {
     }
   }
 
-  // public async insertChapter(chapter: ChapterWithContent, source: string) {
-  //   if (!this.db) {
-  //     await this.initialize();
-  //   }
-
-  //   const stmt = this.db!.prepare("INSERT INTO chapters VALUES (:chapterIndex,:title,:url,:source,:content)");
-  //   stmt.run({
-  //     chapterIndex: chapter.index,
-  //     title: chapter.title,
-  //     url: chapter.url,
-  //     source: source,
-  //     content: chapter.content,
-  //   });
-  // }
-
   public async insertUser(user: User) {
     if (!this.db) {
       await this.initialize();
@@ -207,6 +214,94 @@ class DBSqLiteHandler {
 
     const stmt = this.db!.prepare("INSERT OR REPLACE INTO favourites VALUES (:username, :source, :url,:date_added)");
     stmt.run({ username: favourite.username, source: favourite.source, url: favourite.url, date_added: favourite.date_added });
+
+    this.insertCategoryLink(favourite.username, favourite.source, favourite.url);
+  }
+
+  public async insertCategoryLink(username: string, source: string, url: string, categoryName?: string | null) {
+    if (!this.db) {
+      this.initialize();
+    }
+
+    if (categoryName == null) {
+      var categories = await this.getCategories(username);
+      if (categories && categories.length > 0) {
+        categoryName = categories[0].name;
+      } else {
+        console.warn("No categories found for user, skipping category link insert.");
+        return;
+      }
+    }
+
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO favouritesCategories VALUES (:username, :source, :url, :category)");
+    stmt.run({ username: username, source: source, url: url, category: categoryName });
+  }
+
+  insertCategoryLinkBulk(username: string, source: string, url: string, categories: string[]) {
+    if (!this.db) {
+      this.initialize();
+    }
+
+    if (!categories || categories.length === 0) {
+      console.warn("No categories provided for bulk insert, skipping.");
+      return;
+    }
+
+    this.deleteCategoriesLinkByNovel(username, source, url);
+
+    const values = categories.map(() => "(?, ?, ?, ?)").join(", ");
+    const stmt = this.db!.prepare(
+      `INSERT OR REPLACE INTO favouritesCategories (username, source, url, category) VALUES ${values}`
+    );
+
+    const params = categories.flatMap((category) => [username, source, url, category]);
+
+    try {
+      this.db!.exec("BEGIN TRANSACTION");
+      stmt.run(...params);
+      this.db!.exec("COMMIT");
+    } catch (error) {
+      this.db!.exec("ROLLBACK");
+      throw error;
+    } finally {
+      stmt.finalize();
+    }
+  }
+
+  updateCategoryName(username: string, newName: string, name: string) {
+    if (!this.db) {
+      this.initialize();
+    }
+
+    const stmt = this.db!.prepare("UPDATE categories SET name=:newName WHERE username=:username AND name=:name");
+    stmt.run({ username: username, newName: newName, name: name });
+
+    this.updateCategoryLinkName(username, newName, name);
+  }
+
+  updateCategoryPosition(username: string, name: string, position: number) {
+    if (!this.db) {
+      this.initialize();
+    }
+
+    const stmt = this.db!.prepare("UPDATE categories SET position=:position WHERE username=:username AND name=:name");
+    stmt.run({ username: username, position: position, name: name });
+  }
+
+  updateCategoryLinkName(username: string, newCategoryName: string, oldCategoryName: string) {
+    if (!this.db) {
+      this.initialize();
+    }
+
+    const stmt = this.db!.prepare(
+      "UPDATE favouritesCategories SET category=:newCategoryName WHERE username=:username AND category=:oldCategoryName"
+    );
+    stmt.run({
+      username: username,
+
+      newCategoryName: newCategoryName,
+      oldCategoryName: oldCategoryName,
+    });
   }
 
   public async insertHistory(history: History) {
@@ -267,6 +362,41 @@ class DBSqLiteHandler {
     stmt.run({ url: imageCache.url, contentType: imageCache.contentType, data: imageCache.data });
     console.log(`Caching image for URL: ${imageCache.url}`);
   }
+
+  public async insertCategories(categories: Categorties) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO categories VALUES (:name, :username, :position)");
+    stmt.run({ name: categories.name, username: categories.username, position: categories.position });
+  }
+
+  public async insertCategoriesBulk(categories: Categorties[]) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const values = categories.map(() => "(?, ?, ?)").join(", ");
+    const stmt = this.db!.prepare(`INSERT OR REPLACE INTO categories (name, username, position) VALUES ${values}`);
+
+    const params = categories.flatMap((category) => [category.name, category.username, category.position]);
+
+    try {
+      this.db!.exec("BEGIN TRANSACTION");
+      stmt.run(...params);
+      this.db!.exec("COMMIT");
+    } catch (error) {
+      this.db!.exec("ROLLBACK");
+      throw error;
+    } finally {
+      stmt.finalize();
+    }
+  }
+
+  updateNovelCategory(username: string, categoryName: string) {}
+
+  //select
 
   public async getAllUser(): Promise<User[]> {
     if (!this.db) {
@@ -343,7 +473,6 @@ class DBSqLiteHandler {
     return null;
   }
 
-  //TODO: add perUser filter
   public async getLastUpdatedChapters(username: string) {
     if (!this.db) {
       await this.initialize();
@@ -474,16 +603,22 @@ ORDER BY lh.last_read DESC`);
     }
 
     let statement: string = `
-    SELECT f.date_added, nm.*,  
+    SELECT f.date_added, nm.*,
     (SELECT COUNT(*) FROM chapter_meta cm WHERE cm.novelUrl = f.url AND cm.source = f.source) AS chapterCount,
     (SELECT COUNT(*) FROM history h
      JOIN chapter_meta cm ON h.url = cm.url AND h.source = cm.source
      WHERE h.username = :username AND cm.novelUrl = f.url AND cm.source = f.source
-    ) AS readCount  
+    ) AS readCount ,
+       (
+        SELECT json_group_array(category)
+        FROM favouritesCategories fc
+        WHERE fc.username = f.username AND fc.source = f.source AND fc.url = f.url
+      ) as categories
      
     FROM favourites f 
     JOIN novel_meta nm 
       on nm.source=f.source and nm.url=f.url 
+
     WHERE f.username=:username`;
     let params: any = { username: username };
     if (url && source) {
@@ -518,6 +653,28 @@ ORDER BY lh.last_read DESC`);
 
     return refavourites;
   }
+
+  public async getCategories(username: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("SELECT * FROM categories WHERE username=:username ORDER BY position");
+    const results: any = stmt.all({ username: username });
+
+    return results.map((result: any) => Categorties.fromResult(result));
+  }
+
+  public async getCategoriesLinkByNovel(username: string, source: string, url: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("SELECT * FROM favouritesCategories WHERE username=:username AND source=:source AND url=:url");
+    const results: any = stmt.all({ username: username, source: source, url: url });
+
+    return results.map((result: any) => Categorties.fromResult(result));
+  }
   //delete
 
   public async deleteHistoryExceptLatest(chapter: Chapter, novel: NovelMeta, username: string) {
@@ -547,6 +704,8 @@ ORDER BY lh.last_read DESC`);
 
     const stmt = this.db!.prepare("DELETE FROM favourites WHERE url=:url AND source=:source AND username=:username");
     stmt.run({ url: url, source: source, username: username });
+
+    await this.deleteCategoriesLinkByNovel(username, source, url);
   }
 
   public async deleteNovelMeta(url: string, source: string) {
@@ -663,6 +822,59 @@ ORDER BY lh.last_read DESC`);
 
     const stmt = this.db!.prepare("DELETE FROM images WHERE url=:url");
     stmt.run({ url: url });
+  }
+
+  public async deleteCategories(name: string, username: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("DELETE FROM categories WHERE name=:name AND username=:username");
+    stmt.run({ name: name, username: username });
+  }
+
+  public async deleteCategoryLink(username: string, source: string, url: string, categoryName: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare(
+      "DELETE FROM favouritesCategories WHERE username=:username AND source=:source AND url=:url AND category=:category"
+    );
+    stmt.run({ username: username, source: source, url: url, category: categoryName });
+  }
+
+  public async deleteCategoryLinkBulk(username: string, source: string, url: string, categories: string[]) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const values = categories.map(() => "(?, ?, ?, ?)").join(", ");
+    const stmt = this.db!.prepare(
+      `DELETE FROM favouritesCategories WHERE username=:username AND source=:source AND url=:url AND category IN (${values})`
+    );
+
+    const params = categories.flatMap((category) => [username, source, url, category]);
+
+    try {
+      this.db!.exec("BEGIN TRANSACTION");
+      stmt.run(...params);
+      this.db!.exec("COMMIT");
+    } catch (error) {
+      this.db!.exec("ROLLBACK");
+      throw error;
+    } finally {
+      stmt.finalize();
+    }
+  }
+
+  public async deleteCategoriesLinkByNovel(username: string, source: string, url: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("DELETE FROM favouritesCategories WHERE username=:username AND source=:source AND url=:url");
+    stmt.run({ username: username, source: source, url: url });
   }
 }
 

@@ -7,6 +7,7 @@ import { parseQuery, ScraperPayload, ScraperResponse, configureAstralBrowser, Bo
 import { getPayload, getPlugins, getSource, PLUGINS } from "../classes/payload-helper.ts";
 import { downloadGithubFolder } from "../utils/configUpdater.ts";
 import { allowRegistration, setAllowRegistration } from "../utils/config.ts";
+import { Categorties } from "../schemas/categories.ts";
 
 const apiRouter = new Router({ prefix: "/api" });
 
@@ -399,6 +400,43 @@ apiRouter.get("/users", authMiddleware, async (context) => {
 apiRouter.get("/updates", authMiddleware, async (context) => {
   const updates = await dbSqLiteHandler.getLastUpdatedChapters(context.state.user.username);
   context.response.body = updates;
+});
+
+apiRouter.get("/categories", authMiddleware, async (context) => {
+  const categories = await dbSqLiteHandler.getCategories(context.state.user.username);
+  context.response.body = categories;
+});
+
+apiRouter.post("/categories", authMiddleware, async (context) => {
+  const { name } = await context.request.body.json();
+  const { position } = await context.request.body.json();
+
+  if (!name || typeof name !== "string") {
+    context.response.status = 400;
+    context.response.body = { error: "Category name is required and must be a string" };
+    return;
+  }
+  if (position != null && typeof position !== "number") {
+    context.response.status = 400;
+    context.response.body = { error: "Position must be a number" };
+    return;
+  }
+  const category = new Categorties(name, context.state.user.username, position);
+
+  try {
+    const categories = await dbSqLiteHandler.getCategories(context.state.user.username);
+    if (categories.some((cat: Categorties) => cat.name === category.name)) {
+      context.response.status = 400;
+      context.response.body = { error: "Category with this name already exists" };
+      return;
+    }
+    await dbSqLiteHandler.insertCategories(category);
+    context.response.status = 200;
+  } catch (e) {
+    console.error("Error inserting category:", e);
+    context.response.status = 500;
+    context.response.body = { error: "Failed to create category" };
+  }
 });
 
 export default apiRouter;

@@ -4,6 +4,7 @@ import { NovelMeta } from "../schemas/novel_meta.ts";
 import { Favourite } from "../schemas/favourites.ts";
 import authMiddleware from "../utils/auth_middleware.ts";
 import { FavouriteWithNovelMeta } from "../schemas/favouritesWithNovelMeta.ts";
+import { Categorties } from "../schemas/categories.ts";
 
 const favouritesRouter = new Router({ prefix: "/favourites" });
 
@@ -79,6 +80,53 @@ favouritesRouter.delete("/delete", authMiddleware, async (context) => {
     await dbSqLiteHandler.deleteHistoryForNovelByUser(url, source, context.state.user.username);
   }
 
+  context.response.status = 200;
+});
+
+favouritesRouter.post("/setCategories", authMiddleware, async (context) => {
+  const { categories, url, source } = await context.request.body.json();
+
+  if (!categories || !url || !source) {
+    context.response.body = { error: "Categories, Url and Source are required" };
+    context.response.status = 400;
+    return;
+  }
+
+  if (!Array.isArray(categories)) {
+    context.response.body = { error: "Categories must be an array" };
+    context.response.status = 400;
+    return;
+  }
+
+  if (categories.length === 0) {
+    context.response.body = { error: "Categories cannot be empty" };
+    context.response.status = 400;
+    return;
+  }
+
+  const novelMeta = await dbSqLiteHandler.getCachedNovel(url, source);
+  if (!novelMeta) {
+    context.response.body = { error: "Novel not found" };
+    context.response.status = 404;
+    return;
+  }
+
+  const existingCategories = await dbSqLiteHandler.getCategories(context.state.user.username);
+  const maxPosition = existingCategories.length > 0 ? Math.max(...existingCategories.map((cat: Categorties) => cat.position)) : 0;
+
+  const existingCategoryNames = existingCategories.map((cat: Categorties) => cat.name);
+  const newCategories: Categorties[] = [];
+  for (const categoryName of categories) {
+    if (!existingCategoryNames.includes(categoryName)) {
+      newCategories.push(new Categorties(categoryName, context.state.user.username, maxPosition + 1));
+    }
+  }
+
+  if (newCategories.length > 0) {
+    await dbSqLiteHandler.insertCategoriesBulk(newCategories);
+  }
+
+  await dbSqLiteHandler.insertCategoryLinkBulk(context.state.user.username, source, url, categories);
   context.response.status = 200;
 });
 
