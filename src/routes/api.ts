@@ -409,33 +409,61 @@ apiRouter.get("/categories", authMiddleware, async (context) => {
 
 apiRouter.post("/categories", authMiddleware, async (context) => {
   const { name } = await context.request.body.json();
-  const { position } = await context.request.body.json();
 
   if (!name || typeof name !== "string") {
     context.response.status = 400;
     context.response.body = { error: "Category name is required and must be a string" };
     return;
   }
-  if (position != null && typeof position !== "number") {
-    context.response.status = 400;
-    context.response.body = { error: "Position must be a number" };
-    return;
-  }
-  const category = new Categorties(name, context.state.user.username, position);
 
   try {
     const categories = await dbSqLiteHandler.getCategories(context.state.user.username);
-    if (categories.some((cat: Categorties) => cat.name === category.name)) {
+    const latestPosition = categories.length > 0 ? Math.max(...categories.map((cat: Categorties) => cat.position)) : 0;
+    if (categories.some((cat: Categorties) => cat.name === name)) {
       context.response.status = 400;
       context.response.body = { error: "Category with this name already exists" };
       return;
     }
+    const category = new Categorties(name, context.state.user.username, latestPosition + 1);
     await dbSqLiteHandler.insertCategories(category);
     context.response.status = 200;
   } catch (e) {
     console.error("Error inserting category:", e);
     context.response.status = 500;
     context.response.body = { error: "Failed to create category" };
+  }
+});
+
+apiRouter.delete("/categories", authMiddleware, async (context) => {
+  const { name } = await context.request.body.json();
+
+  if (!name || typeof name !== "string") {
+    context.response.status = 400;
+    context.response.body = { error: "Category name is required and must be a string" };
+    return;
+  }
+
+  try {
+    const categories: Categorties[] = await dbSqLiteHandler.getCategories(context.state.user.username);
+    const defaultCategory = categories.find((cat: Categorties) => cat.position === 0);
+    if (!defaultCategory) {
+      context.response.status = 500;
+      context.response.body = { error: "Default category not found" };
+      return;
+    }
+    if (!categories.some((cat: Categorties) => cat.name === name)) {
+      context.response.status = 404;
+      context.response.body = { error: "Category not found" };
+      return;
+    }
+    await dbSqLiteHandler.deleteCategories(name, context.state.user.username);
+    await dbSqLiteHandler.updateCategoryLinkName(context.state.user.username, defaultCategory!.name, name);
+    context.response.status = 200;
+    context.response.body = { status: "Category deleted successfully" };
+  } catch (e) {
+    console.error("Error deleting category:", e);
+    context.response.status = 500;
+    context.response.body = { error: "Failed to delete category" };
   }
 });
 
