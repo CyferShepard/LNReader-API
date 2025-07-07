@@ -31,7 +31,6 @@ export class ChapterMeta {
   }
 
   toJSON(): object {
-    console.log("Converting ChapterMeta to JSON:");
     return {
       source: this.source,
       chapterIndex: this.chapterIndex,
