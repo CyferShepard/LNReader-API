@@ -27,32 +27,42 @@ favouritesRouter.get("/get", authMiddleware, async (context) => {
 });
 
 favouritesRouter.post("/insert", authMiddleware, async (context) => {
-  const { novelMeta } = await context.request.body.json();
+  try {
+    const { novelMeta } = await context.request.body.json();
 
-  if (!novelMeta) {
-    context.response.body = { error: "All Fields are required" };
-    context.response.status = 400;
-    return;
+    if (!novelMeta) {
+      console.error("Novel Meta is required: ", JSON.stringify(novelMeta, null, 2));
+      context.response.body = { error: "All Fields are required" };
+      context.response.status = 400;
+      return;
+    }
+
+    const novelData = new NovelMeta(
+      novelMeta.source,
+      novelMeta.url,
+      novelMeta.cover,
+      novelMeta.title,
+      novelMeta.summary,
+      novelMeta.author,
+      novelMeta.status,
+      novelMeta.genres,
+      novelMeta.lastUpdate ?? "Unknown"
+    );
+    console.log("Inserting Novel Meta:", JSON.stringify(novelData, null, 2));
+    await dbSqLiteHandler.insertNovelMeta(novelData);
+    console.log("Novel Meta Inserted");
+
+    const favourite: Favourite = new Favourite(context.state.user.username, novelMeta.source, novelMeta.url, new Date());
+    console.log("Inserting Favourite:", JSON.stringify(favourite, null, 2));
+    await dbSqLiteHandler.insertFavourite(favourite);
+    console.log("Favourite Inserted");
+
+    context.response.status = 200;
+  } catch (error) {
+    console.error("Error inserting favourite:", error);
+    context.response.body = { error: "Failed to insert favourite" };
+    context.response.status = 500;
   }
-
-  const novelData = new NovelMeta(
-    novelMeta.source,
-    novelMeta.url,
-    novelMeta.cover,
-    novelMeta.title,
-    novelMeta.summary,
-    novelMeta.author,
-    novelMeta.status,
-    novelMeta.genres,
-    novelMeta.lastUpdate ?? "Unknown"
-  );
-  await dbSqLiteHandler.insertNovelMeta(novelData);
-
-  const favourite: Favourite = new Favourite(context.state.user.username, novelMeta.source, novelMeta.url, new Date());
-
-  await dbSqLiteHandler.insertFavourite(favourite);
-
-  context.response.status = 200;
 });
 
 favouritesRouter.delete("/delete", authMiddleware, async (context) => {
