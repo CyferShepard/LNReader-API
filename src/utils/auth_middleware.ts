@@ -4,7 +4,7 @@ import { verify } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
 
 // Middleware to check for authorization
 
-async function decodeAndVerifyToken(token: string): Promise<any> {
+export async function decodeAndVerifyToken(token: string): Promise<any> {
   try {
     const payload = await verify(token, SECRET_KEY);
     console.log("Decoded payload:", payload);

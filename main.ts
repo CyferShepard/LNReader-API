@@ -9,12 +9,31 @@ import historyRouter from "./src/routes/history.ts";
 import apiRouter from "./src/routes/api.ts";
 import proxyRouter from "./src/routes/proxy.ts";
 import { FavouritesUpdateChecker } from "./src/services/favourites_update_checker.ts";
+import authMiddleware from "./src/utils/auth_middleware.ts";
+import { wsClients } from "./src/utils/config.ts";
+import sendMessage from "./src/classes/websockets.ts";
 
 const app = new Application();
 const router = new Router();
 
 router.get("/ping", (context) => {
   context.response.body = "Hello, world!";
+});
+
+router.get("/wss", authMiddleware, (ctx) => {
+  if (!ctx.isUpgradable) {
+    ctx.throw(501);
+  }
+  const ws = ctx.upgrade();
+  const username = ctx.state.user.username; // Get username from auth middleware
+
+  wsClients.set(username, ws);
+
+  ws.onclose = () => {
+    wsClients.delete(username);
+  };
+
+  // Define ws callbacks
 });
 
 // Use the oakCors middleware
@@ -37,4 +56,5 @@ checker.start();
 
 const port = 8000;
 console.log(`Server is running on http://localhost:${port}`);
+
 await app.listen({ port });

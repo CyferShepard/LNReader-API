@@ -8,6 +8,7 @@ import { getPayload, getPlugins, getSource, PLUGINS } from "../classes/payload-h
 import { downloadGithubFolder } from "../utils/configUpdater.ts";
 import { allowRegistration, setAllowRegistration } from "../utils/config.ts";
 import { Categorties } from "../schemas/categories.ts";
+import sendMessage from "../classes/websockets.ts";
 
 const apiRouter = new Router({ prefix: "/api" });
 
@@ -97,6 +98,7 @@ apiRouter.post("/canRegister", authMiddleware, async (context) => {
 
 apiRouter.get("/sources", authMiddleware, async (context) => {
   await getPlugins();
+
   context.response.body = PLUGINS;
 });
 
@@ -376,7 +378,8 @@ apiRouter.get("/updatePlugins", authMiddleware, async (context) => {
     "CyferShepard/novel_reader_plugins", // repo
     "configs", // folder url in repo
     "main", // branch
-    "./src/plugins" // local destination
+    "./src/plugins", // local destination
+    (message: string) => sendMessage(context, message) // callback to send messages
   );
 
   context.response.status = 200;

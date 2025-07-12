@@ -110,13 +110,24 @@ export class FavouritesUpdateChecker {
 
           const chapters: Chapter[] = results.map((chapter) => Chapter.fromJSON(chapter));
 
-          if (chapters.length > 0) {
-            const novelChapters: Chapter[] = chapters.map((chapter) => Chapter.fromJSON(chapter));
-            await dbSqLiteHandler.insertChapterMetaBulk(novelChapters, novel);
-            console.log(`[FavouritesUpdateChecker] Updated ${novelChapters.length} chapters for: ${novel.title}`);
-          } else {
+          if (chapters.length == 0) {
             console.log(`[FavouritesUpdateChecker] No chapters found for: ${novel.title}`);
+            continue;
           }
+
+          const existingChapters = await dbSqLiteHandler.getCachedChapters(fav.url, fav.source);
+
+          const newChapters: Chapter[] = chapters.filter(
+            (chapter) => !existingChapters.some((c: Chapter) => c.url === chapter.url)
+          );
+          console.log("Caching chapters for novel:", novel.title);
+          if (newChapters.length === 0) {
+            console.log("[FavouritesUpdateChecker] No new chapters to cache for novel:", novel.title);
+
+            continue;
+          }
+          console.log(`[FavouritesUpdateChecker] Updated ${newChapters.length} chapters for: ${novel.title}`);
+          await dbSqLiteHandler.insertChapterMetaBulk(newChapters, novel);
         } catch (err) {
           console.error(`[FavouritesUpdateChecker] Error updating chapters for favourite:`, err);
         }
