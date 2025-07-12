@@ -16,7 +16,11 @@ export async function decodeAndVerifyToken(token: string): Promise<any> {
 }
 
 export default async function authMiddleware(context: Context, next: () => Promise<unknown>) {
-  const authHeader = context.request.headers.get("Authorization");
+  let authHeader: string | null = context.request.headers.get("Authorization");
+  if (context.request.url.pathname.startsWith("/wss")) {
+    authHeader = context.request.headers.get("Sec-WebSocket-Protocol");
+  }
+
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     context.response.status = 401;
     context.response.body = { error: "Unauthorized" };

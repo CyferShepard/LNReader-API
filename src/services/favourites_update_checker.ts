@@ -3,6 +3,7 @@ import { Chapter } from "../schemas/chapter.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import { getPayload } from "../classes/payload-helper.ts";
 import { parseQuery } from "../classes/api-parser.ts";
+import { broadcastMessage } from "../classes/websockets.ts";
 
 export class FavouritesUpdateChecker {
   private intervalId: number | undefined;
@@ -26,6 +27,7 @@ export class FavouritesUpdateChecker {
   private async checkAndUpdate() {
     try {
       console.log("[FavouritesUpdateChecker] Checking for updates...");
+      broadcastMessage(new Map().set("type", "favouritesUpdateCheck").set("message", "Updating Favourites"));
       const favourites = await dbSqLiteHandler.getAllUniqueFavourites();
       for (const fav of favourites) {
         try {
@@ -121,6 +123,7 @@ export class FavouritesUpdateChecker {
             (chapter) => !existingChapters.some((c: Chapter) => c.url === chapter.url)
           );
           console.log("Caching chapters for novel:", novel.title);
+
           if (newChapters.length === 0) {
             console.log("[FavouritesUpdateChecker] No new chapters to cache for novel:", novel.title);
 
@@ -133,8 +136,10 @@ export class FavouritesUpdateChecker {
         }
       }
       console.log("[FavouritesUpdateChecker] Update check complete.");
+      broadcastMessage(new Map().set("type", "favouritesUpdateCheck").set("message", "Favourites Update check complete"));
     } catch (err) {
       console.error("[FavouritesUpdateChecker] Error in checkAndUpdate:", err);
+      broadcastMessage(new Map().set("type", "favouritesUpdateCheck").set("message", "Favourites Update check failed"));
     }
   }
 }

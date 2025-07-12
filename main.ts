@@ -22,7 +22,8 @@ router.get("/ping", (context) => {
 
 router.get("/wss", authMiddleware, (ctx) => {
   if (!ctx.isUpgradable) {
-    ctx.throw(501);
+    ctx.response.status = 400;
+    ctx.response.body = { error: "This endpoint is for WebSocket connections only." };
   }
   const ws = ctx.upgrade();
   const username = ctx.state.user.username; // Get username from auth middleware

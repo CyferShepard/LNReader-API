@@ -8,7 +8,7 @@ import { getPayload, getPlugins, getSource, PLUGINS } from "../classes/payload-h
 import { downloadGithubFolder } from "../utils/configUpdater.ts";
 import { allowRegistration, setAllowRegistration } from "../utils/config.ts";
 import { Categorties } from "../schemas/categories.ts";
-import sendMessage from "../classes/websockets.ts";
+import sendMessage, { broadcastMessage } from "../classes/websockets.ts";
 
 const apiRouter = new Router({ prefix: "/api" });
 
@@ -374,13 +374,22 @@ apiRouter.post("/chapter", authMiddleware, async (context) => {
 });
 
 apiRouter.get("/updatePlugins", authMiddleware, async (context) => {
-  await downloadGithubFolder(
-    "CyferShepard/novel_reader_plugins", // repo
-    "configs", // folder url in repo
-    "main", // branch
-    "./src/plugins", // local destination
-    (message: string) => sendMessage(context, message) // callback to send messages
-  );
+  broadcastMessage(new Map().set("type", "updatePlugins").set("message", `Updating Plugins Started`));
+  try {
+    await downloadGithubFolder(
+      "CyferShepard/novel_reader_plugins", // repo
+      "configs", // folder url in repo
+      "main", // branch
+      "./src/plugins" // local destinationto send messages
+    );
+  } catch (e) {
+    console.error("Error updating plugins:", e);
+    broadcastMessage(new Map().set("type", "updatePlugins").set("message", `Error updating plugins`));
+    context.response.status = 500;
+    context.response.body = { error: "Failed to update plugins" };
+    return;
+  }
+  broadcastMessage(new Map().set("type", "updatePlugins").set("message", `Updating Plugins Completed`));
 
   context.response.status = 200;
   context.response.body = { status: "Project configs updated" };
