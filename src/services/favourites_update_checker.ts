@@ -92,6 +92,10 @@ export class FavouritesUpdateChecker {
                   : null;
               if (maxPage == 1) {
                 maxPage = response?.results && response?.results.length > 0 ? (response.results[0]["lastPage"] as number) : 1; // Use maxPage from response or default to 1
+
+                if (maxPage > 1) {
+                  page = maxPage - 1; // Set page to maxPage to exit loop if no chapters found
+                }
               }
               if (_results && _results.length > 0) {
                 results = results.concat(_results);

@@ -52,7 +52,7 @@ app.use(apiRouter.routes(), apiRouter.allowedMethods());
 app.use(proxyRouter.routes(), proxyRouter.allowedMethods());
 app.use(favouritesRouter.routes(), favouritesRouter.allowedMethods());
 app.use(historyRouter.routes(), historyRouter.allowedMethods());
-const checker = new FavouritesUpdateChecker(12 * 60 * 60 * 1000); // 12 Hours
+const checker = new FavouritesUpdateChecker(60 * 60 * 1000); // 12 Hours
 checker.start();
 
 const port = 8000;
