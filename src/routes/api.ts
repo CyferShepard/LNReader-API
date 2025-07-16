@@ -191,6 +191,10 @@ apiRouter.post("/search", authMiddleware, async (context) => {
   // const results = response?.results && response?.results.length > 0 ? response.results[0]["results"] : null;
   const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
 
+  if (results != null && results.results != null && !Array.isArray(results.results)) {
+    results.results = [results.results];
+  }
+
   context.response.body = results || { results: [] };
 
   // context.response.body = !Array.isArray(results) && results != undefined ? [results] : results || [];
