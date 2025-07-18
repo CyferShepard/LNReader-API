@@ -613,7 +613,14 @@ ORDER BY lh.last_read DESC`);
         SELECT json_group_array(category)
         FROM favouritesCategories fc
         WHERE fc.username = f.username AND fc.source = f.source AND fc.url = f.url
-      ) as categories
+      ) as categories,
+    (
+      SELECT date_added
+      FROM chapter_meta cm
+      WHERE cm.novelUrl = f.url AND cm.source = f.source
+      ORDER BY cm.chapterIndex DESC
+      LIMIT 1
+    ) as chapter_date_added
      
     FROM favourites f 
     JOIN novel_meta nm 
