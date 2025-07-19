@@ -4,9 +4,13 @@ import { Payload, verify } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
 
 // Middleware to check for authorization
 
-export async function decodeAndVerifyToken(token: string, ip: string): Promise<Payload | null> {
+export async function decodeAndVerifyToken(token: string, ip: string, allowedType: string = "access"): Promise<Payload | null> {
   try {
     const payload = await verify(token, SECRET_KEY);
+
+    if (!payload || payload.type !== allowedType) {
+      return null;
+    }
 
     return payload;
   } catch (error) {

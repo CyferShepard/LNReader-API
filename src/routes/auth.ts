@@ -3,7 +3,7 @@ import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { User } from "../schemas/users.ts";
 import { create, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
 import { SECRET_KEY } from "../utils/secret_key.ts";
-import authMiddleware from "../utils/auth_middleware.ts";
+import authMiddleware, { decodeAndVerifyToken } from "../utils/auth_middleware.ts";
 import { allowRegistration } from "../utils/config.ts";
 import * as bcrypt from "https://deno.land/x/bcrypt@v0.4.1/mod.ts";
 
@@ -11,18 +11,27 @@ const authRouter = new Router({ prefix: "/auth" });
 
 //METHODS
 
-async function generateToken(user: User): Promise<string> {
+async function generateTokens(user: User): Promise<{ accessToken: string; refreshToken: string }> {
   // Remove password from user object before creating token
   (user as any).password = undefined;
-  const payload = {
+
+  const accessPayload = {
     username: user.username,
     user: user,
-    exp: getNumericDate(60 * 60 * 24), // Token expires in 1 day
+    type: "access",
+    exp: getNumericDate(60 * 60 * 1), // 1 hour
   };
 
-  const token = await create({ alg: "HS256", typ: "JWT" }, payload, SECRET_KEY);
-  // console.log(await decodeAndVerifyToken(token));
-  return token;
+  const refreshPayload = {
+    username: user.username,
+    type: "refresh",
+    exp: getNumericDate(60 * 60 * 24 * 7), // 7 days
+  };
+
+  const accessToken = await create({ alg: "HS256", typ: "JWT" }, accessPayload, SECRET_KEY);
+  const refreshToken = await create({ alg: "HS256", typ: "JWT" }, refreshPayload, SECRET_KEY);
+
+  return { accessToken, refreshToken };
 }
 
 ///
@@ -52,10 +61,41 @@ authRouter.post("/login", async (context) => {
     return;
   }
 
-  const token = await generateToken(user!);
+  const { accessToken, refreshToken } = await generateTokens(user!);
   console.log(`User ${user.username} logged in successfully. IP: ${context.request.ip}`);
   // await dbSqLiteHandler.insertToken(token, user);
-  context.response.body = { token };
+
+  context.response.body = { accessToken, refreshToken };
+});
+
+authRouter.post("/refresh", async (context) => {
+  const { token } = await context.request.body.json();
+
+  if (!token || token.trim() === "") {
+    context.response.status = 400;
+    context.response.body = { error: "Token is required" };
+    return;
+  }
+
+  const decodedToken = await decodeAndVerifyToken(token, context.request.ip, "refresh");
+  if (!decodedToken) {
+    context.response.status = 401;
+    context.response.body = { error: "Unauthorized" };
+    return;
+  }
+
+  const user = await dbSqLiteHandler.getUser(decodedToken!.username as string);
+
+  if (!user) {
+    context.response.status = 401;
+    context.response.body = { error: "User not found" };
+    return;
+  }
+
+  const { accessToken, refreshToken } = await generateTokens(user!);
+  console.log(`User ${user.username} logged in successfully. IP: ${context.request.ip}`);
+  // await dbSqLiteHandler.insertToken(token, user);
+  context.response.body = { accessToken, refreshToken };
 });
 
 authRouter.post("/resetPassword", authMiddleware, async (context) => {
@@ -83,9 +123,15 @@ authRouter.post("/resetPassword", authMiddleware, async (context) => {
   await dbSqLiteHandler
     .updateUserPassword(auth_username, hash)
     .then(async () => {
-      const user = username ? null : await dbSqLiteHandler.getUser(auth_username);
-      const token = username ? "" : await generateToken(user!);
-      context.response.body = { token };
+      const user = await dbSqLiteHandler.getUser(auth_username);
+      if (!user) {
+        context.response.status = 404;
+        context.response.body = { error: "User not found" };
+        return;
+      }
+      const { accessToken, refreshToken } = await generateTokens(user!);
+
+      context.response.body = { accessToken, refreshToken };
     })
     .catch((error) => {
       console.error("Error updating password:", error);
@@ -121,9 +167,9 @@ authRouter.post("/register", async (context) => {
   const newUser = new User(username, hash);
   await dbSqLiteHandler.insertUser(newUser);
 
-  const token = await generateToken(newUser);
+  const { accessToken, refreshToken } = await generateTokens(newUser);
   // await dbSqLiteHandler.insertToken(token, newUser);
-  context.response.body = { token };
+  context.response.body = { accessToken, refreshToken };
 });
 
 export default authRouter;
