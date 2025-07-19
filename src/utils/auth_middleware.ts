@@ -7,7 +7,7 @@ import { Payload, verify } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
 export async function decodeAndVerifyToken(token: string, ip: string): Promise<Payload | null> {
   try {
     const payload = await verify(token, SECRET_KEY);
-    console.log(`User authenticated: ${payload.username} from IP: ${ip}`);
+
     return payload;
   } catch (error) {
     if (error instanceof Error) {

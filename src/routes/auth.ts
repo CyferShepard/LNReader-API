@@ -53,6 +53,7 @@ authRouter.post("/login", async (context) => {
   }
 
   const token = await generateToken(user!);
+  console.log(`User ${user.username} logged in successfully. IP: ${context.request.ip}`);
   // await dbSqLiteHandler.insertToken(token, user);
   context.response.body = { token };
 });
