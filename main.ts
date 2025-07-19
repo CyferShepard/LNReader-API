@@ -1,4 +1,4 @@
-import { Application, Router, Context, send } from "https://deno.land/x/oak@v17.1.3/mod.ts";
+import { Application, Router } from "https://deno.land/x/oak@v17.1.3/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
 import "./src/classes/extensions.ts";
@@ -11,7 +11,6 @@ import proxyRouter from "./src/routes/proxy.ts";
 import { FavouritesUpdateChecker } from "./src/services/favourites_update_checker.ts";
 import authMiddleware from "./src/utils/auth_middleware.ts";
 import { wsClients } from "./src/utils/config.ts";
-import sendMessage from "./src/classes/websockets.ts";
 
 const app = new Application();
 const router = new Router();

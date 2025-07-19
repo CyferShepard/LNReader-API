@@ -1,5 +1,10 @@
 import { SourceFilterField } from "./source_filter.ts";
 
+interface SourceJSON {
+  name: string;
+  filters: (Record<string, unknown> | string)[];
+}
+
 export class Source {
   name: string;
   filters: SourceFilterField[];
@@ -9,10 +14,10 @@ export class Source {
     this.filters = filters;
   }
 
-  static fromJSON(data: any): Source {
+  static fromJSON(data: SourceJSON): Source {
     return new Source(
       data.name,
-      data.filters.map((filter: any) => SourceFilterField.fromJSON(filter))
+      data.filters.map((filter: Record<string, unknown> | string) => SourceFilterField.fromJSON(filter))
     );
   }
 

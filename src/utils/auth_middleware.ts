@@ -1,17 +1,22 @@
 import { Context } from "https://deno.land/x/oak@v17.1.3/mod.ts";
 import { SECRET_KEY } from "./secret_key.ts";
-import { verify } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
+import { Payload, verify } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
 
 // Middleware to check for authorization
 
-export async function decodeAndVerifyToken(token: string): Promise<any> {
+export async function decodeAndVerifyToken(token: string, ip: string): Promise<Payload | null> {
   try {
     const payload = await verify(token, SECRET_KEY);
-    console.log("Decoded payload:", payload);
+    console.log(`User authenticated: ${payload.username} from IP: ${ip}`);
     return payload;
   } catch (error) {
-    console.error("Failed to verify token:", error);
-    throw error;
+    if (error instanceof Error) {
+      console.error(`[Unauthorized]: (${ip}) Failed to verify token: ${error.message}`);
+    } else {
+      console.error(`[Unauthorized]: (${ip}) Failed to verify token: ${error}`);
+    }
+    return null;
+    // throw error;
   }
 }
 
@@ -31,7 +36,7 @@ export default async function authMiddleware(context: Context, next: () => Promi
 
   const user = await (async () => {
     try {
-      return await decodeAndVerifyToken(token);
+      return await decodeAndVerifyToken(token, context.request.ip);
     } catch (e) {
       console.error("Failed to decode token:", e);
       return null;

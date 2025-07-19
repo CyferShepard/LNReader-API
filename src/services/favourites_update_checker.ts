@@ -1,7 +1,7 @@
 import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { Chapter } from "../schemas/chapter.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
-import { getPayload, getSource } from "../classes/payload-helper.ts";
+import { getPayload } from "../classes/payload-helper.ts";
 import { parseQuery } from "../classes/api-parser.ts";
 import { broadcastMessage } from "../classes/websockets.ts";
 import { downloadGithubFolder } from "../utils/configUpdater.ts";
@@ -71,6 +71,7 @@ export class FavouritesUpdateChecker {
             // Use a dummy base if payload.url is relative
             const urlObj = new URL(payload.url);
             hasPageParam = urlObj.searchParams.has("page");
+            // deno-lint-ignore no-unused-vars
           } catch (e) {
             // If payload.url is not a valid URL, fallback to string check
             hasPageParam = /[?&]page=/.test(payload.url);

@@ -1,13 +1,11 @@
 import { Categorties } from "../schemas/categories.ts";
 import { Chapter } from "../schemas/chapter.ts";
-import type { ChapterWithContent } from "../schemas/chaptersWithContent.ts";
 import { Favourite } from "../schemas/favourites.ts";
 import { FavouriteWitChapterMeta } from "../schemas/favouritesWithChapterMeta.ts";
 import { FavouriteWithNovelMeta } from "../schemas/favouritesWithNovelMeta.ts";
 import { History } from "../schemas/history.ts";
 import { ImageCache } from "../schemas/imageCache.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
-import { NovelMetaWithChapters } from "../schemas/novel_metaWithChapters.ts";
 import { User } from "../schemas/users.ts";
 import { Database } from "jsr:@db/sqlite@0.11";
 
@@ -224,7 +222,7 @@ class DBSqLiteHandler {
     }
 
     if (categoryName == null) {
-      var categories = await this.getCategories(username);
+      const categories = await this.getCategories(username);
       if (categories && categories.length > 0) {
         categoryName = categories[0].name;
       } else {
@@ -394,8 +392,6 @@ class DBSqLiteHandler {
     }
   }
 
-  updateNovelCategory(username: string, categoryName: string) {}
-
   //select
 
   public async getAllUser(): Promise<User[]> {
@@ -406,7 +402,7 @@ class DBSqLiteHandler {
     const stmt = this.db!.prepare("SELECT username,userlevel FROM users");
     const results = stmt.all();
 
-    return results.map((result: any) => User.fromResult(result));
+    return results.map((result: Record<string, unknown>) => User.fromResult(result));
   }
 
   public async getUser(username: string) {
@@ -415,7 +411,7 @@ class DBSqLiteHandler {
     }
 
     const stmt = this.db!.prepare("SELECT * FROM users WHERE username=:username");
-    const result: any = stmt.get({ username: username });
+    const result: Record<string, unknown> | undefined = stmt.get({ username: username });
 
     if (result) {
       return User.fromResult(result);
@@ -437,10 +433,10 @@ class DBSqLiteHandler {
     }
 
     const stmt = this.db!.prepare("SELECT * FROM chapter_meta WHERE source=:source AND novelUrl=:url ORDER BY chapterIndex");
-    const results: any = stmt.all({ source: source, url: url });
+    const results: Record<string, unknown>[] | undefined = stmt.all({ source: source, url: url });
 
     if (results && results.length > 0) {
-      return results.map((result: any) => Chapter.fromResult(result));
+      return results.map((result: Record<string, unknown>) => Chapter.fromResult(result));
     }
     return [];
   }
@@ -451,7 +447,7 @@ class DBSqLiteHandler {
     }
 
     const stmt = this.db!.prepare("SELECT * FROM chapter_meta WHERE source=:source AND url=:url LIMIT 1");
-    const result: any = stmt.get({ source: source, url: url });
+    const result: Record<string, unknown> | undefined = stmt.get({ source: source, url: url });
 
     if (result) {
       return Chapter.fromResult(result);
@@ -465,7 +461,7 @@ class DBSqLiteHandler {
     }
 
     const stmt = this.db!.prepare("SELECT * FROM images WHERE url=:url LIMIT 1");
-    const result: any = stmt.get({ url: url });
+    const result: Record<string, unknown> | undefined = stmt.get({ url: url });
 
     if (result) {
       return ImageCache.fromResult(result);
@@ -493,10 +489,10 @@ and f.username=:username
 
   order by cm.date_added desc, cm.chapterIndex desc
     `);
-    const results: any = stmt.all({ username: username });
+    const results: Record<string, unknown>[] | undefined = stmt.all({ username: username });
 
     if (results && results.length > 0) {
-      return results.map((result: any) => FavouriteWitChapterMeta.fromResult(result));
+      return results.map((result: Record<string, unknown>) => FavouriteWitChapterMeta.fromResult(result));
     }
     return [];
   }
@@ -507,7 +503,7 @@ and f.username=:username
     }
 
     const stmt = this.db!.prepare("SELECT * FROM novel_meta WHERE source=:source AND url=:url limit 1");
-    const results: any = stmt.all({ source: source, url: url });
+    const results: Record<string, unknown>[] | undefined = stmt.all({ source: source, url: url });
 
     if (results && results.length > 0) {
       return NovelMeta.fromResult(results[0]);
@@ -535,7 +531,7 @@ where lh.username=:username  and lh.url=:url
 ORDER BY lh.last_read DESC
         `);
 
-      const results: any = stmt.get({ username: username, url: url });
+      const results: Record<string, unknown> | undefined = stmt.get({ username: username, url: url });
 
       if (results) {
         return History.fromResult(results);
@@ -561,10 +557,10 @@ ORDER BY lh.last_read DESC
       ORDER BY lh.last_read DESC
         `);
 
-      const results: any = stmt.all({ username: username, url: novelUrl });
+      const results: Record<string, unknown>[] | undefined = stmt.all({ username: username, url: novelUrl });
 
       if (results) {
-        return results.map((result: any) => History.fromResult(result));
+        return results.map((result: Record<string, unknown>) => History.fromResult(result));
       }
 
       return null;
@@ -594,7 +590,7 @@ where username=:username
 ORDER BY lh.last_read DESC`);
     const results = stmt.all({ username: username });
 
-    return results.map((result: any) => History.fromResult(result));
+    return results.map((result: Record<string, unknown>) => History.fromResult(result));
   }
 
   public async getFavourites(username: string, url: string | null = null, source: string | null = null) {
@@ -627,7 +623,8 @@ ORDER BY lh.last_read DESC`);
       on nm.source=f.source and nm.url=f.url 
 
     WHERE f.username=:username`;
-    let params: any = { username: username };
+    // deno-lint-ignore no-explicit-any
+    let params: Record<string, any> = { username: username };
     if (url && source) {
       statement += " AND f.url=:url AND f.source=:source";
       params = { username: params.username, url: url, source: source };
@@ -638,7 +635,7 @@ ORDER BY lh.last_read DESC`);
 
     const results = stmt.all(params);
 
-    const refavouriteWithNovelMeta: FavouriteWithNovelMeta[] = results.map((result: any) =>
+    const refavouriteWithNovelMeta: FavouriteWithNovelMeta[] = results.map((result: Record<string, unknown>) =>
       FavouriteWithNovelMeta.fromResult(result)
     );
 
@@ -656,7 +653,7 @@ ORDER BY lh.last_read DESC`);
 
     const results = stmt.all();
 
-    const refavourites: Favourite[] = results.map((result: any) => Favourite.fromResult(result));
+    const refavourites: Favourite[] = results.map((result: Record<string, unknown>) => Favourite.fromResult(result));
 
     return refavourites;
   }
@@ -667,9 +664,9 @@ ORDER BY lh.last_read DESC`);
     }
 
     const stmt = this.db!.prepare("SELECT * FROM categories WHERE username=:username ORDER BY position");
-    const results: any = stmt.all({ username: username });
+    const results: Record<string, unknown>[] | undefined = stmt.all({ username: username });
 
-    return results.map((result: any) => Categorties.fromResult(result));
+    return results.map((result: Record<string, unknown>) => Categorties.fromResult(result));
   }
 
   public async getCategoriesLinkByNovel(username: string, source: string, url: string) {
@@ -678,9 +675,9 @@ ORDER BY lh.last_read DESC`);
     }
 
     const stmt = this.db!.prepare("SELECT * FROM favouritesCategories WHERE username=:username AND source=:source AND url=:url");
-    const results: any = stmt.all({ username: username, source: source, url: url });
+    const results: Record<string, unknown>[] | undefined = stmt.all({ username: username, source: source, url: url });
 
-    return results.map((result: any) => Categorties.fromResult(result));
+    return results.map((result: Record<string, unknown>) => Categorties.fromResult(result));
   }
   //delete
 
@@ -782,8 +779,8 @@ ORDER BY lh.last_read DESC`);
         ORDER BY lh.last_read DESC
         `);
 
-    const results: any = selectStmt.all({ username: username, url: url, source: source });
-    const chapterMeta = results.map((result: any) => Chapter.fromResult(result));
+    const results: Record<string, unknown>[] | undefined = selectStmt.all({ username: username, url: url, source: source });
+    const chapterMeta = results.map((result: Record<string, unknown>) => Chapter.fromResult(result));
 
     if (chapterMeta.length > 0) {
       const urls = chapterMeta.map((chapter: Chapter) => chapter.url);
@@ -810,8 +807,8 @@ ORDER BY lh.last_read DESC`);
         ORDER BY lh.last_read DESC
         `);
 
-    const results: any = selectStmt.all({ url: url, source: source });
-    const chapterMeta = results.map((result: any) => Chapter.fromResult(result));
+    const results: Record<string, unknown>[] | undefined = selectStmt.all({ url: url, source: source });
+    const chapterMeta = results.map((result: Record<string, unknown>) => Chapter.fromResult(result));
 
     if (chapterMeta.length > 0) {
       const urls = chapterMeta.map((chapter: Chapter) => chapter.url);

@@ -8,7 +8,8 @@ import { getPayload, getPlugins, getSource, PLUGINS } from "../classes/payload-h
 import { downloadGithubFolder } from "../utils/configUpdater.ts";
 import { allowRegistration, setAllowRegistration } from "../utils/config.ts";
 import { Categorties } from "../schemas/categories.ts";
-import sendMessage, { broadcastMessage } from "../classes/websockets.ts";
+import { broadcastMessage } from "../classes/websockets.ts";
+import { SourceSearch } from "../models/source_search.ts";
 
 const apiRouter = new Router({ prefix: "/api" });
 
@@ -200,6 +201,69 @@ apiRouter.post("/search", authMiddleware, async (context) => {
   // context.response.body = !Array.isArray(results) && results != undefined ? [results] : results || [];
 });
 
+apiRouter.post("/searchMultiple", authMiddleware, async (context) => {
+  const { searchPayload } = await context.request.body.json();
+
+  if (!searchPayload || typeof searchPayload !== "object") {
+    context.response.status = 400;
+    context.response.body = { error: "Search payload is required and must be an object" };
+    return;
+  }
+
+  const searchPayloadData: Array<SourceSearch> = SourceSearch.fromJsonList(searchPayload);
+
+  for (const payloadData of searchPayloadData) {
+    const source = payloadData.source;
+    const searchParams = payloadData.searchParams;
+
+    const payload: ScraperPayload | null = await getPayload("search", source);
+    if (!payload) {
+      continue;
+    }
+    if (payload.waitForPageLoad) {
+      configureBrowser();
+    }
+    if (payload.type === "POST") {
+      if (payload.bodyType === BodyType.FORM_DATA) {
+        payload.body = new FormData();
+
+        if (typeof searchParams === "string") {
+          const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
+          for (const [key, value] of params.entries()) {
+            payload.body.set(key, value);
+          }
+        }
+      } else if (payload.bodyType === BodyType.JSON) {
+        if (typeof searchParams === "string") {
+          const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
+          for (const [key, value] of params.entries()) {
+            (payload.body as Record<string, unknown>)[key] = value;
+          }
+        }
+      }
+    } else {
+      if (searchParams != null) {
+        payload.url = payload.url + searchParams;
+      }
+    }
+
+    payload.url = payload.url.replace("${1}", "1");
+
+    const response: ScraperResponse | null = await parseQuery(payload);
+    const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
+
+    if (results != null && results.results != null && !Array.isArray(results.results)) {
+      results.results = [results.results];
+    }
+
+    if (results != null) {
+      payloadData.results = results || { results: [] };
+    }
+  }
+
+  context.response.body = SourceSearch.toJSONList(searchPayloadData);
+});
+
 apiRouter.post("/novel", authMiddleware, async (context) => {
   const { source, url, cacheData = true, clearCache = false } = await context.request.body.json();
 
@@ -289,6 +353,7 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     // Use a dummy base if payload.url is relative
     const urlObj = new URL(payload.url);
     hasPageParam = urlObj.searchParams.has("page");
+    // deno-lint-ignore no-unused-vars
   } catch (e) {
     // If payload.url is not a valid URL, fallback to string check
     hasPageParam = /[?&]page=/.test(payload.url);
@@ -353,7 +418,7 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/chapter", authMiddleware, async (context) => {
-  const { source, url, cleanText = true } = await context.request.body.json();
+  const { source, url } = await context.request.body.json();
 
   if (!url) {
     context.response.body = { error: "Chapter Path is required" };
@@ -365,7 +430,7 @@ apiRouter.post("/chapter", authMiddleware, async (context) => {
 
   if (!sourcePlugin) {
     context.response.status = 404;
-    context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.id) };
+    context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.name) };
     return;
   }
 

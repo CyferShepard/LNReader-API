@@ -1,4 +1,3 @@
-import { Chapter } from "./chapter.ts";
 import { ChapterMeta } from "./chapter_meta.ts";
 import { NovelMeta } from "./novel_meta.ts";
 
@@ -22,6 +21,7 @@ export class FavouriteWitChapterMeta extends NovelMeta {
     this.chapter = chapter;
   }
 
+  // deno-lint-ignore no-explicit-any
   static override fromResult(data: any): FavouriteWitChapterMeta {
     return new FavouriteWitChapterMeta(
       data.source,

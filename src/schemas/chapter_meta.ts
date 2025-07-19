@@ -1,3 +1,12 @@
+interface ChapterMetaData {
+  source: string;
+  chapterIndex: number;
+  url: string;
+  title: string;
+  novelUrl: string;
+  date_added: string; // or Date if you expect a Date object
+}
+
 export class ChapterMeta {
   source: string;
   chapterIndex: number;
@@ -15,11 +24,11 @@ export class ChapterMeta {
     this.dateAdded = dateAdded;
   }
 
-  static fromResult(data: any): ChapterMeta {
+  static fromResult(data: ChapterMetaData): ChapterMeta {
     return new ChapterMeta(data.source, data.chapterIndex, data.url, data.title, data.novelUrl, new Date(data.date_added));
   }
 
-  static fromJSON(data: any): ChapterMeta {
+  static fromJSON(data: ChapterMetaData): ChapterMeta {
     return new ChapterMeta(
       data.source,
       data.chapterIndex,
