@@ -40,7 +40,9 @@ export default async function authMiddleware(context: Context, next: () => Promi
 
   const user = await (async () => {
     try {
-      return await decodeAndVerifyToken(token, context.request.ip);
+      const forwarded = context.request.headers.get("x-forwarded-for");
+      const ip = forwarded ? forwarded.split(",")[0].trim() : context.request.ip;
+      return await decodeAndVerifyToken(token, ip);
     } catch (e) {
       console.error("Failed to decode token:", e);
       return null;
