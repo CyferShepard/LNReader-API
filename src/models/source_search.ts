@@ -1,7 +1,7 @@
 export class SourceSearch {
   source: string;
   searchParams: string;
-  results?: Record<string, unknown>;
+  searchResult?: Record<string, unknown>;
 
   constructor(source: string, searchParams: string) {
     this.source = source;
@@ -34,7 +34,7 @@ export class SourceSearch {
     return {
       source: this.source,
       searchParams: this.searchParams,
-      results: this.results,
+      searchResult: this.searchResult,
     };
   }
 

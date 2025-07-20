@@ -257,7 +257,7 @@ apiRouter.post("/searchMultiple", authMiddleware, async (context) => {
     }
 
     if (results != null) {
-      payloadData.results = results || { results: [] };
+      payloadData.searchResult = results || { results: [] };
     }
   }
 

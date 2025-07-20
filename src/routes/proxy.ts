@@ -75,13 +75,16 @@ proxyRouter.get("/imageProxy", async (context) => {
     if (!response.ok) {
       context.response.status = response.status;
       context.response.body = { error: "Failed to fetch image" };
+      console.error(`Failed to fetch image from URL: ${imageUrl}, Status: ${response.status}`);
       return;
     }
 
     const contentType = response.headers.get("Content-Type");
-    if (!contentType || !contentType.startsWith("image/")) {
+    const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml", "application/octet-stream"];
+    if (!contentType || !validImageTypes.includes(contentType)) {
       context.response.status = 400;
       context.response.body = { error: "Invalid image URL" };
+      console.error(`Invalid image URL: ${imageUrl} with content type: ${contentType}`);
       return;
     }
 
