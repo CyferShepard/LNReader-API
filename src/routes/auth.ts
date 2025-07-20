@@ -62,7 +62,9 @@ authRouter.post("/login", async (context) => {
   }
 
   const { accessToken, refreshToken } = await generateTokens(user!);
-  console.log(`User ${user.username} logged in successfully. IP: ${context.request.ip}`);
+  const forwarded = context.request.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0].trim() : context.request.ip;
+  console.log(`User ${user.username} logged in successfully. IP: ${ip}`);
   // await dbSqLiteHandler.insertToken(token, user);
 
   context.response.body = { accessToken, refreshToken };
@@ -77,7 +79,10 @@ authRouter.post("/refresh", async (context) => {
     return;
   }
 
-  const decodedToken = await decodeAndVerifyToken(token, context.request.ip, "refresh");
+  const forwarded = context.request.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0].trim() : context.request.ip;
+
+  const decodedToken = await decodeAndVerifyToken(token, ip, "refresh");
   if (!decodedToken) {
     context.response.status = 401;
     context.response.body = { error: "Unauthorized" };
@@ -93,7 +98,8 @@ authRouter.post("/refresh", async (context) => {
   }
 
   const { accessToken, refreshToken } = await generateTokens(user!);
-  console.log(`User ${user.username} logged in successfully. IP: ${context.request.ip}`);
+
+  console.log(`User ${user.username} logged in successfully. IP: ${ip}`);
   // await dbSqLiteHandler.insertToken(token, user);
   context.response.body = { accessToken, refreshToken };
 });
