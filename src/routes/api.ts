@@ -213,51 +213,55 @@ apiRouter.post("/searchMultiple", authMiddleware, async (context) => {
   const searchPayloadData: Array<SourceSearch> = SourceSearch.fromJsonList(searchPayload);
 
   for (const payloadData of searchPayloadData) {
-    const source = payloadData.source;
-    const searchParams = payloadData.searchParams;
+    try {
+      const source = payloadData.source;
+      const searchParams = payloadData.searchParams;
 
-    const payload: ScraperPayload | null = await getPayload("search", source);
-    if (!payload) {
-      continue;
-    }
-    if (payload.waitForPageLoad) {
-      configureBrowser();
-    }
-    if (payload.type === "POST") {
-      if (payload.bodyType === BodyType.FORM_DATA) {
-        payload.body = new FormData();
+      const payload: ScraperPayload | null = await getPayload("search", source);
+      if (!payload) {
+        continue;
+      }
+      if (payload.waitForPageLoad) {
+        configureBrowser();
+      }
+      if (payload.type === "POST") {
+        if (payload.bodyType === BodyType.FORM_DATA) {
+          payload.body = new FormData();
 
-        if (typeof searchParams === "string") {
-          const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
-          for (const [key, value] of params.entries()) {
-            payload.body.set(key, value);
+          if (typeof searchParams === "string") {
+            const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
+            for (const [key, value] of params.entries()) {
+              payload.body.set(key, value);
+            }
+          }
+        } else if (payload.bodyType === BodyType.JSON) {
+          if (typeof searchParams === "string") {
+            const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
+            for (const [key, value] of params.entries()) {
+              (payload.body as Record<string, unknown>)[key] = value;
+            }
           }
         }
-      } else if (payload.bodyType === BodyType.JSON) {
-        if (typeof searchParams === "string") {
-          const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
-          for (const [key, value] of params.entries()) {
-            (payload.body as Record<string, unknown>)[key] = value;
-          }
+      } else {
+        if (searchParams != null) {
+          payload.url = payload.url + searchParams;
         }
       }
-    } else {
-      if (searchParams != null) {
-        payload.url = payload.url + searchParams;
+
+      payload.url = payload.url.replace("${1}", "1");
+
+      const response: ScraperResponse | null = await parseQuery(payload);
+      const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
+
+      if (results != null && results.results != null && !Array.isArray(results.results)) {
+        results.results = [results.results];
       }
-    }
 
-    payload.url = payload.url.replace("${1}", "1");
-
-    const response: ScraperResponse | null = await parseQuery(payload);
-    const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
-
-    if (results != null && results.results != null && !Array.isArray(results.results)) {
-      results.results = [results.results];
-    }
-
-    if (results != null) {
-      payloadData.searchResult = results || { results: [] };
+      if (results != null) {
+        payloadData.searchResult = results || { results: [] };
+      }
+    } catch (error) {
+      console.error(`Error processing search for source: ${payloadData.source}`, error);
     }
   }
 
