@@ -76,6 +76,20 @@ apiRouter.get("/canRegister", (context) => {
   context.response.body = { canRegister: allowRegistration };
 });
 
+apiRouter.get("/configs", async (context) => {
+  const clientType = context.request.url.searchParams.get("type");
+
+  if (!clientType) {
+    const configs = await dbSqLiteHandler.getAllClientConfigs();
+    context.response.body = configs;
+    return;
+  }
+
+  const config = await dbSqLiteHandler.getClientConfig(clientType);
+
+  context.response.body = config;
+});
+
 apiRouter.post("/canRegister", authMiddleware, async (context) => {
   const { canRegister } = await context.request.body.json();
 

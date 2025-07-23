@@ -1,5 +1,6 @@
 import { Categorties } from "../schemas/categories.ts";
 import { Chapter } from "../schemas/chapter.ts";
+import { ClientConfig } from "../schemas/client_config.ts";
 import { Favourite } from "../schemas/favourites.ts";
 import { FavouriteWitChapterMeta } from "../schemas/favouritesWithChapterMeta.ts";
 import { FavouriteWithNovelMeta } from "../schemas/favouritesWithNovelMeta.ts";
@@ -22,13 +23,6 @@ class DBSqLiteHandler {
         userlevel INTEGER DEFAULT 1
       )
     `);
-
-    // await this.db.exec(`
-    //   CREATE TABLE IF NOT EXISTS tokens (
-    //     token TEXT UNIQUE PRIMARY KEY ,
-    //     user TEXT
-    //   )
-    // `);
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS history (
@@ -119,12 +113,27 @@ class DBSqLiteHandler {
       )
     `);
 
+    await this.db.exec(`
+      CREATE TABLE IF NOT EXISTS config (
+        client_version TEXT,
+        client_type TEXT ,
+        PRIMARY KEY (client_type, client_version)
+      )
+    `);
+
     const users = await this.getAllUser();
+
     if (users.length === 0) {
       const user = new User("admin", "$2a$10$ZG7ZuVE.MfN9HTPj1GLluegeA.wsVYn75dkv6R5ItVMBwSxnZS7WG", 0);
       const categories = new Categorties("Favourites", "admin", 0);
       await this.insertUser(user);
       await this.insertCategories(categories);
+    }
+
+    const configs = await this.getAllClientConfigs();
+    if (configs.length === 0) {
+      const config = new ClientConfig("1.0.0", "web");
+      await this.insertConfig(config.client_version, config.client_type);
     }
   }
 
@@ -390,6 +399,15 @@ class DBSqLiteHandler {
     } finally {
       stmt.finalize();
     }
+  }
+
+  public async insertConfig(client_version: string, client_type: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO config VALUES (:client_version, :client_type)");
+    stmt.run({ client_version: client_version, client_type: client_type });
   }
 
   //select
@@ -679,6 +697,37 @@ ORDER BY lh.last_read DESC`);
 
     return results.map((result: Record<string, unknown>) => Categorties.fromResult(result));
   }
+
+  public async getClientConfig(client_type: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const statement = "SELECT * FROM config WHERE client_type=:client_type";
+    const params: Record<string, string> = { client_type: client_type };
+
+    const stmt = this.db!.prepare(statement);
+    const result: Record<string, unknown> | Record<string, unknown>[] | undefined = stmt.get(params);
+
+    if (result) {
+      return ClientConfig.fromJSON(result);
+    }
+    return null;
+  }
+
+  public async getAllClientConfigs() {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const statement = "SELECT * FROM config";
+
+    const stmt = this.db!.prepare(statement);
+    const result: Record<string, unknown>[] | undefined = stmt.all();
+
+    return ClientConfig.fromJSONList(result);
+  }
+
   //delete
 
   public async deleteHistoryExceptLatest(chapter: Chapter, novel: NovelMeta, username: string) {
