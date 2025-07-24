@@ -91,7 +91,7 @@ apiRouter.get("/configs", async (context) => {
   context.response.body = config;
 });
 
-apiRouter.post("/config", async (context) => {
+apiRouter.post("/config", authMiddleware, async (context) => {
   const { type, version } = await context.request.body.json();
 
   if (!type || !version) {
