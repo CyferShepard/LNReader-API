@@ -10,6 +10,7 @@ import { allowRegistration, setAllowRegistration } from "../utils/config.ts";
 import { Categorties } from "../schemas/categories.ts";
 import { broadcastMessage } from "../classes/websockets.ts";
 import { SourceSearch } from "../models/source_search.ts";
+import { ClientConfig } from "../schemas/client_config.ts";
 
 const apiRouter = new Router({ prefix: "/api" });
 
@@ -86,6 +87,21 @@ apiRouter.get("/configs", async (context) => {
   }
 
   const config = await dbSqLiteHandler.getClientConfig(clientType);
+
+  context.response.body = config;
+});
+
+apiRouter.post("/config", async (context) => {
+  const { type, version } = await context.request.body.json();
+
+  if (!type || !version) {
+    context.response.status = 400;
+    context.response.body = { error: "Client type and version are required" };
+    return;
+  }
+
+  const config = new ClientConfig(version, type);
+  await dbSqLiteHandler.insertConfig(version, type);
 
   context.response.body = config;
 });
