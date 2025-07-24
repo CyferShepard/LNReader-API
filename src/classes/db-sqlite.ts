@@ -634,7 +634,9 @@ ORDER BY lh.last_read DESC`);
       WHERE cm.novelUrl = f.url AND cm.source = f.source
       ORDER BY cm.chapterIndex DESC
       LIMIT 1
-    ) as chapter_date_added
+    ) as chapter_date_added,
+    (SELECT h.last_read from history h  JOIN chapter_meta cm ON h.url = cm.url AND h.source = cm.source
+     WHERE h.username =:username AND cm.novelUrl = f.url AND cm.source = f.source order by h.last_read desc limit 1 ) last_read
      
     FROM favourites f 
     JOIN novel_meta nm 

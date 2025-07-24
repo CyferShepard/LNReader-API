@@ -3,6 +3,7 @@ import { NovelMeta } from "./novel_meta.ts";
 export class FavouriteWithNovelMeta extends NovelMeta {
   date_added: string;
   chapter_date_added: string;
+  last_read: string;
   chapterCount: number;
   readCount: number;
   categories: string[];
@@ -22,7 +23,8 @@ export class FavouriteWithNovelMeta extends NovelMeta {
     chapterCount: number = 0,
     readCount: number = 0,
     categories: string[],
-    chapter_date_added: string
+    chapter_date_added: string,
+    last_read: string
   ) {
     super(source, url, cover, title, summary, author, status, genres, lastUpdate ?? "Unknown", additionalProps);
     this.date_added = date_added;
@@ -30,6 +32,7 @@ export class FavouriteWithNovelMeta extends NovelMeta {
     this.readCount = readCount;
     this.categories = categories;
     this.chapter_date_added = chapter_date_added;
+    this.last_read = last_read;
   }
 
   static override fromResult(data: any): FavouriteWithNovelMeta {
@@ -48,7 +51,8 @@ export class FavouriteWithNovelMeta extends NovelMeta {
       data.chapterCount ?? 0,
       data.readCount ?? 0,
       data.categories,
-      data.chapter_date_added
+      data.chapter_date_added,
+      data.last_read
     );
   }
 
@@ -69,6 +73,7 @@ export class FavouriteWithNovelMeta extends NovelMeta {
       readCount: this.readCount,
       categories: this.categories,
       chapter_date_added: this.chapter_date_added,
+      last_read: this.last_read,
     };
   }
 }
