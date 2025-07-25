@@ -116,8 +116,7 @@ class DBSqLiteHandler {
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS config (
         client_version TEXT,
-        client_type TEXT ,
-        PRIMARY KEY (client_type, client_version)
+        client_type TEXT PRIMARY KEY
       )
     `);
 
