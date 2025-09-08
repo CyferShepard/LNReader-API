@@ -11,6 +11,7 @@ import proxyRouter from "./src/routes/proxy.ts";
 import { FavouritesUpdateChecker } from "./src/services/favourites_update_checker.ts";
 import authMiddleware from "./src/utils/auth_middleware.ts";
 import { wsClients } from "./src/utils/config.ts";
+import { BackupService } from "./src/services/backup_service.ts";
 
 const app = new Application();
 const router = new Router();
@@ -52,6 +53,10 @@ app.use(proxyRouter.routes(), proxyRouter.allowedMethods());
 app.use(favouritesRouter.routes(), favouritesRouter.allowedMethods());
 app.use(historyRouter.routes(), historyRouter.allowedMethods());
 const checker = new FavouritesUpdateChecker(60 * 60 * 1000); // 12 Hours
+
+const backupService = new BackupService();
+await backupService.start();
+
 checker.start();
 
 const port = 8000;

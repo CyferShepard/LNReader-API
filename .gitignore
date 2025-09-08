@@ -38,3 +38,4 @@ deno.lock
 Thumbs.db
 
 /src/plugins
+data

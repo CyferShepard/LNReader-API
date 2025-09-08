@@ -11,9 +11,9 @@ import { User } from "../schemas/users.ts";
 import { Database } from "jsr:@db/sqlite@0.11";
 
 class DBSqLiteHandler {
-  private db: Database | undefined;
+  public db: Database | undefined;
 
-  private async initialize() {
+  public async initialize() {
     this.db = await new Database("./data/ln-api.db");
 
     await this.db.exec(`
