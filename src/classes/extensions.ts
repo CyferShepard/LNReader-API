@@ -9,6 +9,10 @@ declare global {
   interface String {
     replaceKeys(values: Record<string, unknown>): string;
   }
+
+  interface FormData {
+    replaceKeys(values: Record<string, unknown>): FormData;
+  }
 }
 
 // Implementation of firstOrDefault
@@ -41,4 +45,16 @@ Array.prototype.findOrNull = function <T>(predicate: (value: T) => boolean): T |
 
 String.prototype.replaceKeys = function (values: Record<string, unknown>): string {
   return this.replace(/\$\{(\w+)\}/g, (_, key) => (values[key] !== undefined ? String(values[key]) : ""));
+};
+
+FormData.prototype.replaceKeys = function (values: Record<string, unknown>): FormData {
+  const newFormData = new FormData();
+  for (const [key, value] of this.entries()) {
+    if (typeof value === "string") {
+      newFormData.set(key, value.replaceKeys(values));
+    } else {
+      newFormData.set(key, value);
+    }
+  }
+  return newFormData;
 };

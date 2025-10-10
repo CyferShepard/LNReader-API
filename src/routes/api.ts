@@ -28,6 +28,18 @@ function configureBrowser() {
 //   return template.replace(/\$\{(\w+)\}/g, (_, key) => (values[key] !== undefined ? String(values[key]) : ""));
 // }
 
+function replaceKeysInRecord(obj: Record<string, unknown>, values: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, val] of Object.entries(obj)) {
+    if (typeof val === "string") {
+      result[key] = val.replaceKeys(values);
+    } else {
+      result[key] = val;
+    }
+  }
+  return result;
+}
+
 async function getChapter(context: Context, url: string, source: string): Promise<Record<string, unknown> | null> {
   const payload: ScraperPayload | null = await getPayload("chapter", source);
   if (!payload) {
@@ -192,7 +204,10 @@ apiRouter.post("/search", authMiddleware, async (context) => {
 
   if (payload.type === "POST") {
     if (payload.bodyType === BodyType.FORM_DATA) {
-      payload.body = new FormData();
+      // payload.body = new FormData();
+      if (!payload.body || !(payload.body instanceof FormData)) {
+        payload.body = new FormData();
+      }
 
       if (typeof searchParams === "string") {
         const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
@@ -379,6 +394,21 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
   payload.url = payload.url.replace("${0}", url);
 
   if (additionalProps && typeof additionalProps === "object" && Object.keys(additionalProps).length > 0) {
+    if (payload.bodyType === BodyType.FORM_DATA) {
+      // payload.body = new FormData();
+      if (!payload.body || !(payload.body instanceof FormData)) {
+        payload.body = new FormData();
+      }
+      payload.body = payload.body.replaceKeys(additionalProps);
+      // console.log("Replaced body:", payload.body);
+    } else if (payload.bodyType === BodyType.JSON) {
+      if (!payload.body || typeof payload.body !== "object") {
+        payload.body = {};
+      }
+
+      payload.body = replaceKeysInRecord(payload.body as Record<string, unknown>, additionalProps);
+    }
+
     payload.url = payload.url.replaceKeys(additionalProps);
   }
 
@@ -403,6 +433,7 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     while (page < maxPage) {
       page++;
       payload.url = originalUrl.replace("${1}", `${page}`); // Replace page number in URL
+      console.log("Fetching chapters from URL:", payload.url);
       const response: ScraperResponse | null = await parseQuery(payload);
       const _results: Array<Record<string, unknown>> | null =
         response?.results && response?.results.length > 0

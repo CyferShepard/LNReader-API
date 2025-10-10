@@ -73,7 +73,7 @@ export class FieldOptions {
 }
 
 export class FilterType {
-  type: "main" | "text" | "numeric" | "dropdown" | "multiSelect" | "singleSelect" | "slider";
+  type: "main" | "text" | "numeric" | "dropdown" | "multiSelect" | "singleSelect" | "slider" | "toggle";
   fieldOptions: FieldOptions[];
   minValue?: number;
   maxValue?: number;
@@ -86,7 +86,7 @@ export class FilterType {
     maxValue,
     defaultValue,
   }: {
-    type: "main" | "text" | "numeric" | "dropdown" | "multiSelect" | "singleSelect" | "slider";
+    type: "main" | "text" | "numeric" | "dropdown" | "multiSelect" | "singleSelect" | "slider" | "toggle";
     fieldOptions?: FieldOptions[];
     minValue?: number;
     maxValue?: number;
@@ -147,6 +147,13 @@ export class FilterType {
     return new FilterType({
       type: "multiSelect",
       fieldOptions: options,
+      defaultValue: defaultValue,
+    });
+  }
+
+  static Toggle(defaultValue?: string): FilterType {
+    return new FilterType({
+      type: "toggle",
       defaultValue: defaultValue,
     });
   }
