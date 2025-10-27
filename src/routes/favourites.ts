@@ -46,6 +46,7 @@ favouritesRouter.post("/insert", authMiddleware, async (context) => {
       novelMeta.author,
       novelMeta.status,
       novelMeta.genres,
+      novelMeta.tags,
       novelMeta.lastUpdate ?? "Unknown"
     );
     console.log("Inserting Novel Meta:", JSON.stringify(novelData, null, 2));

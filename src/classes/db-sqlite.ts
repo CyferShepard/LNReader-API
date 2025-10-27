@@ -13,6 +13,27 @@ import { Database } from "jsr:@db/sqlite@0.11";
 class DBSqLiteHandler {
   public db: Database | undefined;
 
+  public async addColumnIfNotExists(tableName: string, columnName: string, columnDefinition: string) {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    // Check if the column already exists
+    const stmt = this.db!.prepare(`PRAGMA table_info(${tableName})`);
+    const columns: Array<{ name: string }> = stmt.all();
+
+    const columnExists = columns.some((col) => col.name === columnName);
+
+    if (!columnExists) {
+      // Add the column if it doesn't exist
+      const alterStmt = `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`;
+      await this.db!.exec(alterStmt);
+      console.log(`Added column '${columnName}' to table '${tableName}'`);
+    } else {
+      console.log(`Column '${columnName}' already exists in table '${tableName}'`);
+    }
+  }
+
   public async initialize() {
     this.db = await new Database("./data/ln-api.db");
 
@@ -71,6 +92,8 @@ class DBSqLiteHandler {
         PRIMARY KEY (source, url)
       )
     `);
+
+    await dbSqLiteHandler.addColumnIfNotExists("novel_meta", "tags", "TEXT");
 
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS chapter_meta (
@@ -144,20 +167,22 @@ class DBSqLiteHandler {
     }
 
     const stmt = this.db!.prepare(
-      "INSERT OR REPLACE INTO novel_meta VALUES (:source,:url,:title,:cover,:summary, :author, :status, :genres, :last_updated, :additionalProps)"
+      "INSERT OR REPLACE INTO novel_meta VALUES (:source,:url,:title,:cover,:summary, :author, :status, :genres,  :last_updated, :additionalProps, :tags)"
     );
 
     const genres = Array.isArray(novel.genres) ? novel.genres.join(",") : novel.genres || "";
     const summary = Array.isArray(novel.summary) ? novel.summary.join("\n") : novel.summary || "";
+    const author = Array.isArray(novel.author) ? novel.author.join(", ") : novel.author || "";
     stmt.run({
       source: novel.source,
       url: novel.url,
       title: novel.title,
       cover: novel.cover,
       summary: summary,
-      author: novel.author,
+      author: author,
       status: novel.status,
       genres: genres,
+      tags: JSON.stringify(novel.tags || []),
       last_updated: novel.lastUpdate,
       additionalProps: JSON.stringify(novel.additionalProps || {}),
     });
@@ -539,7 +564,7 @@ and f.username=:username
         (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl, 'chapterIndex',c.chapterIndex)
         FROM chapter_meta c 
         WHERE c.url=:url) AS chapter,
-       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author', n.author, 'status', n.status, 'genres', n.genres, 'lastUpdate', n.lastUpdate, 'additionalProps', n.additionalProps)
+       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author', n.author, 'status', n.status, 'genres', n.genres, 'tags', n.tags, 'lastUpdate', n.lastUpdate, 'additionalProps', n.additionalProps)
         FROM novel_meta n 
         join  chapter_meta c  on n.url=c.novelUrl
         WHERE c.url=:url) AS novel
@@ -563,7 +588,7 @@ ORDER BY lh.last_read DESC
          (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl, 'chapterIndex',c.chapterIndex)
         FROM chapter_meta c 
         WHERE c.novelUrl=:url and c.url=lh.url) AS chapter,
-       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author', n.author, 'status', n.status, 'genres', n.genres, 'lastUpdate', n.lastUpdate, 'additionalProps', n.additionalProps)
+       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author', n.author, 'status', n.status, 'genres', n.genres, 'tags', n.tags, 'lastUpdate', n.lastUpdate, 'additionalProps', n.additionalProps)
         FROM novel_meta n 
         join  chapter_meta c  on n.url=c.novelUrl
         WHERE c.novelUrl=:url) AS novel
@@ -599,7 +624,7 @@ SELECT lh.*,
        (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl, 'chapterIndex',c.chapterIndex)
         FROM chapter_meta c 
         WHERE c.url = lh.url) AS chapter,
-       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author',n.author, 'status', n.status, 'genres', n.genres, 'lastUpdate', n.lastUpdate, 'additionalProps', n.additionalProps)
+       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author',n.author, 'status', n.status, 'genres', n.genres, 'tags', n.tags, 'lastUpdate', n.lastUpdate, 'additionalProps', n.additionalProps)
         FROM novel_meta n 
         WHERE n.url = lh.novelUrl) AS novel
 FROM latest_history lh

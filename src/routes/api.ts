@@ -466,7 +466,7 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
   // }
   if (cacheData == true && results.length > 0) {
     const existingChapters = await dbSqLiteHandler.getCachedChapters(url, source);
-    const novelMeta = new NovelMeta(source, url, "", "", "", "", "", [], "");
+    const novelMeta = new NovelMeta(source, url, "", "", "", "", "", [], [], "");
     const novelChapters: Chapter[] = results.map((chapter) => Chapter.fromJSON(chapter));
     const newChapters: Chapter[] = novelChapters.filter(
       (chapter) => !existingChapters.some((c: Chapter) => c.url === chapter.url)

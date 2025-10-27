@@ -1,3 +1,5 @@
+import { JSONUtils } from "../utils/json_utils.ts";
+
 export class NovelMeta {
   source: string;
   url: string;
@@ -8,6 +10,7 @@ export class NovelMeta {
   author: string;
   status: string;
   genres: string[];
+  tags: string[];
   lastUpdate: string;
   additionalProps: Record<string, unknown> = {};
 
@@ -20,6 +23,7 @@ export class NovelMeta {
     author: string,
     status: string,
     genres: string[],
+    tags: string[] = [],
     lastUpdate: string,
     additionalProps: Record<string, unknown> = {},
     fullUrl?: string
@@ -33,6 +37,7 @@ export class NovelMeta {
     this.author = author;
     this.status = status;
     this.genres = genres;
+    this.tags = tags;
     this.lastUpdate = lastUpdate || "Unknown";
     this.additionalProps = additionalProps;
   }
@@ -47,6 +52,8 @@ export class NovelMeta {
         data.additionalProps = {};
       }
     }
+
+    const tags = JSONUtils.tryParse(data.tags, []);
     return new NovelMeta(
       data.source,
       data.url,
@@ -56,6 +63,7 @@ export class NovelMeta {
       data.author ?? "Unknown",
       data.status ?? "Unknown",
       data.genres || [],
+      tags,
       data.lastUpdate || "Unknown",
       data.additionalProps || {}
     );
@@ -81,6 +89,7 @@ export class NovelMeta {
       data["author"] || "Unknown",
       data["status"] || "Unknown",
       data["genres"] || [],
+      data["tags"] || [],
       data["lastUpdate"] || "Unknown",
       data["additionalProps"]
     );
@@ -97,6 +106,7 @@ export class NovelMeta {
       author: this.author,
       status: this.status,
       genres: this.genres,
+      tags: this.tags,
       lastUpdate: this.lastUpdate,
       additionalProps: this.additionalProps,
     };
