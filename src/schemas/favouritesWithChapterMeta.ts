@@ -1,3 +1,4 @@
+import { JSONUtils } from "../utils/json_utils.ts";
 import { ChapterMeta } from "./chapter_meta.ts";
 import { NovelMeta } from "./novel_meta.ts";
 
@@ -13,16 +14,18 @@ export class FavouriteWitChapterMeta extends NovelMeta {
     author: string,
     status: string,
     genres: string[],
+    tags: string[],
     lastUpdate: string | null,
     additionalProps: Record<string, unknown>,
     chapter: ChapterMeta
   ) {
-    super(source, url, cover, title, summary, author, status, genres, lastUpdate ?? "Unknown", additionalProps);
+    super(source, url, cover, title, summary, author, status, genres, tags, lastUpdate ?? "Unknown", additionalProps);
     this.chapter = chapter;
   }
 
   // deno-lint-ignore no-explicit-any
   static override fromResult(data: any): FavouriteWitChapterMeta {
+    const tags = JSONUtils.tryParse(data.tags, []);
     return new FavouriteWitChapterMeta(
       data.source,
       data.url,
@@ -32,6 +35,7 @@ export class FavouriteWitChapterMeta extends NovelMeta {
       data.author,
       data.status,
       data.genres,
+      tags,
       data.lastUpdate,
       JSON.parse(data.additionalProps),
 
@@ -49,6 +53,7 @@ export class FavouriteWitChapterMeta extends NovelMeta {
       author: this.author,
       status: this.status,
       genres: this.genres,
+      tags: this.tags,
       lastUpdate: this.lastUpdate,
       additionalProps: this.additionalProps,
       chapter: this.chapter.toJSON(),
