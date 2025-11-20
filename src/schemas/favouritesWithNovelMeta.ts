@@ -18,6 +18,7 @@ export class FavouriteWithNovelMeta extends NovelMeta {
     author: string,
     status: string,
     genres: string[],
+    tags: string[],
     lastUpdate: string | null,
     additionalProps: Record<string, unknown>,
     chapterCount: number = 0,
@@ -26,7 +27,7 @@ export class FavouriteWithNovelMeta extends NovelMeta {
     chapter_date_added: string,
     last_read: string
   ) {
-    super(source, url, cover, title, summary, author, status, genres, lastUpdate ?? "Unknown", additionalProps);
+    super(source, url, cover, title, summary, author, status, genres, tags, lastUpdate ?? "Unknown", additionalProps);
     this.date_added = date_added;
     this.chapterCount = chapterCount;
     this.readCount = readCount;
@@ -46,6 +47,7 @@ export class FavouriteWithNovelMeta extends NovelMeta {
       data.author,
       data.status,
       data.genres,
+      data.tags,
       data.lastUpdate,
       JSON.parse(data.additionalProps),
       data.chapterCount ?? 0,
@@ -67,6 +69,7 @@ export class FavouriteWithNovelMeta extends NovelMeta {
       author: this.author,
       status: this.status,
       genres: this.genres,
+      tags: this.tags,
       lastUpdate: this.lastUpdate,
       additionalProps: this.additionalProps,
       chapterCount: this.chapterCount,

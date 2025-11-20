@@ -17,7 +17,10 @@ export async function downloadGithubFolder(
 ) {
   const apiUrl = `https://api.github.com/repos/${repo}/contents/${folderPath}?ref=${branch}`;
   const res = await fetch(apiUrl);
-  if (!res.ok) throw new Error(`Failed to fetch folder: ${res.statusText}`);
+  if (!res.ok) {
+    console.log(`Failed to fetch folder: ${res.statusText}`);
+    return;
+  }
   const files = await res.json();
 
   for (const file of files) {

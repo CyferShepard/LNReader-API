@@ -12,6 +12,7 @@ const favouritesRouter = new Router({ prefix: "/favourites" });
 favouritesRouter.get("/get", authMiddleware, async (context) => {
   const url = context.request.url.searchParams.get("url");
   const source = context.request.url.searchParams.get("source");
+  context.response.headers.set("Content-Type", "application/json");
   if (url != null && source != null) {
     const response: FavouriteWithNovelMeta[] | null = await dbSqLiteHandler.getFavourites(
       context.state.user.username,
@@ -21,7 +22,7 @@ favouritesRouter.get("/get", authMiddleware, async (context) => {
     return (context.response.body = response);
   }
 
-  const response: FavouriteWithNovelMeta[] | null = await dbSqLiteHandler.getFavourites(context.state.user.username);
+  const response: FavouriteWithNovelMeta[] = await dbSqLiteHandler.getFavourites(context.state.user.username);
 
   context.response.body = response;
 });
