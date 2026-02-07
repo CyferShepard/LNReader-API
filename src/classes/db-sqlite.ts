@@ -14,7 +14,7 @@ import { Database } from "jsr:@db/sqlite@0.11";
 class DBSqLiteHandler {
   public db: Database | undefined;
 
-  public async addColumnIfNotExists(tableName: string, columnName: string, columnDefinition: string) {
+  public async addColumnIfNotExists(tableName: string, columnName: string, columnDefinition: string, nullable: boolean = true) {
     if (!this.db) {
       await this.initialize();
     }
@@ -27,11 +27,9 @@ class DBSqLiteHandler {
 
     if (!columnExists) {
       // Add the column if it doesn't exist
-      const alterStmt = `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`;
+      const alterStmt = `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition} ${nullable ? "" : "NOT NULL"}`;
       await this.db!.exec(alterStmt);
       console.log(`Added column '${columnName}' to table '${tableName}'`);
-    } else {
-      console.log(`Column '${columnName}' already exists in table '${tableName}'`);
     }
   }
 
@@ -143,6 +141,8 @@ class DBSqLiteHandler {
         client_type TEXT PRIMARY KEY
       )
     `);
+
+    await dbSqLiteHandler.addColumnIfNotExists("config", "update_url", "TEXT");
 
     const users = await this.getAllUser();
 
@@ -426,13 +426,13 @@ class DBSqLiteHandler {
     }
   }
 
-  public async insertConfig(client_version: string, client_type: string) {
+  public async insertConfig(client_version: string, client_type: string, update_url: string | null = null) {
     if (!this.db) {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("INSERT OR REPLACE INTO config VALUES (:client_version, :client_type)");
-    stmt.run({ client_version: client_version, client_type: client_type });
+    const stmt = this.db!.prepare("INSERT OR REPLACE INTO config VALUES (:client_version, :client_type, :update_url)");
+    stmt.run({ client_version: client_version, client_type: client_type, update_url: update_url });
   }
 
   //select

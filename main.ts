@@ -43,7 +43,7 @@ app.use(
     origin: "*", // Allow all origins
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"], // Allow specific methods
     allowedHeaders: ["Content-Type", "Authorization"], // Allow specific headers
-  })
+  }),
 );
 
 app.use(router.routes(), router.allowedMethods());
@@ -55,9 +55,9 @@ app.use(historyRouter.routes(), historyRouter.allowedMethods());
 const checker = new FavouritesUpdateChecker(60 * 60 * 1000); // 12 Hours
 
 const backupService = new BackupService();
-await backupService.start();
+// await backupService.start();
 
-checker.start();
+// checker.start();
 
 const port = 8000;
 console.log(`Server is running on http://localhost:${port}`);
