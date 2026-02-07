@@ -1,3 +1,4 @@
+import { JoinClauseModel, JoinModel, QueryModel } from "../models/query_model.ts";
 import { Categorties } from "../schemas/categories.ts";
 import { Chapter } from "../schemas/chapter.ts";
 import { ClientConfig } from "../schemas/client_config.ts";
@@ -167,7 +168,7 @@ class DBSqLiteHandler {
     }
 
     const stmt = this.db!.prepare(
-      "INSERT OR REPLACE INTO novel_meta VALUES (:source,:url,:title,:cover,:summary, :author, :status, :genres,  :last_updated, :additionalProps, :tags)"
+      "INSERT OR REPLACE INTO novel_meta VALUES (:source,:url,:title,:cover,:summary, :author, :status, :genres,  :last_updated, :additionalProps, :tags)",
     );
 
     const genres = Array.isArray(novel.genres) ? novel.genres.join(",") : novel.genres || "";
@@ -194,7 +195,7 @@ class DBSqLiteHandler {
     }
 
     const stmt = this.db!.prepare(
-      "INSERT OR REPLACE INTO chapter_meta (source,chapterIndex,url, title, novelUrl) VALUES (:source,:chapterIndex,:url,:title,:novelUrl)"
+      "INSERT OR REPLACE INTO chapter_meta (source,chapterIndex,url, title, novelUrl) VALUES (:source,:chapterIndex,:url,:title,:novelUrl)",
     );
     stmt.run({
       source: novel.source,
@@ -212,7 +213,7 @@ class DBSqLiteHandler {
 
     const values = chapters.map(() => "(?, ?, ?, ? ,?)").join(", ");
     const stmt = this.db!.prepare(
-      `INSERT OR REPLACE INTO chapter_meta (source,chapterIndex, url, title, novelUrl) VALUES ${values}`
+      `INSERT OR REPLACE INTO chapter_meta (source,chapterIndex, url, title, novelUrl) VALUES ${values}`,
     );
 
     const params = chapters.flatMap((chapter) => [novel.source, chapter.index, chapter.url, chapter.title, novel.url]);
@@ -282,7 +283,7 @@ class DBSqLiteHandler {
 
     const values = categories.map(() => "(?, ?, ?, ?)").join(", ");
     const stmt = this.db!.prepare(
-      `INSERT OR REPLACE INTO favouritesCategories (username, source, url, category) VALUES ${values}`
+      `INSERT OR REPLACE INTO favouritesCategories (username, source, url, category) VALUES ${values}`,
     );
 
     const params = categories.flatMap((category) => [username, source, url, category]);
@@ -325,7 +326,7 @@ class DBSqLiteHandler {
     }
 
     const stmt = this.db!.prepare(
-      "UPDATE favouritesCategories SET category=:newCategoryName WHERE username=:username AND category=:oldCategoryName"
+      "UPDATE favouritesCategories SET category=:newCategoryName WHERE username=:username AND category=:oldCategoryName",
     );
     stmt.run({
       username: username,
@@ -341,7 +342,7 @@ class DBSqLiteHandler {
     }
 
     const stmt = this.db!.prepare(
-      "INSERT OR REPLACE INTO history VALUES ( :username, :source, :url, :last_read, :page, :position)"
+      "INSERT OR REPLACE INTO history VALUES ( :username, :source, :url, :last_read, :page, :position)",
     );
     stmt.run({
       username: history.username,
@@ -360,7 +361,7 @@ class DBSqLiteHandler {
 
     const values = histories.map(() => "(?, ?, ?, ?, ?, ?)").join(", ");
     const stmt = this.db!.prepare(
-      `INSERT OR REPLACE INTO history (username, source, url, last_read, page, position) VALUES ${values}`
+      `INSERT OR REPLACE INTO history (username, source, url, last_read, page, position) VALUES ${values}`,
     );
 
     const params = histories.flatMap((history) => [
@@ -511,32 +512,68 @@ class DBSqLiteHandler {
     return null;
   }
 
-  public async getLastUpdatedChapters(username: string) {
+  public async getLastUpdatedChapters(
+    username: string,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<PaginationWrapper<FavouriteWitChapterMeta> | []> {
     if (!this.db) {
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare(`
-SELECT 
-nm.*,
-json_object('source',cm.source, 'url', cm.url, 'title', cm.title, 'novelUrl', cm.novelUrl, 'chapterIndex',cm.chapterIndex, 'date_added', cm.date_added) chapter
+    const query: QueryModel = new QueryModel(
+      [
+        "nm.*",
+        "json_object('source',cm.source, 'url', cm.url, 'title', cm.title, 'novelUrl', cm.novelUrl, 'chapterIndex',cm.chapterIndex, 'date_added', cm.date_added) chapter",
+      ],
+      "favourites f",
+      [
+        new JoinModel("novel_meta nm", [
+          JoinClauseModel.equal("nm.source", "f.source"),
+          JoinClauseModel.equal("nm.url", "f.url"),
+        ]),
+        new JoinModel("chapter_meta cm", [
+          JoinClauseModel.equal("cm.novelUrl", "f.url"),
+          JoinClauseModel.equal("cm.source", "f.source"),
+          JoinClauseModel.equal("f.username", ":username"),
+        ]),
+      ],
+      [],
+      [],
+      ["cm.date_added DESC", "cm.chapterIndex DESC"],
+    );
 
-FROM favourites f
-join novel_meta nm
-on nm.source =f .source and nm.url=f.url
-JOIN chapter_meta cm
-on cm.novelUrl=f.url
-and cm.source=f.source
-and f.username=:username
+    // console.log("Executing query:", query.query);
+    // console.log("Executing countQuery:", query.countQuery);
+    // const stmt = this.db!.prepare(query.query);
 
-  order by cm.date_added desc, cm.chapterIndex desc
-    `);
-    const results: Record<string, unknown>[] | undefined = stmt.all({ username: username });
+    // const results: Record<string, unknown>[] | undefined = stmt.all({ username: username });
 
-    if (results && results.length > 0) {
-      return results.map((result: Record<string, unknown>) => FavouriteWitChapterMeta.fromResult(result));
+    // const countStmt = this.db!.prepare(query.countQuery);
+    // const countResult: Record<string, unknown> | undefined = countStmt.get({ username: username });
+    // console.log("Count result:", countResult?.COUNT ?? 0);
+
+    const stmt = this.db!.paginatedQueryWithCount(query, { username: username }, page, pageSize);
+
+    if (stmt.results && stmt.results.length > 0) {
+      const result: PaginationWrapper<FavouriteWitChapterMeta> = {
+        results: stmt.results.map((result: Record<string, unknown>) => FavouriteWitChapterMeta.fromResult(result)),
+        page: stmt.page,
+        pageSize: stmt.pageSize,
+        totalCount: stmt.totalCount,
+        totalPages: stmt.totalPages,
+      };
+      return result;
+      // return stmt.results.map((result: Record<string, unknown>) => FavouriteWitChapterMeta.fromResult(result));
     }
-    return [];
+    const result: PaginationWrapper<FavouriteWitChapterMeta> = {
+      results: [],
+      page: stmt.page,
+      pageSize: stmt.pageSize,
+      totalCount: stmt.totalCount,
+      totalPages: stmt.totalPages,
+    };
+    return result;
   }
 
   public async getCachedNovel(url: string, source: string) {
@@ -680,7 +717,7 @@ ORDER BY lh.last_read DESC`);
     const results = stmt.all(params);
 
     const refavouriteWithNovelMeta: FavouriteWithNovelMeta[] = results.map((result: Record<string, unknown>) =>
-      FavouriteWithNovelMeta.fromResult(result)
+      FavouriteWithNovelMeta.fromResult(result),
     );
 
     return refavouriteWithNovelMeta;
@@ -820,7 +857,7 @@ ORDER BY lh.last_read DESC`);
     }
 
     const stmt = this.db!.prepare(
-      "DELETE FROM chapter_meta WHERE novelUrl=:url AND source=:source AND url NOT IN (SELECT url FROM history h WHERE h.source=:source AND h.url=chapter_meta.url)"
+      "DELETE FROM chapter_meta WHERE novelUrl=:url AND source=:source AND url NOT IN (SELECT url FROM history h WHERE h.source=:source AND h.url=chapter_meta.url)",
     );
     stmt.run({ url: url, source: source });
   }
@@ -862,7 +899,7 @@ ORDER BY lh.last_read DESC`);
       // Prepare placeholders for the IN clause
       const placeholders = urls.map(() => "?").join(", ");
       const deleteStmt = this.db!.prepare(
-        `DELETE FROM history WHERE url IN (${placeholders}) AND source=:source AND username=:username`
+        `DELETE FROM history WHERE url IN (${placeholders}) AND source=:source AND username=:username`,
       );
       deleteStmt.run(...urls, { source: source, username: username });
     }
@@ -918,7 +955,7 @@ ORDER BY lh.last_read DESC`);
     }
 
     const stmt = this.db!.prepare(
-      "DELETE FROM favouritesCategories WHERE username=:username AND source=:source AND url=:url AND category=:category"
+      "DELETE FROM favouritesCategories WHERE username=:username AND source=:source AND url=:url AND category=:category",
     );
     stmt.run({ username: username, source: source, url: url, category: categoryName });
   }
@@ -930,7 +967,7 @@ ORDER BY lh.last_read DESC`);
 
     const values = categories.map(() => "(?, ?, ?, ?)").join(", ");
     const stmt = this.db!.prepare(
-      `DELETE FROM favouritesCategories WHERE username=:username AND source=:source AND url=:url AND category IN (${values})`
+      `DELETE FROM favouritesCategories WHERE username=:username AND source=:source AND url=:url AND category IN (${values})`,
     );
 
     const params = categories.flatMap((category) => [username, source, url, category]);

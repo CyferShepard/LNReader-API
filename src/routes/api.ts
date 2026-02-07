@@ -469,7 +469,7 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     const novelMeta = new NovelMeta(source, url, "", "", "", "", "", [], [], "");
     const novelChapters: Chapter[] = results.map((chapter) => Chapter.fromJSON(chapter));
     const newChapters: Chapter[] = novelChapters.filter(
-      (chapter) => !existingChapters.some((c: Chapter) => c.url === chapter.url)
+      (chapter) => !existingChapters.some((c: Chapter) => c.url === chapter.url),
     );
     console.log("Caching chapters for novel:", novelMeta.title);
     if (newChapters.length === 0) {
@@ -514,7 +514,7 @@ apiRouter.get("/updatePlugins", authMiddleware, async (context) => {
       "CyferShepard/novel_reader_plugins", // repo
       "configs", // folder url in repo
       "main", // branch
-      "./src/plugins" // local destinationto send messages
+      "./src/plugins", // local destinationto send messages
     );
   } catch (e) {
     console.error("Error updating plugins:", e);
@@ -544,7 +544,9 @@ apiRouter.get("/users", authMiddleware, async (context) => {
 });
 
 apiRouter.get("/updates", authMiddleware, async (context) => {
-  const updates = await dbSqLiteHandler.getLastUpdatedChapters(context.state.user.username);
+  const page = parseInt(context.request.url.searchParams.get("page") || "1");
+  const pageSize = parseInt(context.request.url.searchParams.get("pageSize") || "10");
+  const updates = await dbSqLiteHandler.getLastUpdatedChapters(context.state.user.username, page, pageSize);
   context.response.body = updates;
 });
 

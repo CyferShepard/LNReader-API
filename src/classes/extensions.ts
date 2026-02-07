@@ -1,3 +1,6 @@
+import { QueryModel } from "../models/query_model.ts";
+import { Database } from "jsr:@db/sqlite@0.11";
+
 // Extend the Array prototype
 declare global {
   interface Array<T> {
@@ -12,6 +15,16 @@ declare global {
 
   interface FormData {
     replaceKeys(values: Record<string, unknown>): FormData;
+  }
+
+  interface Database {
+    paginatedQuery(query: QueryModel, params: Record<string, unknown>, page: number, pageSize: number): Record<string, unknown>[];
+    paginatedQueryWithCount(
+      query: QueryModel,
+      params: Record<string, unknown>,
+      page: number,
+      pageSize: number,
+    ): { results: Record<string, unknown>[]; page: number; pageSize: number; totalCount: number; totalPages: number };
   }
 }
 
@@ -57,4 +70,35 @@ FormData.prototype.replaceKeys = function (values: Record<string, unknown>): For
     }
   }
   return newFormData;
+};
+
+Database.prototype.paginatedQuery = function (
+  query: QueryModel,
+  params: Record<string, unknown>,
+  page: number,
+  pageSize: number,
+): Record<string, unknown>[] {
+  const offset = (page - 1) * pageSize;
+  const paginatedQuery = `${query.query} LIMIT ${pageSize} OFFSET ${offset}`;
+  const stmt = this.prepare(paginatedQuery);
+  return stmt.all(params);
+};
+
+Database.prototype.paginatedQueryWithCount = function (
+  query: QueryModel,
+  params: Record<string, unknown>,
+  page: number,
+  pageSize: number,
+): { results: Record<string, unknown>[]; page: number; pageSize: number; totalCount: number; totalPages: number } {
+  const offset = (page - 1) * pageSize;
+  const paginatedQuery = `${query.query} LIMIT ${pageSize} OFFSET ${offset}`;
+  const stmt = this.prepare(paginatedQuery);
+  const results = stmt.all(params);
+  const countQuery = `SELECT COUNT(*) as COUNT FROM (${query.query})`;
+  const countStmt = this.prepare(countQuery);
+  const countResult = countStmt.get(params);
+  const totalCount = countResult ? Number(countResult.COUNT) : 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
+  return { results, page, pageSize, totalCount, totalPages };
 };
