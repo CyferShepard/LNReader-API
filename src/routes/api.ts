@@ -104,7 +104,7 @@ apiRouter.get("/configs", async (context) => {
 });
 
 apiRouter.post("/config", authMiddleware, async (context) => {
-  const { type, version, update_url } = await context.request.body.json();
+  const { type, version, url } = await context.request.body.json();
 
   if (!type || !version) {
     context.response.status = 400;
@@ -112,8 +112,8 @@ apiRouter.post("/config", authMiddleware, async (context) => {
     return;
   }
 
-  const config = new ClientConfig(version, type, update_url);
-  await dbSqLiteHandler.insertConfig(version, type, update_url);
+  const config = new ClientConfig(version, type, url);
+  await dbSqLiteHandler.insertConfig(version, type, url);
 
   context.response.body = config;
 });
