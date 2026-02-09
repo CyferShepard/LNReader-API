@@ -53,7 +53,7 @@ authRouter.post("/login", async (context) => {
   if (!user) {
     context.response.status = 401;
     context.response.body = { error: "User not found" };
-    console.log(`Failed login attempt for non-existent user ${username}. IP: ${ip}`);
+    console.warn(`Failed login attempt for non-existent user ${username}. IP: ${ip}`);
     return;
   }
 
@@ -62,14 +62,14 @@ authRouter.post("/login", async (context) => {
   if (!isPasswordValid) {
     context.response.status = 401;
     context.response.body = { error: "Unauthorized" };
-    console.log(`Failed login attempt for user ${username} with incorrect password. IP: ${ip}`);
+    console.warn(`Failed login attempt for user ${username} with incorrect password. IP: ${ip}`);
     return;
   }
 
   const { accessToken, refreshToken } = await generateTokens(user!);
 
   // await dbSqLiteHandler.insertToken(token, user);
-  console.log(`User ${user.username} logged in successfully. IP: ${ip}`);
+  console.info(`User ${user.username} logged in successfully. IP: ${ip}`);
 
   context.response.body = { accessToken, refreshToken };
 });
