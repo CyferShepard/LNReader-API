@@ -470,7 +470,7 @@ class DBSqLiteHandler {
     stmt.run({ username: username, password: newPassword });
   }
 
-  public async getCachedChapters(url: string, source: string) {
+  public async getCachedChapters(url: string, source: string): Promise<Chapter[]> {
     if (!this.db) {
       await this.initialize();
     }

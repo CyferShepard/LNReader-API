@@ -374,9 +374,15 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
   if (clearCache == false && cacheData == true) {
     // Check if chapters are already cached
     const cachedChapters = await dbSqLiteHandler.getCachedChapters(url, source);
-    if (cachedChapters && cachedChapters.length > 0) {
+    const dedupedChapters = cachedChapters.reduce((acc: Chapter[], chapter: Chapter) => {
+      if (!acc.some((c: Chapter) => c.index === chapter.index)) {
+        acc.push(chapter);
+      }
+      return acc;
+    }, []);
+    if (dedupedChapters && dedupedChapters.length > 0) {
       console.log("Returning cached chapters for source:", source, "and url:", url);
-      context.response.body = cachedChapters;
+      context.response.body = dedupedChapters;
       return;
     }
   }
@@ -471,15 +477,19 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     const newChapters: Chapter[] = novelChapters.filter(
       (chapter) => !existingChapters.some((c: Chapter) => c.url === chapter.url),
     );
-    console.log("Caching chapters for novel:", novelMeta.title);
-    if (newChapters.length === 0) {
-      console.log("No new chapters to cache for novel:", novelMeta.title);
-      context.response.body = results;
-      return;
+    if (newChapters.length > 0) {
+      console.log("Caching chapters for novel:", novelMeta.title);
+      await dbSqLiteHandler.insertChapterMetaBulk(newChapters, novelMeta);
     }
-    await dbSqLiteHandler.insertChapterMetaBulk(newChapters, novelMeta);
   }
-  context.response.body = results;
+
+  const dedupedChapters = results.reduce((acc: Record<string, unknown>[], chapter: Record<string, unknown>) => {
+    if (!acc.some((c: Record<string, unknown>) => c.index === chapter.index)) {
+      acc.push(chapter);
+    }
+    return acc;
+  }, []);
+  context.response.body = dedupedChapters;
 });
 
 apiRouter.post("/chapter", authMiddleware, async (context) => {
