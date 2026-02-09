@@ -374,15 +374,15 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
   if (clearCache == false && cacheData == true) {
     // Check if chapters are already cached
     const cachedChapters = await dbSqLiteHandler.getCachedChapters(url, source);
-    const dedupedChapters = cachedChapters.reduce((acc: Chapter[], chapter: Chapter) => {
-      if (!acc.some((c: Chapter) => c.index === chapter.index)) {
-        acc.push(chapter);
-      }
-      return acc;
-    }, []);
-    if (dedupedChapters && dedupedChapters.length > 0) {
+    // const dedupedChapters = cachedChapters.reduce((acc: Chapter[], chapter: Chapter) => {
+    //   if (!acc.some((c: Chapter) => c.index === chapter.index)) {
+    //     acc.push(chapter);
+    //   }
+    //   return acc;
+    // }, []);
+    if (cachedChapters && cachedChapters.length > 0) {
       console.log("Returning cached chapters for source:", source, "and url:", url);
-      context.response.body = dedupedChapters;
+      context.response.body = cachedChapters;
       return;
     }
   }
@@ -483,13 +483,13 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     }
   }
 
-  const dedupedChapters = results.reduce((acc: Record<string, unknown>[], chapter: Record<string, unknown>) => {
-    if (!acc.some((c: Record<string, unknown>) => c.index === chapter.index)) {
-      acc.push(chapter);
-    }
-    return acc;
-  }, []);
-  context.response.body = dedupedChapters;
+  // const dedupedChapters = results.reduce((acc: Record<string, unknown>[], chapter: Record<string, unknown>) => {
+  //   if (!acc.some((c: Record<string, unknown>) => c.index === chapter.index)) {
+  //     acc.push(chapter);
+  //   }
+  //   return acc;
+  // }, []);
+  context.response.body = results;
 });
 
 apiRouter.post("/chapter", authMiddleware, async (context) => {
