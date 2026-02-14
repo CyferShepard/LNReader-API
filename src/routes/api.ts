@@ -629,6 +629,14 @@ apiRouter.delete("/imageCache", authMiddleware, async (context) => {
   try {
     const { url } = await context.request.body.json();
 
+    const userLevel = context.state.user.user.userlevel;
+
+    if (userLevel && userLevel != 0) {
+      context.response.status = 403;
+      context.response.body = { error: "You do not have permission to clear the image cache" };
+      return;
+    }
+
     if (url && typeof url === "string") {
       await dbSqLiteHandler.deleteImageCache(url);
       context.response.status = 200;
