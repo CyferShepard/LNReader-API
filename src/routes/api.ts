@@ -625,4 +625,16 @@ apiRouter.delete("/categories", authMiddleware, async (context) => {
   }
 });
 
+apiRouter.delete("/imageCache", authMiddleware, async (context) => {
+  try {
+    await dbSqLiteHandler.clearImageCache();
+    context.response.status = 200;
+    context.response.body = { status: "Image cache cleared successfully" };
+  } catch (e) {
+    console.error("Error clearing image cache:", e);
+    context.response.status = 500;
+    context.response.body = { error: "Failed to clear image cache" };
+  }
+});
+
 export default apiRouter;

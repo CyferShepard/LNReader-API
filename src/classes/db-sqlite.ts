@@ -940,6 +940,15 @@ ORDER BY lh.last_read DESC`);
     stmt.run({ url: url });
   }
 
+  public async clearImageCache() {
+    if (!this.db) {
+      await this.initialize();
+    }
+
+    const stmt = this.db!.prepare("TRUNCATE TABLE images");
+    stmt.run();
+  }
+
   public async deleteCategories(name: string, username: string) {
     if (!this.db) {
       await this.initialize();
