@@ -1,4 +1,4 @@
-import { Context, Router } from "https://deno.land/x/oak@v17.1.3/mod.ts";
+import { Context, Router, Request, Body } from "https://deno.land/x/oak@v17.1.3/mod.ts";
 import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import authMiddleware from "../utils/auth_middleware.ts";
@@ -625,10 +625,9 @@ apiRouter.delete("/categories", authMiddleware, async (context) => {
   }
 });
 
-apiRouter.delete("/imageCache", authMiddleware, async (context) => {
+apiRouter.delete("/imageCache", authMiddleware, async (context: Context) => {
   try {
-    const body = await context.request.body.json();
-    const url = body.url as string | undefined;
+    const { url } = await context.request.body.jsonOrNull();
 
     const userLevel = context.state.user.user.userlevel;
 

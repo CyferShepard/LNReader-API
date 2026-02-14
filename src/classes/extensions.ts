@@ -26,6 +26,10 @@ declare global {
       pageSize: number,
     ): { results: Record<string, unknown>[]; page: number; pageSize: number; totalCount: number; totalPages: number };
   }
+
+  interface any {
+    jsonOrNull(): any;
+  }
 }
 
 // Implementation of firstOrDefault
@@ -101,4 +105,12 @@ Database.prototype.paginatedQueryWithCount = function (
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return { results, page, pageSize, totalCount, totalPages };
+};
+
+any.prototype.jsonOrNull = async function () {
+  try {
+    return await this.json();
+  } catch {
+    return null;
+  }
 };
