@@ -1,4 +1,4 @@
-import { Context } from "https://deno.land/x/oak@v17.1.3/mod.ts";
+import { Context } from "https://deno.land/x/oak@v17.2.0/mod.ts";
 import { SECRET_KEY } from "./secret_key.ts";
 import { Payload, verify } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
 

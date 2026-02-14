@@ -945,7 +945,7 @@ ORDER BY lh.last_read DESC`);
       await this.initialize();
     }
 
-    const stmt = this.db!.prepare("TRUNCATE TABLE images");
+    const stmt = this.db!.prepare("DELETE FROM images");
     stmt.run();
   }
 

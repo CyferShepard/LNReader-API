@@ -1,4 +1,4 @@
-import { Context } from "https://deno.land/x/oak@v17.1.3/context.ts";
+import { Context } from "https://deno.land/x/oak@v17.2.0/context.ts";
 import { wsClients } from "../utils/config.ts";
 
 export default function sendMessage(context: Context, message: string | Map<string, Record<string, unknown>>) {

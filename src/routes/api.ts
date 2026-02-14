@@ -1,4 +1,4 @@
-import { Context, Router, Request, Body } from "https://deno.land/x/oak@v17.1.3/mod.ts";
+import { Context, Router } from "https://deno.land/x/oak@v17.2.0/mod.ts";
 import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import authMiddleware from "../utils/auth_middleware.ts";
@@ -104,7 +104,7 @@ apiRouter.get("/configs", async (context) => {
 });
 
 apiRouter.post("/config", authMiddleware, async (context) => {
-  const { type, version, url } = await context.request.body.json();
+  const { type, version, url } = await context.request.body.jsonOrEmpty();
 
   if (!type || !version) {
     context.response.status = 400;
@@ -119,7 +119,7 @@ apiRouter.post("/config", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/canRegister", authMiddleware, async (context) => {
-  const { canRegister } = await context.request.body.json();
+  const { canRegister } = await context.request.body.jsonOrEmpty();
 
   const userLevel = context.state.user.user.userlevel;
 
@@ -184,7 +184,7 @@ apiRouter.get("/latest", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/search", authMiddleware, async (context) => {
-  const { source, page = 1, searchParams } = await context.request.body.json();
+  const { source, page = 1, searchParams } = await context.request.body.jsonOrEmpty();
 
   // if (!searchTerm) {
   //   context.response.status = 400;
@@ -247,7 +247,7 @@ apiRouter.post("/search", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/searchMultiple", authMiddleware, async (context) => {
-  const { searchPayload } = await context.request.body.json();
+  const { searchPayload } = await context.request.body.jsonOrEmpty();
 
   if (!searchPayload || typeof searchPayload !== "object") {
     context.response.status = 400;
@@ -314,7 +314,7 @@ apiRouter.post("/searchMultiple", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/novel", authMiddleware, async (context) => {
-  const { source, url, cacheData = true, clearCache = false } = await context.request.body.json();
+  const { source, url, cacheData = true, clearCache = false } = await context.request.body.jsonOrEmpty();
 
   console.log("/novel", source, url);
 
@@ -363,7 +363,7 @@ apiRouter.post("/novel", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/chapters", authMiddleware, async (context) => {
-  const { source, url, additionalProps, cacheData = true, clearCache = false } = await context.request.body.json();
+  const { source, url, additionalProps, cacheData = true, clearCache = false } = await context.request.body.jsonOrEmpty();
 
   if (!url || !source) {
     context.response.body = { error: "Novel Url and Source are required" };
@@ -493,7 +493,7 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/chapter", authMiddleware, async (context) => {
-  const { source, url } = await context.request.body.json();
+  const { source, url } = await context.request.body.jsonOrEmpty();
 
   if (!url) {
     context.response.body = { error: "Chapter Path is required" };
@@ -566,7 +566,7 @@ apiRouter.get("/categories", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/categories", authMiddleware, async (context) => {
-  const { name } = await context.request.body.json();
+  const { name } = await context.request.body.jsonOrEmpty();
 
   if (!name || typeof name !== "string") {
     context.response.status = 400;
@@ -593,7 +593,7 @@ apiRouter.post("/categories", authMiddleware, async (context) => {
 });
 
 apiRouter.delete("/categories", authMiddleware, async (context) => {
-  const { name } = await context.request.body.json();
+  const { name } = await context.request.body.jsonOrEmpty();
 
   if (!name || typeof name !== "string") {
     context.response.status = 400;
@@ -627,7 +627,7 @@ apiRouter.delete("/categories", authMiddleware, async (context) => {
 
 apiRouter.delete("/imageCache", authMiddleware, async (context: Context) => {
   try {
-    const { url } = await context.request.body.jsonOrNull();
+    const { url } = await context.request.body.jsonOrEmpty();
 
     const userLevel = context.state.user.user.userlevel;
 

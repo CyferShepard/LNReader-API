@@ -27,8 +27,8 @@ declare global {
     ): { results: Record<string, unknown>[]; page: number; pageSize: number; totalCount: number; totalPages: number };
   }
 
-  interface any {
-    jsonOrNull(): any;
+  interface Object {
+    jsonOrEmpty(): Promise<any | null>;
   }
 }
 
@@ -107,10 +107,10 @@ Database.prototype.paginatedQueryWithCount = function (
   return { results, page, pageSize, totalCount, totalPages };
 };
 
-any.prototype.jsonOrNull = async function () {
+Object.prototype.jsonOrEmpty = async function (this: any): Promise<any | null> {
   try {
     return await this.json();
   } catch {
-    return null;
+    return {};
   }
 };

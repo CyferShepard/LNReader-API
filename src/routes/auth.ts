@@ -1,4 +1,4 @@
-import { Router } from "https://deno.land/x/oak@v17.1.3/mod.ts";
+import { Router } from "https://deno.land/x/oak@v17.2.0/mod.ts";
 import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { User } from "../schemas/users.ts";
 import { create, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
@@ -37,7 +37,7 @@ async function generateTokens(user: User): Promise<{ accessToken: string; refres
 ///
 
 authRouter.post("/login", async (context) => {
-  const { username, password } = await context.request.body.json();
+  const { username, password } = await context.request.body.jsonOrEmpty();
 
   if (!username || !password || username.trim() === "" || password.trim() === "") {
     context.response.status = 400;
@@ -75,7 +75,7 @@ authRouter.post("/login", async (context) => {
 });
 
 authRouter.post("/refresh", async (context) => {
-  const { token } = await context.request.body.json();
+  const { token } = await context.request.body.jsonOrEmpty();
 
   if (!token || token.trim() === "") {
     context.response.status = 400;
@@ -109,7 +109,7 @@ authRouter.post("/refresh", async (context) => {
 });
 
 authRouter.post("/resetPassword", authMiddleware, async (context) => {
-  const { username, password } = await context.request.body.json();
+  const { username, password } = await context.request.body.jsonOrEmpty();
 
   if (username) {
     const userLevel = context.state.user.user.userlevel;
@@ -151,7 +151,7 @@ authRouter.post("/resetPassword", authMiddleware, async (context) => {
 });
 
 authRouter.post("/register", async (context) => {
-  const { username, password } = await context.request.body.json();
+  const { username, password } = await context.request.body.jsonOrEmpty();
 
   if (!username || !password) {
     context.response.status = 400;

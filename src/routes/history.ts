@@ -1,4 +1,4 @@
-import { Router } from "https://deno.land/x/oak@v17.1.3/mod.ts";
+import { Router } from "https://deno.land/x/oak@v17.2.0/mod.ts";
 import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import authMiddleware from "../utils/auth_middleware.ts";
@@ -33,7 +33,7 @@ historyRouter.get("/get", authMiddleware, async (context) => {
 });
 
 historyRouter.post("/insert", authMiddleware, async (context) => {
-  const { novel, chapter, page, position } = await context.request.body.json();
+  const { novel, chapter, page, position } = await context.request.body.jsonOrEmpty();
 
   if (novel == null || page == null || position == null || chapter == null) {
     context.response.body = { error: "All Fields are required" };
@@ -59,7 +59,7 @@ historyRouter.post("/insert", authMiddleware, async (context) => {
       page,
       position,
       chapterData,
-      novelMeta
+      novelMeta,
     );
 
     await dbSqLiteHandler.insertHistory(history);
@@ -75,7 +75,7 @@ historyRouter.post("/insert", authMiddleware, async (context) => {
 });
 
 historyRouter.post("/insertBulk", authMiddleware, async (context) => {
-  const { novel, chapters, page, position } = await context.request.body.json();
+  const { novel, chapters, page, position } = await context.request.body.jsonOrEmpty();
 
   if (novel == null || page == null || position == null || chapters == null) {
     context.response.body = { error: "All Fields are required" };
@@ -90,7 +90,7 @@ historyRouter.post("/insertBulk", authMiddleware, async (context) => {
 
     const history: History[] = chapterData.map(
       (chapter) =>
-        new History(context.state.user.username, novelMeta.source, chapter.url, new Date(), page, position, chapter, novelMeta)
+        new History(context.state.user.username, novelMeta.source, chapter.url, new Date(), page, position, chapter, novelMeta),
     );
     await dbSqLiteHandler.insertHistoryBulk(history);
     // await dbSqLiteHandler.deleteHistoryExceptLatest(chapterData, novelMeta, context.state.user.username);
@@ -105,7 +105,7 @@ historyRouter.post("/insertBulk", authMiddleware, async (context) => {
 });
 
 historyRouter.delete("/delete", authMiddleware, async (context) => {
-  const { url, source } = await context.request.body.json();
+  const { url, source } = await context.request.body.jsonOrEmpty();
 
   if (url == undefined || source == undefined) {
     context.response.status = 400;

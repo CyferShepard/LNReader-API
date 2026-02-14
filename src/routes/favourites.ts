@@ -1,4 +1,4 @@
-import { Router } from "https://deno.land/x/oak@v17.1.3/mod.ts";
+import { Router } from "https://deno.land/x/oak@v17.2.0/mod.ts";
 import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import { Favourite } from "../schemas/favourites.ts";
@@ -17,7 +17,7 @@ favouritesRouter.get("/get", authMiddleware, async (context) => {
     const response: FavouriteWithNovelMeta[] | null = await dbSqLiteHandler.getFavourites(
       context.state.user.username,
       url,
-      source
+      source,
     );
     return (context.response.body = response);
   }
@@ -29,7 +29,7 @@ favouritesRouter.get("/get", authMiddleware, async (context) => {
 
 favouritesRouter.post("/insert", authMiddleware, async (context) => {
   try {
-    const { novelMeta } = await context.request.body.json();
+    const { novelMeta } = await context.request.body.jsonOrEmpty();
 
     if (!novelMeta) {
       console.error("Novel Meta is required: ", JSON.stringify(novelMeta, null, 2));
@@ -48,7 +48,7 @@ favouritesRouter.post("/insert", authMiddleware, async (context) => {
       novelMeta.status,
       novelMeta.genres,
       novelMeta.tags,
-      novelMeta.lastUpdate ?? "Unknown"
+      novelMeta.lastUpdate ?? "Unknown",
     );
     console.log("Inserting Novel Meta:", JSON.stringify(novelData, null, 2));
     await dbSqLiteHandler.insertNovelMeta(novelData);
@@ -68,7 +68,7 @@ favouritesRouter.post("/insert", authMiddleware, async (context) => {
 });
 
 favouritesRouter.delete("/delete", authMiddleware, async (context) => {
-  const { url, source } = await context.request.body.json();
+  const { url, source } = await context.request.body.jsonOrEmpty();
 
   if (!url || !source) {
     context.response.body = { error: "Url and Source is required" };
@@ -96,7 +96,7 @@ favouritesRouter.delete("/delete", authMiddleware, async (context) => {
 });
 
 favouritesRouter.post("/setCategories", authMiddleware, async (context) => {
-  const { categories, url, source } = await context.request.body.json();
+  const { categories, url, source } = await context.request.body.jsonOrEmpty();
 
   if (!categories || !url || !source) {
     context.response.body = { error: "Categories, Url and Source are required" };
