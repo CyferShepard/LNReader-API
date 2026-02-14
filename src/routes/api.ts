@@ -627,6 +627,15 @@ apiRouter.delete("/categories", authMiddleware, async (context) => {
 
 apiRouter.delete("/imageCache", authMiddleware, async (context) => {
   try {
+    const { url } = await context.request.body.json();
+
+    if (url && typeof url === "string") {
+      await dbSqLiteHandler.deleteImageCache(url);
+      context.response.status = 200;
+      context.response.body = { status: "Image cache deleted successfully for url: " + url };
+      return;
+    }
+
     await dbSqLiteHandler.clearImageCache();
     context.response.status = 200;
     context.response.body = { status: "Image cache cleared successfully" };
