@@ -728,7 +728,7 @@ ORDER BY lh.last_read DESC`);
       await this.initialize();
     }
 
-    const statement: string = "SELECT * FROM favourites GROUP BY source, url";
+    const statement: string = "SELECT * FROM favourites GROUP BY source, url ORDER BY source";
 
     const stmt = this.db!.prepare(statement);
 

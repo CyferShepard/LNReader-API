@@ -37,10 +37,20 @@ export class FavouritesUpdateChecker {
       console.log("[FavouritesUpdateChecker] Checking for updates...");
       broadcastMessage(new Map().set("type", "favouritesUpdateCheck").set("message", "Updating Favourites"));
       const favourites = await dbSqLiteHandler.getAllUniqueFavourites();
-      for (const fav of favourites) {
+
+      for (let i = 0; i < favourites.length; i++) {
+        const fav = favourites[i];
+
         await this.updateNovel(fav);
-        await new Promise((resolve) => setTimeout(resolve, 500)); // Add a small delay between updates to avoid overwhelming APIs
+
+        if (i < favourites.length - 1) {
+          const nextFav = favourites[i + 1];
+          if (nextFav.source === fav.source) {
+            await new Promise((resolve) => setTimeout(resolve, 250)); // Add a small delay between updates to avoid overwhelming APIs
+          }
+        }
       }
+
       console.log("[FavouritesUpdateChecker] Update check complete.");
       broadcastMessage(new Map().set("type", "favouritesUpdateCheck").set("message", "Favourites Update check complete"));
     } catch (err) {
