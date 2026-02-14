@@ -627,7 +627,8 @@ apiRouter.delete("/categories", authMiddleware, async (context) => {
 
 apiRouter.delete("/imageCache", authMiddleware, async (context) => {
   try {
-    const { url } = await context.request.body.json();
+    const body = await context.request.body.json();
+    const url = body.url as string | undefined;
 
     const userLevel = context.state.user.user.userlevel;
 
