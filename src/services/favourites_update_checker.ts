@@ -46,7 +46,8 @@ export class FavouritesUpdateChecker {
         if (i < favourites.length - 1) {
           const nextFav = favourites[i + 1];
           if (nextFav.source === fav.source) {
-            await new Promise((resolve) => setTimeout(resolve, 250)); // Add a small delay between updates to avoid overwhelming APIs
+            console.log(`[FavouritesUpdateChecker] Waiting before updating next favourite from the same source: ${fav.source}`);
+            await new Promise((resolve) => setTimeout(resolve, 500)); // Add a small delay between updates to avoid overwhelming APIs
           }
         }
       }
