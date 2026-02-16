@@ -103,7 +103,7 @@ authRouter.post("/refresh", async (context) => {
 
   const { accessToken, refreshToken } = await generateTokens(user!);
 
-  console.log(`User ${user.username} logged in successfully. IP: ${ip}`);
+  console.info(`User ${user.username} token refreshed. IP: ${ip}`);
   // await dbSqLiteHandler.insertToken(token, user);
   context.response.body = { accessToken, refreshToken };
 });

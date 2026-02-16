@@ -153,7 +153,7 @@ apiRouter.get("/latest", authMiddleware, async (context) => {
     source = context.request.url.searchParams.get("source");
     page = parseInt(context.request.url.searchParams.get("page") || "1");
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 
   if (source == undefined) {
@@ -175,7 +175,7 @@ apiRouter.get("/latest", authMiddleware, async (context) => {
   payload.url = payload.url.replace("${0}", page!.toString());
 
   const jsonpayload = JSON.stringify(payload.toJson());
-  console.log(jsonpayload);
+  // console.log(jsonpayload);
 
   const response: ScraperResponse | null = await parseQuery(payload);
   const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
@@ -231,7 +231,7 @@ apiRouter.post("/search", authMiddleware, async (context) => {
   payload.url = payload.url.replace("${1}", page!.toString());
 
   const jsonpayload = JSON.stringify(payload.toJson());
-  console.log(jsonpayload);
+  // console.log(jsonpayload);
 
   const response: ScraperResponse | null = await parseQuery(payload);
   // const results = response?.results && response?.results.length > 0 ? response.results[0]["results"] : null;
@@ -358,7 +358,7 @@ apiRouter.post("/novel", authMiddleware, async (context) => {
     await dbSqLiteHandler.insertNovelMeta(novelMeta);
   }
 
-  console.log("response: " + results);
+  // console.log("response: " + results);
   context.response.body = results || [];
 });
 
@@ -513,7 +513,7 @@ apiRouter.post("/chapter", authMiddleware, async (context) => {
   if (!results) {
     return;
   }
-  console.log("response: " + results);
+  // console.log("response: " + results);
   context.response.body = results || [];
 });
 

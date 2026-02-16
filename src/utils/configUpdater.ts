@@ -13,12 +13,12 @@ export async function downloadGithubFolder(
   folderPath: string,
   branch = "main",
   destLocalPath = "./downloaded",
-  rootFolderPath = folderPath // keep track of the original folderPath
+  rootFolderPath = folderPath, // keep track of the original folderPath
 ) {
   const apiUrl = `https://api.github.com/repos/${repo}/contents/${folderPath}?ref=${branch}`;
   const res = await fetch(apiUrl);
   if (!res.ok) {
-    console.log(`Failed to fetch folder: ${res.statusText}`);
+    console.error(`Failed to fetch folder: ${res.statusText}`);
     return;
   }
   const files = await res.json();
@@ -36,7 +36,7 @@ export async function downloadGithubFolder(
       const localPath = join(destLocalPath, relativePath);
       await Deno.mkdir(dirname(localPath), { recursive: true });
       await Deno.writeFile(localPath, content);
-      console.log(`Downloaded: ${localPath}`);
+      console.info(`Downloaded: ${localPath}`);
     }
     if (file.type === "dir") {
       await downloadGithubFolder(repo, file.path, branch, destLocalPath, rootFolderPath);

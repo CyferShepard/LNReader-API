@@ -32,7 +32,7 @@ favouritesRouter.post("/insert", authMiddleware, async (context) => {
     const { novelMeta } = await context.request.body.jsonOrEmpty();
 
     if (!novelMeta) {
-      console.error("Novel Meta is required: ", JSON.stringify(novelMeta, null, 2));
+      console.warn("Novel Meta is required: ", JSON.stringify(novelMeta, null, 2));
       context.response.body = { error: "All Fields are required" };
       context.response.status = 400;
       return;

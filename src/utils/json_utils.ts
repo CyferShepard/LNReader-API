@@ -3,7 +3,7 @@ export class JSONUtils {
     try {
       return JSON.parse(jsonString) as T;
     } catch (error) {
-      console.warn("Failed to parse JSON:", error);
+      console.error("Failed to parse JSON:", error);
       return defaultValue;
     }
   }

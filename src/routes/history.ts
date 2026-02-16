@@ -15,7 +15,7 @@ historyRouter.get("/get", authMiddleware, async (context) => {
     url = context.request.url.searchParams.get("url");
     novelUrl = context.request.url.searchParams.get("novelUrl");
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 
   if (url == undefined) {

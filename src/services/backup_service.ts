@@ -54,7 +54,7 @@ export class BackupService {
       const toDelete = files.slice(0, files.length - MAX_BACKUPS);
       for (const file of toDelete) {
         await Deno.remove(join(BACKUP_DIR, file));
-        console.log(`[BackupService] Deleted old backup: ${file}`);
+        console.info(`[BackupService] Deleted old backup: ${file}`);
       }
     }
   }

@@ -21,14 +21,14 @@ export class FavouritesUpdateChecker {
     );
     this.checkAndUpdate();
     this.intervalId = setInterval(() => this.checkAndUpdate(), this.intervalMs);
-    console.log(`[FavouritesUpdateChecker] Started with interval ${this.intervalMs / 1000 / 60} minutes.`);
+    console.info(`[FavouritesUpdateChecker] Started with interval ${this.intervalMs / 1000 / 60} minutes.`);
   }
 
   public stop() {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = undefined;
-      console.log("[FavouritesUpdateChecker] Stopped.");
+      console.info("[FavouritesUpdateChecker] Stopped.");
     }
   }
 
@@ -149,7 +149,7 @@ export class FavouritesUpdateChecker {
       const chapters: Chapter[] = results.map((chapter) => Chapter.fromJSON(chapter));
 
       if (chapters.length == 0) {
-        console.log(`[FavouritesUpdateChecker] No chapters found for: ${novel.title}`);
+        console.warn(`[FavouritesUpdateChecker] No chapters found for: ${novel.title}`);
         return;
       }
 

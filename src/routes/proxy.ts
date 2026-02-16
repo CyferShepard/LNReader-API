@@ -67,7 +67,7 @@ proxyRouter.get("/imageProxy", async (context) => {
       if (cachedImage) {
         context.response.headers.set("Content-Type", cachedImage.contentType);
         context.response.body = cachedImage.data;
-        console.log(`Serving cached image for URL: ${imageUrl}`);
+        console.info(`Serving cached image for URL: ${imageUrl}`);
         return;
       }
     }

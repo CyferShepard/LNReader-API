@@ -15,9 +15,9 @@ export async function decodeAndVerifyToken(token: string, ip: string, allowedTyp
     return payload;
   } catch (error) {
     if (error instanceof Error) {
-      console.error(`[Unauthorized]: (${ip}) Failed to verify token: ${error.message}`);
+      console.warn(`[Unauthorized]: (${ip}) Failed to verify token: ${error.message}`);
     } else {
-      console.error(`[Unauthorized]: (${ip}) Failed to verify token: ${error}`);
+      console.warn(`[Unauthorized]: (${ip}) Failed to verify token: ${error}`);
     }
     return null;
     // throw error;

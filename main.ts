@@ -1,3 +1,4 @@
+import "./src/utils/console_colours.ts";
 import { Application, Router } from "https://deno.land/x/oak@v17.2.0/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
@@ -60,6 +61,6 @@ await backupService.start();
 checker.start();
 
 const port = 8000;
-console.log(`Server is running on http://localhost:${port}`);
+console.info(`Server is running on http://localhost:${port}`);
 
 await app.listen({ port });
