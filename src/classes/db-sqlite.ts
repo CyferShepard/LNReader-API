@@ -621,19 +621,39 @@ ORDER BY lh.last_read DESC
 
     if (novelUrl) {
       const stmt = this.db!.prepare(`
-        SELECT lh.*, 
-         (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl, 'chapterIndex',c.chapterIndex)
-        FROM chapter_meta c 
-        WHERE c.novelUrl=:url and c.url=lh.url) AS chapter,
-       (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author', n.author, 'status', n.status, 'genres', n.genres, 'tags', n.tags, 'lastUpdate', n.lastUpdate, 'additionalProps', n.additionalProps)
-        FROM novel_meta n 
-        join  chapter_meta c  on n.url=c.novelUrl
-        WHERE c.novelUrl=:url) AS novel
-        FROM history lh
-       join  chapter_meta c  on lh.url=c.url
-        and c.novelUrl=:url
-      where lh.username=:username 
-      ORDER BY lh.last_read DESC
+ SELECT 
+    lh.*, 
+    -- 1. Construct the chapter JSON directly from the joined table
+    JSON_OBJECT(
+        'source', c.source, 
+        'url', c.url, 
+        'title', c.title, 
+        'novelUrl', c.novelUrl, 
+        'chapterIndex', c.chapterIndex
+    ) AS chapter,
+    
+    -- 2. Construct the novel JSON directly from the joined table
+    JSON_OBJECT(
+        'source', n.source, 
+        'url', n.url, 
+        'title', n.title, 
+        'cover', n.cover, 
+        'summary', n.summary, 
+        'author', n.author, 
+        'status', n.status, 
+        'genres', n.genres, 
+        'tags', n.tags, 
+        'lastUpdate', n.lastUpdate, 
+        'additionalProps', n.additionalProps
+    ) AS novel
+FROM history lh
+JOIN chapter_meta c 
+    ON lh.url = c.url 
+    AND c.novelUrl = :url
+JOIN novel_meta n 
+    ON n.url = c.novelUrl  -- Flattened the subquery into a standard JOIN
+WHERE lh.username = :username
+ORDER BY lh.last_read DESC;
         `);
 
       const results: Record<string, unknown>[] | undefined = stmt.all({ username: username, url: novelUrl });
