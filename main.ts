@@ -13,6 +13,7 @@ import { FavouritesUpdateChecker } from "./src/services/favourites_update_checke
 import authMiddleware from "./src/utils/auth_middleware.ts";
 import { wsClients } from "./src/utils/config.ts";
 import { BackupService } from "./src/services/backup_service.ts";
+import { setDefaultHeaders } from "./src/classes/api-parser.ts";
 
 const app = new Application();
 const router = new Router();
@@ -53,6 +54,10 @@ app.use(apiRouter.routes(), apiRouter.allowedMethods());
 app.use(proxyRouter.routes(), proxyRouter.allowedMethods());
 app.use(favouritesRouter.routes(), favouritesRouter.allowedMethods());
 app.use(historyRouter.routes(), historyRouter.allowedMethods());
+const defaultHeaders: HeadersInit = {
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/148.0.0.0 Safari/537.36",
+};
+setDefaultHeaders(defaultHeaders);
 const checker = new FavouritesUpdateChecker(60 * 60 * 1000); // 12 Hours
 
 const backupService = new BackupService();
