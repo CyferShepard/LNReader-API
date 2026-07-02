@@ -93,7 +93,7 @@ export class FavouritesUpdateChecker {
       let latestChapters = chaptersPage1.chapters;
 
       if (chaptersPage1.lastPage > 1) {
-        await new Promise((resolve) => setTimeout(resolve, 500)); // Add a small delay between updates to avoid overwhelming APIs
+        await new Promise((resolve) => setTimeout(resolve, 1500)); // Add a small delay between updates to avoid overwhelming APIs
 
         latestChapters = (await sourceParser.getChapters(fav.url, chaptersPage1.lastPage)).chapters;
       }
