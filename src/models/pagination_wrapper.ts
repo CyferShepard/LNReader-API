@@ -1,4 +1,4 @@
-class PaginationWrapper<T> {
+export default class PaginationWrapper<T> {
   results: T[];
   page: number;
   pageSize: number;

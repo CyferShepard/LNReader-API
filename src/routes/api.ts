@@ -2,88 +2,22 @@ import { Context, Router } from "https://deno.land/x/oak@v17.2.0/mod.ts";
 import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import authMiddleware from "../utils/auth_middleware.ts";
-import { Chapter } from "../schemas/chapter.ts";
-import { parseQuery, ScraperPayload, ScraperResponse, configureAstralBrowser, BodyType } from "../classes/api-parser.ts";
-import { getPayload, getPlugins, getSource, PLUGINS } from "../classes/payload-helper.ts";
+// import { Chapter } from "../schemas/chapter.ts";
+
 import { downloadGithubFolder } from "../utils/configUpdater.ts";
 import { allowRegistration, setAllowRegistration } from "../utils/config.ts";
 import { Categorties } from "../schemas/categories.ts";
 import { broadcastMessage } from "../classes/websockets.ts";
 import { SourceSearch } from "../models/source_search.ts";
 import { ClientConfig } from "../schemas/client_config.ts";
+import { ChapterMeta } from "../schemas/chapter_meta.ts";
+import { parserRegistry } from "../classes/parser-registry.ts";
+import { ChapterListItem } from "../models/Chapters.ts";
+import { Details } from "../models/Details.ts";
 
 const apiRouter = new Router({ prefix: "/api" });
 
 //METHODS
-
-function configureBrowser() {
-  const browserlessUrl = Deno.env.get("BROWSERLESS_URL");
-  const browserlessToken = Deno.env.get("BROWSERLESS_TOKEN");
-  if (browserlessToken && browserlessUrl) {
-    configureAstralBrowser(browserlessUrl, browserlessToken);
-    console.log(`Configured browser with URL: ${browserlessUrl} and token: ${browserlessToken}`);
-  }
-}
-// function replaceKeys(template: string, values: Record<string, unknown>): string {
-//   return template.replace(/\$\{(\w+)\}/g, (_, key) => (values[key] !== undefined ? String(values[key]) : ""));
-// }
-
-function replaceKeysInRecord(obj: Record<string, unknown>, values: Record<string, unknown>): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
-  for (const [key, val] of Object.entries(obj)) {
-    if (typeof val === "string") {
-      result[key] = val.replaceKeys(values);
-    } else {
-      result[key] = val;
-    }
-  }
-  return result;
-}
-
-async function getChapter(context: Context, url: string, source: string): Promise<Record<string, unknown> | null> {
-  const payload: ScraperPayload | null = await getPayload("chapter", source);
-  if (!payload) {
-    context.response.status = 404;
-    context.response.body = { error: "Payload not found for details", "available payloads": PLUGINS };
-    return null;
-  }
-
-  if (payload.waitForPageLoad) {
-    configureBrowser();
-  }
-
-  payload.url = payload.url.replace("${0}", url);
-
-  const response: ScraperResponse | null = await parseQuery(payload);
-  const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
-  if (results) {
-    results.fullUrl = payload.url; // Ensure fullUrl is set to the provided URL
-  }
-  return results;
-}
-
-async function getNovel(context: Context, url: string, source: string): Promise<Record<string, unknown> | null> {
-  const payload: ScraperPayload | null = await getPayload("details", source);
-  if (!payload) {
-    context.response.status = 404;
-    context.response.body = { error: "Payload not found for details", "available payloads": PLUGINS };
-    return null;
-  }
-  if (payload.waitForPageLoad) {
-    configureBrowser();
-  }
-
-  payload.url = payload.url.replace("${0}", url);
-
-  const response: ScraperResponse | null = await parseQuery(payload);
-  const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
-  if (results) {
-    results.fullUrl = payload.url; // Ensure fullUrl is set to the provided URL
-  }
-  return results;
-}
-
-//
 
 apiRouter.get("/canRegister", (context) => {
   context.response.body = { canRegister: allowRegistration };
@@ -139,10 +73,10 @@ apiRouter.post("/canRegister", authMiddleware, async (context) => {
   context.response.body = { status: "Registration setting updated", canRegister: allowRegistration };
 });
 
-apiRouter.get("/sources", authMiddleware, async (context) => {
-  await getPlugins();
+apiRouter.get("/sources", authMiddleware, (context) => {
+  const plugins = parserRegistry.listSources();
 
-  context.response.body = PLUGINS;
+  context.response.body = plugins;
 });
 
 apiRouter.get("/latest", authMiddleware, async (context) => {
@@ -161,89 +95,27 @@ apiRouter.get("/latest", authMiddleware, async (context) => {
     context.response.status = 400;
     return;
   }
-
-  const payload: ScraperPayload | null = await getPayload("latest", source);
-  if (!payload) {
-    context.response.status = 404;
-    context.response.body = { error: "Payload not found for search", "available payloads": PLUGINS };
+  const sourceParser = await parserRegistry.getOrLoadParser(source);
+  if (sourceParser) {
+    const parserResults = await sourceParser.getLatest(page ?? 1);
+    context.response.body = parserResults;
     return;
   }
-  if (payload.waitForPageLoad) {
-    configureBrowser();
-  }
-
-  payload.url = payload.url.replace("${0}", page!.toString());
-
-  const jsonpayload = JSON.stringify(payload.toJson());
-  // console.log(jsonpayload);
-
-  const response: ScraperResponse | null = await parseQuery(payload);
-  const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
-
-  context.response.body = results || { results: [] };
+  context.response.body = { error: "Parser not found for source", "available sources": parserRegistry.listSources() };
 });
 
 apiRouter.post("/search", authMiddleware, async (context) => {
-  const { source, page = 1, searchParams } = await context.request.body.jsonOrEmpty();
+  const { source, page = 1, query } = await context.request.body.jsonOrEmpty();
 
-  // if (!searchTerm) {
-  //   context.response.status = 400;
-  //   context.response.body = { error: "Search Term is required" };
-  //   return;
-  // }
+  console.log("source: ", source, " | page: ", page, " | query: ", query);
 
-  const payload: ScraperPayload | null = await getPayload("search", source);
-  if (!payload) {
-    context.response.status = 404;
-    context.response.body = { error: "Payload not found for search", "available payloads": PLUGINS };
+  const sourceParser = await parserRegistry.getOrLoadParser(source);
+  if (sourceParser) {
+    const parserResults = await sourceParser.search(query, page);
+    context.response.body = parserResults;
     return;
   }
-  if (payload.waitForPageLoad) {
-    configureBrowser();
-  }
-
-  if (payload.type === "POST") {
-    if (payload.bodyType === BodyType.FORM_DATA) {
-      // payload.body = new FormData();
-      if (!payload.body || !(payload.body instanceof FormData)) {
-        payload.body = new FormData();
-      }
-
-      if (typeof searchParams === "string") {
-        const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
-        for (const [key, value] of params.entries()) {
-          payload.body.set(key, value);
-        }
-      }
-    } else if (payload.bodyType === BodyType.JSON) {
-      if (typeof searchParams === "string") {
-        const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
-        for (const [key, value] of params.entries()) {
-          (payload.body as Record<string, unknown>)[key] = value;
-        }
-      }
-    }
-  } else {
-    if (searchParams != null) {
-      payload.url = payload.url + searchParams;
-    }
-  }
-  payload.url = payload.url.replace("${1}", page!.toString());
-
-  const jsonpayload = JSON.stringify(payload.toJson());
-  // console.log(jsonpayload);
-
-  const response: ScraperResponse | null = await parseQuery(payload);
-  // const results = response?.results && response?.results.length > 0 ? response.results[0]["results"] : null;
-  const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
-
-  if (results != null && results.results != null && !Array.isArray(results.results)) {
-    results.results = [results.results];
-  }
-
-  context.response.body = results || { results: [] };
-
-  // context.response.body = !Array.isArray(results) && results != undefined ? [results] : results || [];
+  context.response.body = { error: "Parser not found for source", "available sources": parserRegistry.listSources() };
 });
 
 apiRouter.post("/searchMultiple", authMiddleware, async (context) => {
@@ -260,67 +132,34 @@ apiRouter.post("/searchMultiple", authMiddleware, async (context) => {
   for (const payloadData of searchPayloadData) {
     try {
       const source = payloadData.source;
-      const searchParams = payloadData.searchParams;
+      const query = payloadData.query;
 
-      const payload: ScraperPayload | null = await getPayload("search", source);
-      if (!payload) {
-        continue;
-      }
-      if (payload.waitForPageLoad) {
-        configureBrowser();
-      }
-      if (payload.type === "POST") {
-        if (payload.bodyType === BodyType.FORM_DATA) {
-          payload.body = new FormData();
-
-          if (typeof searchParams === "string") {
-            const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
-            for (const [key, value] of params.entries()) {
-              payload.body.set(key, value);
-            }
-          }
-        } else if (payload.bodyType === BodyType.JSON) {
-          if (typeof searchParams === "string") {
-            const params = new URLSearchParams(searchParams.startsWith("?") ? searchParams.slice(1) : searchParams);
-            for (const [key, value] of params.entries()) {
-              (payload.body as Record<string, unknown>)[key] = value;
-            }
-          }
-        }
-      } else {
-        if (searchParams != null) {
-          payload.url = payload.url + searchParams;
-        }
-      }
-
-      payload.url = payload.url.replace("${1}", "1");
-
-      const response: ScraperResponse | null = await parseQuery(payload);
-      const results = response?.results && response?.results.length > 0 ? response.results[0] : null;
-
-      if (results != null && results.results != null && !Array.isArray(results.results)) {
-        results.results = [results.results];
-      }
-
-      if (results != null) {
-        payloadData.searchResult = results || { results: [] };
+      const sourceParser = await parserRegistry.getOrLoadParser(source);
+      if (sourceParser) {
+        const parserResults = await sourceParser.search(query, 1);
+        payloadData.searchResult = parserResults;
+        context.response.body = parserResults;
       }
     } catch (error) {
       console.error(`Error processing search for source: ${payloadData.source}`, error);
     }
   }
 
-  context.response.body = SourceSearch.toJSONList(searchPayloadData);
+  context.response.body = searchPayloadData;
 });
 
 apiRouter.post("/novel", authMiddleware, async (context) => {
   const { source, url, cacheData = true, clearCache = false } = await context.request.body.jsonOrEmpty();
 
-  console.log("/novel", source, url);
-
   if (!url || !source) {
     context.response.body = { error: "Novel Url and Source is required" };
     context.response.status = 400;
+    return;
+  }
+
+  const sourceParser = await parserRegistry.getOrLoadParser(source);
+  if (!sourceParser) {
+    context.response.body = { error: "Parser not found for source", "available sources": parserRegistry.listSources() };
     return;
   }
 
@@ -329,37 +168,30 @@ apiRouter.post("/novel", authMiddleware, async (context) => {
     const cachedNovel = await dbSqLiteHandler.getCachedNovel(url, source);
     if (cachedNovel != null) {
       console.log("Returning cached novel for source:", source, "and url:", url);
-      const payload: ScraperPayload | null = await getPayload("details", source);
-      if (payload != null) {
-        payload.url = payload.url.replace("${0}", url);
-        cachedNovel.fullUrl = payload.url; // Ensure fullUrl is set to the provided URL
-      }
-
       context.response.body = cachedNovel;
       return;
     }
   }
 
-  const results: Record<string, unknown> | null = await getNovel(context, url, source);
-  if (!results) {
+  const parserResults = await sourceParser.getNovel(url);
+  if (!parserResults) {
+    context.response.status = 404;
+    context.response.body = { error: "Novel not found for the given URL and source" };
     return;
   }
+  context.response.body = parserResults;
 
-  if (clearCache && results != null) {
+  if (clearCache) {
     // Clear the cache for this source and url
     console.log("Clearing cache for source:", source, "and url:", url);
     await dbSqLiteHandler.clearChaptersCache(url, source);
   }
-  if (cacheData == true && results != null) {
-    const novelMeta = NovelMeta.fromJSON(results);
-    novelMeta.source = source;
-    novelMeta.url = novelMeta.url ?? url;
-
+  if (cacheData == true) {
+    const novelMeta = NovelMeta.fromJSON(parserResults.toJSON());
     await dbSqLiteHandler.insertNovelMeta(novelMeta);
   }
 
-  // console.log("response: " + results);
-  context.response.body = results || [];
+  context.response.body = parserResults;
 });
 
 apiRouter.post("/chapters", authMiddleware, async (context) => {
@@ -371,15 +203,15 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     return;
   }
 
+  const sourceParser = await parserRegistry.getOrLoadParser(source);
+  if (!sourceParser) {
+    context.response.body = { error: "Parser not found for source", "available sources": parserRegistry.listSources() };
+    return;
+  }
+
   if (clearCache == false && cacheData == true) {
     // Check if chapters are already cached
     const cachedChapters = await dbSqLiteHandler.getCachedChapters(url, source);
-    // const dedupedChapters = cachedChapters.reduce((acc: Chapter[], chapter: Chapter) => {
-    //   if (!acc.some((c: Chapter) => c.index === chapter.index)) {
-    //     acc.push(chapter);
-    //   }
-    //   return acc;
-    // }, []);
     if (cachedChapters && cachedChapters.length > 0) {
       console.log("Returning cached chapters for source:", source, "and url:", url);
       context.response.body = cachedChapters;
@@ -387,113 +219,44 @@ apiRouter.post("/chapters", authMiddleware, async (context) => {
     }
   }
 
-  const payload: ScraperPayload | null = await getPayload("chapters", source);
-  if (!payload) {
-    context.response.status = 404;
-    context.response.body = { error: "Payload not found for chapters", "available payloads": PLUGINS };
-    return;
-  }
-  if (payload.waitForPageLoad) {
-    configureBrowser();
-  }
+  let page = 1;
+  const chapters: ChapterListItem[] = [];
 
-  payload.url = payload.url.replace("${0}", url);
+  const parserResults = await sourceParser.getChapters(url, page, additionalProps);
+  chapters.push(...parserResults.chapters);
 
-  if (additionalProps && typeof additionalProps === "object" && Object.keys(additionalProps).length > 0) {
-    if (payload.bodyType === BodyType.FORM_DATA) {
-      // payload.body = new FormData();
-      if (!payload.body || !(payload.body instanceof FormData)) {
-        payload.body = new FormData();
-      }
-      payload.body = payload.body.replaceKeys(additionalProps);
-      // console.log("Replaced body:", payload.body);
-    } else if (payload.bodyType === BodyType.JSON) {
-      if (!payload.body || typeof payload.body !== "object") {
-        payload.body = {};
-      }
-
-      payload.body = replaceKeysInRecord(payload.body as Record<string, unknown>, additionalProps);
-    }
-
-    payload.url = payload.url.replaceKeys(additionalProps);
-  }
-
-  let hasPageParam = false;
-  try {
-    // Use a dummy base if payload.url is relative
-    const urlObj = new URL(payload.url);
-    hasPageParam = urlObj.searchParams.has("page");
-    // deno-lint-ignore no-unused-vars
-  } catch (e) {
-    // If payload.url is not a valid URL, fallback to string check
-    hasPageParam = /[?&]page=/.test(payload.url);
-  }
-
-  let results: Array<Record<string, unknown>> = [];
-
-  if (hasPageParam) {
-    let page: number = 0;
-    let maxPage: number = 1;
-    const originalUrl = payload.url; // Save the template with "${1}"
-
-    while (page < maxPage) {
+  if (parserResults.lastPage > 1) {
+    page++;
+    while (page <= parserResults.lastPage) {
+      const nextPageResults = await sourceParser.getChapters(url, page);
+      chapters.push(...nextPageResults.chapters);
       page++;
-      payload.url = originalUrl.replace("${1}", `${page}`); // Replace page number in URL
-      console.log("Fetching chapters from URL:", payload.url);
-      const response: ScraperResponse | null = await parseQuery(payload);
-      const _results: Array<Record<string, unknown>> | null =
-        response?.results && response?.results.length > 0
-          ? (response.results[0]["chapters"] as Array<Record<string, unknown>>)
-          : null;
-      if (maxPage == 1) {
-        maxPage = response?.results && response?.results.length > 0 ? (response.results[0]["lastPage"] as number) : 1; // Use maxPage from response or default to 1
-      }
-      if (_results && _results.length > 0) {
-        results = results.concat(_results);
-
-        console.log("Page:", page, "Max Page:", maxPage, "Results Count:", results.length);
-      }
-    }
-  } else {
-    const response: ScraperResponse | null = await parseQuery(payload);
-    const _results: Array<Record<string, unknown>> | null =
-      response?.results && response?.results.length > 0
-        ? (response.results[0]["chapters"] as Array<Record<string, unknown>>)
-        : null;
-    if (_results) {
-      results = results.concat(_results);
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Delay of 1 second between requests
     }
   }
 
-  // if (clearCache && results.length > 0) {
-  //   // Clear the cache for this source and url
-  //   console.log("Clearing cache for source:", source, "and url:", url);
-  //   await dbSqLiteHandler.clearChaptersCache(url, source);
-  // }
-  if (cacheData == true && results.length > 0) {
+  if (cacheData == true && chapters.length > 0) {
     const existingChapters = await dbSqLiteHandler.getCachedChapters(url, source);
-    const novelMeta = new NovelMeta(source, url, "", "", "", "", "", [], [], "");
-    const novelChapters: Chapter[] = results.map((chapter) => Chapter.fromJSON(chapter));
-    const newChapters: Chapter[] = novelChapters.filter(
-      (chapter) => !existingChapters.some((c: Chapter) => c.url === chapter.url),
+    const novelChapters: ChapterMeta[] = chapters.map((chapter) => ChapterMeta.fromJSON(chapter.toJSON()));
+    const newChapters: ChapterMeta[] = novelChapters.filter(
+      (chapter) => !existingChapters.some((c: ChapterMeta) => c.url === chapter.url),
     );
     if (newChapters.length > 0) {
-      console.log("Caching chapters for novel:", novelMeta.title);
-      await dbSqLiteHandler.insertChapterMetaBulk(newChapters, novelMeta);
+      await dbSqLiteHandler.insertChapterMetaBulk(newChapters);
     }
   }
 
-  // const dedupedChapters = results.reduce((acc: Record<string, unknown>[], chapter: Record<string, unknown>) => {
-  //   if (!acc.some((c: Record<string, unknown>) => c.index === chapter.index)) {
-  //     acc.push(chapter);
-  //   }
-  //   return acc;
-  // }, []);
-  context.response.body = results;
+  if (chapters.length === 0) {
+    context.response.status = 404;
+    context.response.body = { error: "No chapters found for the given URL and source" };
+    return;
+  }
+
+  context.response.body = chapters;
 });
 
 apiRouter.post("/chapter", authMiddleware, async (context) => {
-  const { source, url } = await context.request.body.jsonOrEmpty();
+  const { source, url, additionalProps } = await context.request.body.jsonOrEmpty();
 
   if (!url) {
     context.response.body = { error: "Chapter Path is required" };
@@ -501,20 +264,15 @@ apiRouter.post("/chapter", authMiddleware, async (context) => {
     return;
   }
 
-  const sourcePlugin = getSource(source);
-
-  if (!sourcePlugin) {
-    context.response.status = 404;
-    context.response.body = { error: "Source not found", "available sources": PLUGINS.map((s) => s.name) };
+  const sourceParser = await parserRegistry.getOrLoadParser(source);
+  if (!sourceParser) {
+    context.response.body = { error: "Parser not found for source", "available sources": parserRegistry.listSources() };
     return;
   }
 
-  const results: Record<string, unknown> | null = await getChapter(context, url, source);
-  if (!results) {
-    return;
-  }
-  // console.log("response: " + results);
-  context.response.body = results || [];
+  const result = await sourceParser.getChapter(url, additionalProps);
+
+  context.response.body = result;
 });
 
 apiRouter.get("/updatePlugins", authMiddleware, async (context) => {

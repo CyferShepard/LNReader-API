@@ -1,11 +1,11 @@
 import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
-import { Chapter } from "../schemas/chapter.ts";
+// import { Chapter } from "../schemas/chapter.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
-import { getPayload } from "../classes/payload-helper.ts";
-import { parseQuery } from "../classes/api-parser.ts";
 import { broadcastMessage } from "../classes/websockets.ts";
 import { downloadGithubFolder } from "../utils/configUpdater.ts";
 import { Favourite } from "../schemas/favourites.ts";
+import { ChapterMeta } from "../schemas/chapter_meta.ts";
+import { parserRegistry } from "../classes/parser-registry.ts";
 
 export class FavouritesUpdateChecker {
   private intervalId: number | undefined;
@@ -37,16 +37,18 @@ export class FavouritesUpdateChecker {
       console.log("[FavouritesUpdateChecker] Checking for updates...");
       broadcastMessage(new Map().set("type", "favouritesUpdateCheck").set("message", "Updating Favourites"));
       const favourites = await dbSqLiteHandler.getAllUniqueFavourites();
+      const validSources = parserRegistry.listSources().map((source) => source.name);
 
-      for (let i = 0; i < favourites.length; i++) {
-        const fav = favourites[i];
+      const filteredFavourites = favourites.filter((fav) => validSources.includes(fav.source));
+
+      for (let i = 0; i < filteredFavourites.length; i++) {
+        const fav = filteredFavourites[i];
 
         await this.updateNovel(fav);
 
-        if (i < favourites.length - 1) {
-          const nextFav = favourites[i + 1];
+        if (i < filteredFavourites.length - 1) {
+          const nextFav = filteredFavourites[i + 1];
           if (nextFav.source === fav.source) {
-            console.log(`[FavouritesUpdateChecker] Waiting before updating next favourite from the same source: ${fav.source}`);
             await new Promise((resolve) => setTimeout(resolve, 500)); // Add a small delay between updates to avoid overwhelming APIs
           }
         }
@@ -64,16 +66,14 @@ export class FavouritesUpdateChecker {
     try {
       // If Favourite has source and url, fetch the full NovelMeta
       //   const novel: NovelMeta | null = await dbSqLiteHandler.getCachedNovel(fav.url, fav.source);
-      const novelPayload = await getPayload("details", fav.source);
-      if (!novelPayload) {
-        console.warn(`[FavouritesUpdateChecker] No payload found for source: ${fav.source}`);
+      const sourceParser = await parserRegistry.getOrLoadParser(fav.source);
+      if (!sourceParser) {
+        console.warn(`[FavouritesUpdateChecker] Parser not found for source: ${fav.source}`);
         return;
       }
-      novelPayload.url = novelPayload.url.replace("${0}", fav.url);
-      const responseN = await parseQuery(novelPayload);
-      const resultsnm = responseN?.results && responseN?.results.length > 0 ? responseN.results[0] : null;
-      const novel: NovelMeta | null = resultsnm
-        ? NovelMeta.fromJSON(resultsnm)
+      const fetchedNovelMeta = await sourceParser.getNovel(fav.url);
+      const novel: NovelMeta | null = fetchedNovelMeta
+        ? NovelMeta.fromJSON(fetchedNovelMeta)
         : await dbSqLiteHandler.getCachedNovel(fav.url, fav.source);
 
       if (!novel) {
@@ -85,68 +85,17 @@ export class FavouritesUpdateChecker {
       await dbSqLiteHandler.insertNovelMeta(novel);
 
       ///////////Chapter stuff
-      const payload = await getPayload("chapters", novel.source);
-      if (!payload) {
-        console.warn(`[FavouritesUpdateChecker] No payload for source: ${novel.source}`);
-        return;
-      }
-      let hasPageParam = false;
-      try {
-        // Use a dummy base if payload.url is relative
-        const urlObj = new URL(payload.url);
-        hasPageParam = urlObj.searchParams.has("page");
-        // deno-lint-ignore no-unused-vars
-      } catch (e) {
-        // If payload.url is not a valid URL, fallback to string check
-        hasPageParam = /[?&]page=/.test(payload.url);
+      const chaptersPage1 = await sourceParser.getChapters(fav.url, 1);
+
+      let latestChapters = chaptersPage1.chapters;
+
+      if (chaptersPage1.lastPage > 1) {
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Add a small delay between updates to avoid overwhelming APIs
+
+        latestChapters = (await sourceParser.getChapters(fav.url, chaptersPage1.lastPage)).chapters;
       }
 
-      payload.url = payload.url.replace("${0}", novel.url);
-
-      if (novel.additionalProps && Object.keys(novel.additionalProps).length > 0) {
-        payload.url = payload.url.replaceKeys(novel.additionalProps);
-      }
-
-      let results: Array<Record<string, unknown>> = [];
-
-      if (hasPageParam) {
-        let page: number = 0;
-        let maxPage: number = 1;
-        const originalUrl = payload.url; // Save the template with "${1}"
-
-        while (page < maxPage) {
-          page++;
-          payload.url = originalUrl.replace("${1}", `${page}`); // Replace page number in URL
-          const response = await parseQuery(payload);
-          const _results: Array<Record<string, unknown>> | null =
-            response?.results && response?.results.length > 0
-              ? (response.results[0]["chapters"] as Array<Record<string, unknown>>)
-              : null;
-          if (maxPage == 1) {
-            maxPage = response?.results && response?.results.length > 0 ? (response.results[0]["lastPage"] as number) : 1; // Use maxPage from response or default to 1
-
-            if (maxPage > 1) {
-              page = maxPage - 1; // Set page to maxPage to exit loop if no chapters found
-            }
-          }
-          if (_results && _results.length > 0) {
-            results = results.concat(_results);
-
-            console.log("Page:", page, "Max Page:", maxPage, "Results Count:", results.length);
-          }
-        }
-      } else {
-        const response = await parseQuery(payload);
-        const _results: Array<Record<string, unknown>> | null =
-          response?.results && response?.results.length > 0
-            ? (response.results[0]["chapters"] as Array<Record<string, unknown>>)
-            : null;
-        if (_results) {
-          results = results.concat(_results);
-        }
-      }
-
-      const chapters: Chapter[] = results.map((chapter) => Chapter.fromJSON(chapter));
+      const chapters: ChapterMeta[] = latestChapters.map((chapter) => ChapterMeta.fromJSON(chapter.toJSON()));
 
       if (chapters.length == 0) {
         console.warn(`[FavouritesUpdateChecker] No chapters found for: ${novel.title}`);
@@ -155,7 +104,9 @@ export class FavouritesUpdateChecker {
 
       const existingChapters = await dbSqLiteHandler.getCachedChapters(fav.url, fav.source);
 
-      const newChapters: Chapter[] = chapters.filter((chapter) => !existingChapters.some((c: Chapter) => c.url === chapter.url));
+      const newChapters: ChapterMeta[] = chapters.filter(
+        (chapter) => !existingChapters.some((c: ChapterMeta) => c.url === chapter.url),
+      );
       console.log("Caching chapters for novel:", novel.title);
 
       if (newChapters.length === 0) {
@@ -164,7 +115,7 @@ export class FavouritesUpdateChecker {
         return;
       }
       console.log(`[FavouritesUpdateChecker] Updated ${newChapters.length} chapters for: ${novel.title}`);
-      await dbSqLiteHandler.insertChapterMetaBulk(newChapters, novel);
+      await dbSqLiteHandler.insertChapterMetaBulk(newChapters);
     } catch (err) {
       console.error(`[FavouritesUpdateChecker] Error updating chapters for favourite:`, err);
     }

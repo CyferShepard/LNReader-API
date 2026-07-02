@@ -45,6 +45,10 @@ export class SourceFilterField {
       isMultiVar: this.isMultiVar,
     };
   }
+
+  static toJSONList(dataList: SourceFilterField[]): string {
+    return JSON.stringify(dataList.map((data) => data.toJSON()));
+  }
 }
 
 export class FieldOptions {

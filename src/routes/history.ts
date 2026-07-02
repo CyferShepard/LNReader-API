@@ -2,8 +2,9 @@ import { Router } from "https://deno.land/x/oak@v17.2.0/mod.ts";
 import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import authMiddleware from "../utils/auth_middleware.ts";
-import { Chapter } from "../schemas/chapter.ts";
+// import { Chapter } from "../schemas/chapter.ts";
 import { History } from "../schemas/history.ts";
+import { ChapterMeta } from "../schemas/chapter_meta.ts";
 
 const historyRouter = new Router({ prefix: "/history" });
 
@@ -33,33 +34,32 @@ historyRouter.get("/get", authMiddleware, async (context) => {
 });
 
 historyRouter.post("/insert", authMiddleware, async (context) => {
-  const { novel, chapter, page, position } = await context.request.body.jsonOrEmpty();
+  const { chapter, page, position } = await context.request.body.jsonOrEmpty();
 
-  if (novel == null || page == null || position == null || chapter == null) {
+  if (page == null || position == null || chapter == null) {
     context.response.body = { error: "All Fields are required" };
     return;
   }
 
-  const novelMeta: NovelMeta = NovelMeta.fromJSON(novel);
-  const chapterData: Chapter = Chapter.fromJSON(chapter);
+  const chapterData: ChapterMeta = ChapterMeta.fromJSON(chapter);
   try {
-    if ((await dbSqLiteHandler.getCachedNovel(novelMeta.url, novelMeta.source)) == null) {
-      await dbSqLiteHandler.insertNovelMeta(novelMeta);
+    if ((await dbSqLiteHandler.getCachedNovel(chapterData.novelUrl, chapterData.source)) == null) {
+      return (context.response.body = { error: "Novel not found in cache. Please add the novel to favourites first." });
     }
 
-    if ((await dbSqLiteHandler.getChapterMeta(chapterData.url, novelMeta.source)) == null) {
-      await dbSqLiteHandler.insertChapterMeta(chapterData, novelMeta);
+    if ((await dbSqLiteHandler.getChapterMeta(chapterData.url, chapterData.source)) == null) {
+      return (context.response.body = { error: "Chapter not found in cache. Please add the chapter to favourites first." });
     }
 
     const history: History = new History(
       context.state.user.username,
-      novelMeta.source,
+      chapterData.source,
       chapterData.url,
       new Date(),
       page,
       position,
       chapterData,
-      novelMeta,
+      null, // novelMeta will be fetched from the database
     );
 
     await dbSqLiteHandler.insertHistory(history);
@@ -83,10 +83,10 @@ historyRouter.post("/insertBulk", authMiddleware, async (context) => {
   }
 
   const novelMeta: NovelMeta = NovelMeta.fromJSON(novel);
-  const chapterData: Chapter[] = Chapter.fromJSONList(chapters);
+  const chapterData: ChapterMeta[] = ChapterMeta.fromJSONList(chapters);
   try {
     await dbSqLiteHandler.insertNovelMeta(novelMeta);
-    await dbSqLiteHandler.insertChapterMetaBulk(chapterData, novelMeta);
+    await dbSqLiteHandler.insertChapterMetaBulk(chapterData);
 
     const history: History[] = chapterData.map(
       (chapter) =>

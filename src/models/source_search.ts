@@ -1,26 +1,28 @@
+import { SearchResults } from "./SearchResults.ts";
+
 export class SourceSearch {
   source: string;
-  searchParams: string;
-  searchResult?: Record<string, unknown>;
+  query: string;
+  searchResult?: SearchResults;
 
-  constructor(source: string, searchParams: string) {
+  constructor(source: string, query: string) {
     this.source = source;
-    this.searchParams = searchParams;
+    this.query = query;
   }
 
   static fromResult(data: Record<string, string>): SourceSearch {
-    return new SourceSearch(data.source, data.searchParams);
+    return new SourceSearch(data.source, data.query);
   }
 
   static fromJSON(json: object): SourceSearch {
     if (typeof json !== "object" || json === null) {
       throw new Error("Invalid JSON object");
     }
-    const { source, searchParams } = json as { source: string; searchParams: string };
-    if (typeof source !== "string" || typeof searchParams !== "string") {
+    const { source, query } = json as { source: string; query: string };
+    if (typeof source !== "string" || typeof query !== "string") {
       throw new Error("Invalid properties in JSON object");
     }
-    return new SourceSearch(source, searchParams);
+    return new SourceSearch(source, query);
   }
 
   static fromJsonList(jsonList: Array<object>): SourceSearch[] {
@@ -33,7 +35,7 @@ export class SourceSearch {
   toJSON(): object {
     return {
       source: this.source,
-      searchParams: this.searchParams,
+      query: this.query,
       searchResult: this.searchResult,
     };
   }

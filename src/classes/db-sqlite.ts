@@ -1,6 +1,8 @@
+import PaginationWrapper from "../models/pagination_wrapper.ts";
 import { JoinClauseModel, JoinModel, QueryModel } from "../models/query_model.ts";
 import { Categorties } from "../schemas/categories.ts";
-import { Chapter } from "../schemas/chapter.ts";
+import { ChapterMeta } from "../schemas/chapter_meta.ts";
+// import { Chapter } from "../schemas/chapter.ts";
 import { ClientConfig } from "../schemas/client_config.ts";
 import { Favourite } from "../schemas/favourites.ts";
 import { FavouriteWitChapterMeta } from "../schemas/favouritesWithChapterMeta.ts";
@@ -106,6 +108,8 @@ class DBSqLiteHandler {
       )
     `);
 
+    await dbSqLiteHandler.addColumnIfNotExists("chapter_meta", "additionalProps", "TEXT");
+
     await this.db.exec(`
       CREATE TABLE IF NOT EXISTS images (
         url TEXT,
@@ -189,34 +193,42 @@ class DBSqLiteHandler {
     });
   }
 
-  public async insertChapterMeta(chapter: Chapter, novel: NovelMeta) {
+  public async insertChapterMeta(chapter: ChapterMeta, novel: NovelMeta) {
     if (!this.db) {
       await this.initialize();
     }
 
     const stmt = this.db!.prepare(
-      "INSERT OR REPLACE INTO chapter_meta (source,chapterIndex,url, title, novelUrl) VALUES (:source,:chapterIndex,:url,:title,:novelUrl)",
+      "INSERT OR REPLACE INTO chapter_meta (source,chapterIndex,url, title, novelUrl, additionalProps) VALUES (:source,:chapterIndex,:url,:title,:novelUrl,:additionalProps)",
     );
     stmt.run({
       source: novel.source,
-      chapterIndex: chapter.index,
+      chapterIndex: chapter.chapterIndex,
       url: chapter.url,
       title: chapter.title,
       novelUrl: novel.url,
+      additionalProps: JSON.stringify(chapter.additionalProps || {}),
     });
   }
 
-  public async insertChapterMetaBulk(chapters: Chapter[], novel: NovelMeta) {
+  public async insertChapterMetaBulk(chapters: ChapterMeta[]) {
     if (!this.db) {
       await this.initialize();
     }
 
-    const values = chapters.map(() => "(?, ?, ?, ? ,?)").join(", ");
+    const values = chapters.map(() => "(?, ?, ?, ? ,?, ?)").join(", ");
     const stmt = this.db!.prepare(
-      `INSERT OR REPLACE INTO chapter_meta (source,chapterIndex, url, title, novelUrl) VALUES ${values}`,
+      `INSERT OR REPLACE INTO chapter_meta (source,chapterIndex, url, title, novelUrl, additionalProps) VALUES ${values}`,
     );
 
-    const params = chapters.flatMap((chapter) => [novel.source, chapter.index, chapter.url, chapter.title, novel.url]);
+    const params = chapters.flatMap((chapter) => [
+      chapter.source,
+      chapter.chapterIndex,
+      chapter.url,
+      chapter.title,
+      chapter.novelUrl,
+      JSON.stringify(chapter.additionalProps || {}),
+    ]);
 
     try {
       this.db!.exec("BEGIN TRANSACTION");
@@ -470,7 +482,7 @@ class DBSqLiteHandler {
     stmt.run({ username: username, password: newPassword });
   }
 
-  public async getCachedChapters(url: string, source: string): Promise<Chapter[]> {
+  public async getCachedChapters(url: string, source: string): Promise<ChapterMeta[]> {
     if (!this.db) {
       await this.initialize();
     }
@@ -479,7 +491,7 @@ class DBSqLiteHandler {
     const results: Record<string, unknown>[] | undefined = stmt.all({ source: source, url: url });
 
     if (results && results.length > 0) {
-      return results.map((result: Record<string, unknown>) => Chapter.fromResult(result));
+      return results.map((result: Record<string, unknown>) => ChapterMeta.fromResult(result));
     }
     return [];
   }
@@ -493,7 +505,7 @@ class DBSqLiteHandler {
     const result: Record<string, unknown> | undefined = stmt.get({ source: source, url: url });
 
     if (result) {
-      return Chapter.fromResult(result);
+      return ChapterMeta.fromResult(result);
     }
     return null;
   }
@@ -524,7 +536,7 @@ class DBSqLiteHandler {
     const query: QueryModel = new QueryModel(
       [
         "nm.*",
-        "json_object('source',cm.source, 'url', cm.url, 'title', cm.title, 'novelUrl', cm.novelUrl, 'chapterIndex',cm.chapterIndex, 'date_added', cm.date_added) chapter",
+        "json_object('source',cm.source, 'url', cm.url, 'title', cm.title, 'novelUrl', cm.novelUrl, 'chapterIndex',cm.chapterIndex, 'date_added', cm.date_added, 'additionalProps', cm.additionalProps) chapter",
       ],
       "favourites f",
       [
@@ -629,7 +641,9 @@ ORDER BY lh.last_read DESC
         'url', c.url, 
         'title', c.title, 
         'novelUrl', c.novelUrl, 
-        'chapterIndex', c.chapterIndex
+        'chapterIndex', c.chapterIndex,
+        'date_added', c.date_added,
+        'additionalProps', c.additionalProps
     ) AS chapter,
     
     -- 2. Construct the novel JSON directly from the joined table
@@ -678,7 +692,7 @@ ORDER BY lh.last_read DESC;
   ) lh ON h.url = lh.url AND h.source=lh.source AND h.last_read = lh.max_last_read
 )
 SELECT lh.*, 
-       (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl, 'chapterIndex',c.chapterIndex)
+       (SELECT json_object('source', c.source, 'url', c.url, 'title', c.title, 'novelUrl', c.novelUrl, 'chapterIndex',c.chapterIndex, 'date_added', c.date_added, 'additionalProps', c.additionalProps)
         FROM chapter_meta c 
         WHERE c.url = lh.url) AS chapter,
        (SELECT json_object('source', n.source, 'url', n.url, 'title', n.title, 'cover', n.cover, 'summary', n.summary, 'author',n.author, 'status', n.status, 'genres', n.genres, 'tags', n.tags, 'lastUpdate', n.lastUpdate, 'additionalProps', n.additionalProps)
@@ -813,7 +827,7 @@ ORDER BY lh.last_read DESC`);
 
   //delete
 
-  public async deleteHistoryExceptLatest(chapter: Chapter, novel: NovelMeta, username: string) {
+  public async deleteHistoryExceptLatest(chapter: ChapterMeta, username: string) {
     if (!this.db) {
       await this.initialize();
     }
@@ -830,7 +844,7 @@ ORDER BY lh.last_read DESC`);
                       AND h.source = :source
                       AND h.url != :url
           )`);
-    stmt.run({ username: username, url: chapter.url, source: novel.source, novelUrl: novel.url });
+    stmt.run({ username: username, url: chapter.url, source: chapter.source, novelUrl: chapter.novelUrl });
   }
 
   public async deleteFavourite(url: string, source: string, username: string) {
@@ -912,10 +926,10 @@ ORDER BY lh.last_read DESC`);
         `);
 
     const results: Record<string, unknown>[] | undefined = selectStmt.all({ username: username, url: url, source: source });
-    const chapterMeta = results.map((result: Record<string, unknown>) => Chapter.fromResult(result));
+    const chapterMeta = results.map((result: Record<string, unknown>) => ChapterMeta.fromResult(result));
 
     if (chapterMeta.length > 0) {
-      const urls = chapterMeta.map((chapter: Chapter) => chapter.url);
+      const urls = chapterMeta.map((chapter: ChapterMeta) => chapter.url);
       // Prepare placeholders for the IN clause
       const placeholders = urls.map(() => "?").join(", ");
       const deleteStmt = this.db!.prepare(
@@ -940,10 +954,10 @@ ORDER BY lh.last_read DESC`);
         `);
 
     const results: Record<string, unknown>[] | undefined = selectStmt.all({ url: url, source: source });
-    const chapterMeta = results.map((result: Record<string, unknown>) => Chapter.fromResult(result));
+    const chapterMeta = results.map((result: Record<string, unknown>) => ChapterMeta.fromResult(result));
 
     if (chapterMeta.length > 0) {
-      const urls = chapterMeta.map((chapter: Chapter) => chapter.url);
+      const urls = chapterMeta.map((chapter: ChapterMeta) => chapter.url);
       // Prepare placeholders for the IN clause
       const placeholders = urls.map(() => "?").join(", ");
       const deleteStmt = this.db!.prepare(`DELETE FROM history WHERE url IN (${placeholders}) AND source=:source`);

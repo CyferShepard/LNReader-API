@@ -1,4 +1,5 @@
-import { Chapter } from "./chapter.ts";
+// import { Chapter } from "./chapter.ts";
+import { ChapterMeta } from "./chapter_meta.ts";
 import { NovelMeta } from "./novel_meta.ts";
 
 export class History {
@@ -8,7 +9,7 @@ export class History {
   last_read: Date;
   page: number;
   position: number;
-  chapter: Chapter | null;
+  chapter: ChapterMeta | null;
   novel: NovelMeta | null;
 
   constructor(
@@ -18,8 +19,8 @@ export class History {
     last_read: Date,
     page: number,
     position: number,
-    chapter: Chapter | null,
-    novel: NovelMeta | null
+    chapter: ChapterMeta | null,
+    novel: NovelMeta | null,
   ) {
     this.username = username;
     this.source = source;
@@ -39,8 +40,8 @@ export class History {
       new Date(data.last_read),
       data.page,
       data.position,
-      Chapter.fromJSON(JSON.parse(data.chapter)),
-      NovelMeta.fromJSON(JSON.parse(data.novel))
+      ChapterMeta.fromJSON(JSON.parse(data.chapter)),
+      NovelMeta.fromJSON(JSON.parse(data.novel)),
     );
   }
 
