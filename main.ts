@@ -64,9 +64,6 @@ const checker = new FavouritesUpdateChecker(60 * 60 * 1000); // 12 Hours
 const backupService = new BackupService();
 await backupService.start();
 
-await parserRegistry.loadParsers();
-console.info(`Loaded parser sources: ${parserRegistry.listSources().join(", ") || "none"}`);
-
 checker.start();
 
 const port = 8000;

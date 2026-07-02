@@ -19,6 +19,9 @@ export class FavouritesUpdateChecker {
       "main", // branch
       "./src/plugins", // local destinationto send messages
     );
+
+    await parserRegistry.loadParsers();
+    console.info(`Loaded parser sources: ${parserRegistry.listSources().join(", ") || "none"}`);
     this.checkAndUpdate();
     this.intervalId = setInterval(() => this.checkAndUpdate(), this.intervalMs);
     console.info(`[FavouritesUpdateChecker] Started with interval ${this.intervalMs / 1000 / 60} minutes.`);
