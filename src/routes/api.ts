@@ -149,7 +149,7 @@ apiRouter.post("/searchMultiple", authMiddleware, async (context) => {
 });
 
 apiRouter.post("/novel", authMiddleware, async (context) => {
-  const { source, url, cacheData = true, clearCache = false } = await context.request.body.jsonOrEmpty();
+  const { source, url, additionalProps, cacheData = true, clearCache = false } = await context.request.body.jsonOrEmpty();
 
   if (!url || !source) {
     context.response.body = { error: "Novel Url and Source is required" };
@@ -173,7 +173,7 @@ apiRouter.post("/novel", authMiddleware, async (context) => {
     }
   }
 
-  const parserResults = await sourceParser.getNovel(url);
+  const parserResults = await sourceParser.getNovel(url, additionalProps);
   if (!parserResults) {
     context.response.status = 404;
     context.response.body = { error: "Novel not found for the given URL and source" };

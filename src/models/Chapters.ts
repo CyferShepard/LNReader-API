@@ -39,14 +39,24 @@ export class ChapterListItem {
   title: string;
   date: string;
   novelUrl: string;
+  additionalProps: Record<string, unknown>;
 
-  constructor(source: string, url: string, index: number = 0, title: string, date: string, novelUrl: string) {
+  constructor(
+    source: string,
+    url: string,
+    index: number = 0,
+    title: string,
+    date: string,
+    novelUrl: string,
+    additionalProps?: Record<string, unknown>,
+  ) {
     this.source = source;
     this.url = url;
     this.index = index;
     this.title = title;
     this.date = date;
     this.novelUrl = novelUrl;
+    this.additionalProps = additionalProps || {};
   }
 
   toJSON(): object {
@@ -57,6 +67,7 @@ export class ChapterListItem {
       title: this.title,
       date: this.date,
       novelUrl: this.novelUrl,
+      additionalProps: this.additionalProps,
     };
   }
 
@@ -72,6 +83,9 @@ export class ChapterListItem {
       typeof json.title === "string" ? json.title : "",
       typeof json.date === "string" ? json.date : "",
       typeof json.novelUrl === "string" ? json.novelUrl : "",
+      typeof json.additionalProps === "object" && json.additionalProps !== null
+        ? (json.additionalProps as Record<string, unknown>)
+        : {},
     );
   }
 }

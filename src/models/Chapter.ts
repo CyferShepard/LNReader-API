@@ -1,11 +1,37 @@
+export class ChapterUrlPagination {
+  url: string;
+  additionalProps: Record<string, unknown>;
+
+  constructor(url: string, additionalProps?: Record<string, unknown>) {
+    this.url = url;
+    this.additionalProps = additionalProps || {};
+  }
+
+  toJSON(): object {
+    return {
+      url: this.url,
+      additionalProps: this.additionalProps,
+    };
+  }
+
+  static fromJSON(json: Record<string, unknown>): ChapterUrlPagination {
+    return new ChapterUrlPagination(
+      typeof json.url === "string" ? json.url : "",
+      typeof json.additionalProps === "object" && json.additionalProps !== null
+        ? (json.additionalProps as Record<string, unknown>)
+        : {},
+    );
+  }
+}
+
 export class Chapter {
   source: string;
   novelTitle: string;
   novelUrl: string;
   title: string;
   content: string;
-  previousPage?: string;
-  nextPage?: string;
+  previousPage?: ChapterUrlPagination;
+  nextPage?: ChapterUrlPagination;
   url?: string;
   fullUrl?: string;
 
@@ -15,8 +41,8 @@ export class Chapter {
     novelUrl: string,
     title: string,
     content: string,
-    previousPage?: string,
-    nextPage?: string,
+    previousPage?: ChapterUrlPagination,
+    nextPage?: ChapterUrlPagination,
     url?: string,
     fullUrl?: string,
   ) {
@@ -60,14 +86,27 @@ export class Chapter {
       typeof json.novelUrl === "string" ? json.novelUrl : "",
       typeof json.title === "string" ? json.title : "",
       content,
-      typeof json.previousPage === "string" ? json.previousPage : undefined,
-      typeof json.nextPage === "string" ? json.nextPage : undefined,
+      typeof json.previousPage === "object" && json.previousPage !== null
+        ? ChapterUrlPagination.fromJSON(json.previousPage as Record<string, unknown>)
+        : undefined,
+      typeof json.nextPage === "object" && json.nextPage !== null
+        ? ChapterUrlPagination.fromJSON(json.nextPage as Record<string, unknown>)
+        : undefined,
       typeof json.url === "string" ? json.url : undefined,
       typeof json.fullUrl === "string" ? json.fullUrl : undefined,
     );
   }
 
   get props(): Array<string | undefined> {
-    return [this.source, this.novelTitle, this.novelUrl, this.title, this.content, this.previousPage, this.nextPage, this.url];
+    return [
+      this.source,
+      this.novelTitle,
+      this.novelUrl,
+      this.title,
+      this.content,
+      this.previousPage?.url,
+      this.nextPage?.url,
+      this.url,
+    ];
   }
 }

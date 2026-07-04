@@ -6,6 +6,7 @@ export class SearchResult {
   genres: string[];
   chapterCount: number | null;
   source: string;
+  additionalProps: Record<string, string>;
 
   constructor(
     url: string,
@@ -15,6 +16,7 @@ export class SearchResult {
     genres: string[],
     chapterCount: number | null,
     source: string,
+    additionalProps: Record<string, string> = {},
   ) {
     this.url = url;
     this.title = title;
@@ -23,6 +25,7 @@ export class SearchResult {
     this.genres = genres;
     this.source = source;
     this.chapterCount = chapterCount;
+    this.additionalProps = additionalProps;
   }
 
   static fromJSON(data: any): SearchResult {
@@ -34,6 +37,7 @@ export class SearchResult {
       data.genres || [],
       data.chapterCount || null,
       data.source || "",
+      data.additionalProps || {},
     );
   }
 
@@ -53,6 +57,7 @@ export class SearchResult {
       genres: this.genres,
       chapterCount: this.chapterCount,
       source: this.source,
+      additionalProps: this.additionalProps,
     };
   }
 }

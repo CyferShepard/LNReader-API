@@ -25,7 +25,7 @@ export class FavouriteWithNovelMeta extends NovelMeta {
     readCount: number = 0,
     categories: string[],
     chapter_date_added: string,
-    last_read: string
+    last_read: string,
   ) {
     super(source, url, cover, title, summary, author, status, genres, tags, lastUpdate ?? "Unknown", additionalProps);
     this.date_added = date_added;
@@ -37,6 +37,7 @@ export class FavouriteWithNovelMeta extends NovelMeta {
   }
 
   static override fromResult(data: any): FavouriteWithNovelMeta {
+    const tags = data.tags ? JSON.parse(data.tags) : [];
     return new FavouriteWithNovelMeta(
       data.date_added,
       data.source,
@@ -47,14 +48,14 @@ export class FavouriteWithNovelMeta extends NovelMeta {
       data.author,
       data.status,
       data.genres,
-      data.tags,
+      tags,
       data.lastUpdate,
       JSON.parse(data.additionalProps),
       data.chapterCount ?? 0,
       data.readCount ?? 0,
       data.categories,
       data.chapter_date_added,
-      data.last_read
+      data.last_read,
     );
   }
 
