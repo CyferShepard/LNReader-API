@@ -49,6 +49,8 @@ favouritesRouter.post("/insert", authMiddleware, async (context) => {
       novelMeta.genres,
       novelMeta.tags,
       novelMeta.lastUpdate ?? "Unknown",
+      novelMeta.additionalProps,
+      novelMeta.fullUrl,
     );
     console.log("Inserting Novel Meta:", JSON.stringify(novelData, null, 2));
     await dbSqLiteHandler.insertNovelMeta(novelData);
