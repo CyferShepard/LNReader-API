@@ -33,6 +33,11 @@ export class History {
   }
 
   static fromResult(data: any): History {
+    const chapterMeta = data.chapter ? ChapterMeta.fromJSON(JSON.parse(data.chapter)) : null;
+    const novelMeta = data.novel ? NovelMeta.fromJSON(JSON.parse(data.novel)) : null;
+    if (chapterMeta) {
+      chapterMeta.novelUrl = novelMeta ? novelMeta.url : ""; // Ensure novelUrl is available before creating History
+    }
     return new History(
       data.username,
       data.source,
@@ -40,8 +45,8 @@ export class History {
       new Date(data.last_read),
       data.page,
       data.position,
-      ChapterMeta.fromJSON(JSON.parse(data.chapter)),
-      NovelMeta.fromJSON(JSON.parse(data.novel)),
+      chapterMeta,
+      novelMeta,
     );
   }
 
