@@ -1,6 +1,5 @@
 import { Router } from "https://deno.land/x/oak@v17.2.0/mod.ts";
 import { dbSqLiteHandler } from "../classes/db-sqlite.ts";
-import { NovelMeta } from "../schemas/novel_meta.ts";
 import authMiddleware from "../utils/auth_middleware.ts";
 // import { Chapter } from "../schemas/chapter.ts";
 import { History } from "../schemas/history.ts";
@@ -75,22 +74,20 @@ historyRouter.post("/insert", authMiddleware, async (context) => {
 });
 
 historyRouter.post("/insertBulk", authMiddleware, async (context) => {
-  const { novel, chapters, page, position } = await context.request.body.jsonOrEmpty();
+  const { chapters, page, position } = await context.request.body.jsonOrEmpty();
 
-  if (novel == null || page == null || position == null || chapters == null) {
+  if (page == null || position == null || chapters == null) {
     context.response.body = { error: "All Fields are required" };
     return;
   }
 
-  const novelMeta: NovelMeta = NovelMeta.fromJSON(novel);
   const chapterData: ChapterMeta[] = ChapterMeta.fromJSONList(chapters);
   try {
-    await dbSqLiteHandler.insertNovelMeta(novelMeta);
     await dbSqLiteHandler.insertChapterMetaBulk(chapterData);
 
     const history: History[] = chapterData.map(
       (chapter) =>
-        new History(context.state.user.username, novelMeta.source, chapter.url, new Date(), page, position, chapter, novelMeta),
+        new History(context.state.user.username, chapter.source, chapter.url, new Date(), page, position, chapter, null),
     );
     await dbSqLiteHandler.insertHistoryBulk(history);
     // await dbSqLiteHandler.deleteHistoryExceptLatest(chapterData, novelMeta, context.state.user.username);
