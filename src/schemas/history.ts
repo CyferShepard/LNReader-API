@@ -36,7 +36,7 @@ export class History {
     const chapterMeta = data.chapter ? ChapterMeta.fromJSON(JSON.parse(data.chapter)) : null;
     const novelMeta = data.novel ? NovelMeta.fromJSON(JSON.parse(data.novel)) : null;
     if (chapterMeta) {
-      chapterMeta.novelUrl = novelMeta ? novelMeta.url : ""; // Ensure novelUrl is available before creating History
+      chapterMeta.novelUrl = novelMeta ? novelMeta.url : (chapterMeta.novelUrl ?? ""); // Ensure novelUrl is available before creating History
     }
     return new History(
       data.username,
