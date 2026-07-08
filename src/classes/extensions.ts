@@ -1,5 +1,5 @@
 import { QueryModel } from "../models/query_model.ts";
-import { Database } from "jsr:@db/sqlite@0.13";
+import { Database } from "jsr:@db/sqlite@0.11";
 
 // Extend the Array prototype
 declare global {
