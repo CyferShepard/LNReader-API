@@ -15,10 +15,16 @@ USER root
 # Set the working directory
 WORKDIR /app
 
+# Pre-download the native SQLite library so it doesn't need to be fetched at runtime
+# (avoids DNS/network failures on the VPS when the container starts)
+RUN curl -fsSL -o /usr/local/lib/libsqlite3.so \
+    https://github.com/denodrivers/sqlite3/releases/download/0.13.0/libsqlite3.so
+
+# Tell @db/sqlite to use the pre-downloaded library instead of fetching from GitHub
+ENV DENO_SQLITE_LOCAL=/usr/local/lib/libsqlite3.so
+
 # Copy the project files to the working directory
 COPY . .
-
-
 
 # Regenerate the lockfile
 RUN deno cache --reload --allow-scripts main.ts
