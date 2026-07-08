@@ -13,13 +13,16 @@ export class FavouritesUpdateChecker {
   constructor(private intervalMs: number = 60 * 60 * 1000) {} // default: 1 hour
 
   public async start() {
-    await downloadGithubFolder(
-      "CyferShepard/novel_reader_plugins", // repo
-      "configs", // folder url in repo
-      "main", // branch
-      "./src/plugins", // local destinationto send messages
-    );
-
+    try {
+      await downloadGithubFolder(
+        "CyferShepard/novel_reader_plugins", // repo
+        "configs", // folder url in repo
+        "main", // branch
+        "./src/plugins", // local destinationto send messages
+      );
+    } catch (err) {
+      console.error("[FavouritesUpdateChecker] Error downloading plugins:", err);
+    }
     await parserRegistry.loadParsers();
     console.info(`Loaded parser sources: ${parserRegistry.listSources().join(", ") || "none"}`);
     this.checkAndUpdate();
