@@ -20,7 +20,7 @@ WORKDIR /app
 ADD https://github.com/denodrivers/sqlite3/releases/download/0.13.0/libsqlite3.so /usr/local/lib/libsqlite3.so
 
 # Tell @db/sqlite to use the pre-downloaded library instead of fetching from GitHub
-ENV DENO_SQLITE_LOCAL=/usr/local/lib/libsqlite3.so
+ENV DENO_SQLITE_PATH=/usr/local/lib/libsqlite3.so
 
 # Copy the project files to the working directory
 COPY . .
