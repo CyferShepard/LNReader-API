@@ -21,8 +21,6 @@ COPY . .
 # Regenerate the lockfile
 RUN deno cache --reload --allow-scripts main.ts
 # Expose the port that your Deno application will run on
-EXPOSE 8000
 
 # Run the Deno application
-
 CMD ["run","start"]

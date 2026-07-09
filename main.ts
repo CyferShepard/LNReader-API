@@ -64,7 +64,8 @@ await backupService.start();
 
 checker.start();
 
-const port = 8000;
+const port = Deno.env.get("PORT") ?? "8000";
+
 console.info(`Server is running on http://localhost:${port}`);
 
-await app.listen({ port });
+await app.listen({ port: Number(port) });
