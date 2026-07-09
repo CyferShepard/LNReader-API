@@ -11,7 +11,7 @@ import { History } from "../schemas/history.ts";
 import { ImageCache } from "../schemas/imageCache.ts";
 import { NovelMeta } from "../schemas/novel_meta.ts";
 import { User } from "../schemas/users.ts";
-import { Database } from "jsr:@db/sqlite@0.11";
+import { Database } from "jsr:@db/sqlite@0.13";
 
 class DBSqLiteHandler {
   public db: Database | undefined;
