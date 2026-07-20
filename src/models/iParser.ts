@@ -16,6 +16,16 @@ export interface iParser {
 
 export abstract class ParserBase implements iParser {
   private static readonly INVISIBLE_UNICODE_REGEX = /[\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g;
+  private static readonly HTML_ENTITY_REGEX = /&(#x?[0-9a-fA-F]+|[a-zA-Z]+);/g;
+  private static readonly HTML_ENTITY_LOOKUP: Record<string, string> = {
+    amp: "&",
+    apos: "'",
+    gt: ">",
+    lt: "<",
+    nbsp: " ",
+    quot: '"',
+    "#39": "'",
+  };
 
   abstract source: string;
   abstract filters: SourceFilterField[];
@@ -47,8 +57,30 @@ export abstract class ParserBase implements iParser {
     return value.replace(ParserBase.INVISIBLE_UNICODE_REGEX, "");
   }
 
+  protected decodeHtmlEntities(value: unknown): string {
+    if (typeof value !== "string") {
+      return "";
+    }
+
+    return value.replace(ParserBase.HTML_ENTITY_REGEX, (match, entity: string) => {
+      const normalizedEntity = entity.toLowerCase();
+
+      if (normalizedEntity.startsWith("#x")) {
+        const codePoint = Number.parseInt(normalizedEntity.slice(2), 16);
+        return Number.isNaN(codePoint) ? match : String.fromCodePoint(codePoint);
+      }
+
+      if (normalizedEntity.startsWith("#")) {
+        const codePoint = Number.parseInt(normalizedEntity.slice(1), 10);
+        return Number.isNaN(codePoint) ? match : String.fromCodePoint(codePoint);
+      }
+
+      return ParserBase.HTML_ENTITY_LOOKUP[normalizedEntity] ?? match;
+    });
+  }
+
   protected cleanText(value: unknown): string {
-    return this.cleanUnicode(this.normalizeText(value));
+    return this.cleanUnicode(this.decodeHtmlEntities(this.normalizeText(value)));
   }
 
   protected parseInteger(value: unknown, fallback = 0, radix = 10): number {
