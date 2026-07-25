@@ -284,7 +284,7 @@ apiRouter.get("/updatePlugins", authMiddleware, async (context) => {
       "main", // branch
       "./src/plugins", // local destinationto send messages
     );
-    await parserRegistry.loadParsers();
+    await parserRegistry.loadParsers(true);
   } catch (e) {
     console.error("Error updating plugins:", e);
     broadcastMessage(new Map().set("type", "updatePlugins").set("message", `Error updating plugins`));
